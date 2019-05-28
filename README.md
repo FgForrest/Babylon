@@ -1,0 +1,1 @@
+Project that provides support for Java property file translation.
