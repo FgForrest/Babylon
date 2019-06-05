@@ -1,5 +1,6 @@
-package com.fg.util.translator.entity;
+package com.fg.util.babylon.entity;
 
+import com.fg.util.babylon.enums.Action;
 import lombok.Data;
 
 /**
@@ -8,10 +9,17 @@ import lombok.Data;
  */
 @Data
 public class Arguments {
+
     /**
-     * FileName and relative path to the JSON configuration file.
+     * See {@link Action}
+     */
+    private Action action;
+
+    /**
+     * FileName and relative path to the Json configuration file.
      */
     private String configFileName;
+
     /**
      * Id of the target google sheet.
      */
