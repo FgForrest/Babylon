@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Service to work with google spreadsheets.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @Service
@@ -49,8 +50,8 @@ public class GoogleSheetService {
      * @param sheetParams sheet parameters
      * @return If sheet already exists then will be returned. If not then null will be returned.
      * @throws GeneralSecurityException
-     * @throws IOException
-     */
+     * @throws IOException some exception derived from {@link IOException}
+    */
     public Sheet addSheet(final String spreadsheetId, final SheetParams sheetParams) throws GeneralSecurityException, IOException {
         Sheet sheetByTitle = getSheet(spreadsheetId, sheetParams.getSheetTitle());
         if (sheetByTitle != null) {
@@ -71,8 +72,8 @@ public class GoogleSheetService {
      * @param sheetTitle unique sheet title
      * @return
      * @throws GeneralSecurityException
-     * @throws IOException
-     */
+     * @throws IOException some exception derived from {@link IOException}
+    */
     public Sheet getSheet(final String spreadsheetId, final String sheetTitle) throws GeneralSecurityException, IOException {
         Spreadsheet spreadsheet = getSheetService().spreadsheets().get(spreadsheetId).execute();
         List<Sheet> sheets = spreadsheet.getSheets();
@@ -82,13 +83,41 @@ public class GoogleSheetService {
     }
 
     /**
-     * Clears all data (not formatting) in target sheet (by range) of spreadsheet specified by spreadsheetId!
+     * Gets all sheets from given spreadsheet. Method gets only basic information about each sheet without their data.
+     * Data of each sheet must be read individually by {@link #readDataFromSheet(String, String)} method or if you want
+     * to get all sheet with their data at once, then you must use {@link #getAllSheetsWithData(String)} method instead.
+     * @param spreadsheetId spreadsheet ID
+     * @return
+     * @throws GeneralSecurityException
+     * @throws IOException some exception derived from {@link IOException}
+    */
+    public List<Sheet> getAllSheets(final String spreadsheetId) throws GeneralSecurityException, IOException {
+        Spreadsheet spreadsheet = getSheetService().spreadsheets().get(spreadsheetId).execute();
+        return spreadsheet.getSheets();
+    }
+
+    /**
+     * Gets all sheets from given spreadsheet with all their data.
+     * @param spreadsheetId spreadsheet ID
+     * @return
+     * @throws GeneralSecurityException
+     * @throws IOException some exception derived from {@link IOException}
+    */
+    public List<Sheet> getAllSheetsWithData(final String spreadsheetId) throws GeneralSecurityException, IOException {
+        Sheets.Spreadsheets.Get request = getSheetService().spreadsheets().get(spreadsheetId);
+        request.setIncludeGridData(true);
+        Spreadsheet spreadsheet = request.execute();
+        return spreadsheet.getSheets();
+    }
+
+    /**
+     * Use with great caution! Clears all data of spreadsheet (not formatting) in target sheet (by range)!
      * @param spreadsheetId spreadsheet ID
      * @param range The A1 notation of the values to clear. You can also target to whole sheet by using its unique sheet title e.g. "Sheet 1".
      * @return
      * @throws GeneralSecurityException
-     * @throws IOException
-     */
+     * @throws IOException some exception derived from {@link IOException}
+    */
     public ClearValuesResponse clearSheetData(final String spreadsheetId, final String range) throws GeneralSecurityException, IOException {
         ClearValuesRequest requestBody = new ClearValuesRequest();
         Sheets.Spreadsheets.Values.Clear request = getSheetService().spreadsheets().values().clear(spreadsheetId, range, requestBody);
@@ -99,7 +128,7 @@ public class GoogleSheetService {
      * Update count of sheet rows and column by {@link SheetParams#getRowCount()} and {@link SheetParams#getColumnCount()} values.
      * @param spreadsheetId spreadsheet ID
      * @param sheetParams sheet parameters
-     * @throws IOException
+     * @throws IOException some exception derived from {@link IOException}
      * @throws GeneralSecurityException
      */
     public void setSheetRowAndColCount(final String spreadsheetId, final SheetParams sheetParams) throws IOException, GeneralSecurityException {
@@ -112,11 +141,35 @@ public class GoogleSheetService {
     }
 
     /**
+     * Reads data from the specified range of spreadsheet.
+     * @param spreadsheetId Spreadsheet ID.
+     * @param range You can also specify sheet name like e.g. "List1!A1:D3", if sheet name is missing,
+     *              then range will be read from first sheet.
+     * @return Data as List of {@link List&lt;List&lt;Object&gt;&gt;} or {@link Collections#emptyList()} if data not found.
+     * @throws GeneralSecurityException
+     * @throws IOException some exception derived from {@link IOException}
+    */
+    public List<List<Object>> readDataFromSheet(final String spreadsheetId, final String range) throws GeneralSecurityException, IOException {
+        Sheets service = getSheetService();
+        ValueRange response = service.spreadsheets().values()
+                .get(spreadsheetId, range)
+                .execute();
+        List<List<Object>> values = response.getValues();
+        if (values == null || values.isEmpty()) {
+            log.info("No data found.");
+            values = Collections.emptyList();
+        } else {
+            values.stream().map(row -> row.stream().map(Object::toString).collect(Collectors.joining(";"))).forEach(log::debug);
+        }
+        return values;
+    }
+
+    /**
      * Writes data into specified range of spreadsheet.
      * @param spreadsheetId spreadsheet ID
      * @param range The A1 notation of the values to update. You can also target to whole sheet by using its unique sheet title e.g. "Sheet 1".
      * @param values Values to write.
-     * @throws IOException
+     * @throws IOException some exception derived from {@link IOException}
      * @throws GeneralSecurityException
      */
     public void writeDataIntoSheet(final String spreadsheetId, final String range, final List<List<Object>> values) throws IOException, GeneralSecurityException {
@@ -133,8 +186,8 @@ public class GoogleSheetService {
      * @param spreadsheetId spreadsheet ID
      * @param sheetId sheet ID
      * @throws GeneralSecurityException
-     * @throws IOException
-     */
+     * @throws IOException some exception derived from {@link IOException}
+    */
     public void setAutoResizeColumns(final String spreadsheetId, final Integer sheetId) throws GeneralSecurityException, IOException {
         List<Request> requests = new ArrayList<>();
         DimensionRange dimensionRange = new DimensionRange()
@@ -143,6 +196,23 @@ public class GoogleSheetService {
         AutoResizeDimensionsRequest dimensionsRequest = new AutoResizeDimensionsRequest()
                 .setDimensions(dimensionRange);
         requests.add(new Request().setAutoResizeDimensions(dimensionsRequest));
+        executeSpreadsheetBatchUpdate(spreadsheetId, requests);
+    }
+
+    /**
+     * Hide specified range (ROWS, COLUMNS) in spreadsheet.
+     * @param spreadsheetId spreadsheet ID
+     * @param dimensionRange all necessary parameters for hide range
+     */
+    public void hideDimensionRange(final String spreadsheetId, final DimensionRange dimensionRange) throws IOException, GeneralSecurityException {
+        List<Request> requests = new ArrayList<>();
+        DimensionProperties dimensionProperties = new DimensionProperties()
+                .setHiddenByUser(Boolean.TRUE);
+        UpdateDimensionPropertiesRequest dimensionsRequest = new UpdateDimensionPropertiesRequest()
+                .setRange(dimensionRange)
+                .setProperties(dimensionProperties)
+                .setFields("hiddenByUser");
+        requests.add(new Request().setUpdateDimensionProperties(dimensionsRequest));
         executeSpreadsheetBatchUpdate(spreadsheetId, requests);
     }
 
@@ -182,8 +252,8 @@ public class GoogleSheetService {
      * Get cached or build a new authorized API client service.
      * @return
      * @throws GeneralSecurityException
-     * @throws IOException
-     */
+     * @throws IOException some exception derived from {@link IOException}
+    */
     @NonNull
     private Sheets getSheetService() throws GeneralSecurityException, IOException {
         if (sheetService == null) {
@@ -206,9 +276,6 @@ public class GoogleSheetService {
         if (credential == null) {
             // Load client secrets.
             InputStream in = new FileInputStream(googleCredentialsJson);
-            if (in == null) {
-                throw new FileNotFoundException("Resource not found: " + googleCredentialsJson);
-            }
             GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
             // Build flow and trigger user authorization request.
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
@@ -220,30 +287,5 @@ public class GoogleSheetService {
             credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
         }
         return credential;
-    }
-
-    /**
-     *
-     * @param spreadsheetId Spreadsheet ID.
-     * @param range You can also specify sheet name like e.g. "List1!A1:D3", if sheet name is missing,
-     *              then range will be read from first sheet.
-     * @return
-     * @throws GeneralSecurityException
-     * @throws IOException
-     */
-    public List<List<Object>> testReadExample(final String spreadsheetId, final String range) throws GeneralSecurityException, IOException {
-        Sheets service = getSheetService();
-        ValueRange response = service.spreadsheets().values()
-                .get(spreadsheetId, range)
-                .execute();
-        List<List<Object>> values = response.getValues();
-        if (values == null || values.isEmpty()) {
-            log.info("No data found.");
-        } else {
-            for (List row : values) {
-                log.info(row.stream().map(col -> col.toString()).collect(Collectors.joining(";")));
-            }
-        }
-        return values;
     }
 }

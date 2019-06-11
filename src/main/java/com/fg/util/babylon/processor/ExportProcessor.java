@@ -1,27 +1,33 @@
 package com.fg.util.babylon.processor;
 
 
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.DataPropFile;
 import com.fg.util.babylon.entity.PropertiesMap;
 import com.fg.util.babylon.entity.SheetParams;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.enums.PropertyStatus;
 import com.fg.util.babylon.exception.SheetExistsException;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.services.sheets.v4.Sheets;
+import com.fg.util.babylon.properties.FileProperties;
+import com.fg.util.babylon.properties.PropValue;
+import com.fg.util.babylon.properties.Property;
+import com.fg.util.babylon.util.JsonUtils;
+import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
-import com.google.api.services.sheets.v4.model.ValueRange;
 import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Processor for {@link Action#EXPORT} action.
@@ -39,14 +45,15 @@ public class ExportProcessor extends BaseProcessor {
         for (String path : configuration.getPath()) {
             processPath(path);
         }
-        uploadDataToGoogleSheet();
+        uploadDataToGoogleSpreadsheet();
+        saveDataFileWithoutProperties();
     }
 
     /**
      * Processing of one language property path (primary language properties files and its language mutations files).
      * @param path path to one or more primary properties files.
-     * @throws IOException
-     */
+     * @throws IOException some exception derived from {@link IOException}
+    */
     private void processPath(String path) throws IOException {
         // Get all files from path by org.springframework.core.io.support.PathMatchingResourcePatternResolver.
         List<String> propFilesPaths = getPropertiesFilesPathsFromPath(path);
@@ -64,8 +71,8 @@ public class ExportProcessor extends BaseProcessor {
      * Gets all relative paths of files for given path by org.springframework.core.io.support.PathMatchingResourcePatternResolver.
      * @param path Path can contains masked expressions for by org.springframework.core.io.support.PathMatchingResourcePatternResolver.
      * @return
-     * @throws IOException
-     */
+     * @throws IOException some exception derived from {@link IOException}
+    */
     private List<String> getPropertiesFilesPathsFromPath(String path) throws IOException {
         Resource[] resources = pathResolver.getResources("file:" + path);
         List<String> list = new ArrayList<>();
@@ -80,31 +87,25 @@ public class ExportProcessor extends BaseProcessor {
     }
 
     private void processPropertiesOfFile(String primaryPropFilePath) throws IOException {
-        Properties primaryProperties = loadPropertiesFromFile(primaryPropFilePath);
+        FileProperties primaryProperties = loadPropertiesFromFile(primaryPropFilePath);
         if (primaryProperties == null) {
             throw new FileNotFoundException("Primary properties file: " + primaryPropFilePath + " not exists.");
         }
-        Map<String, Properties> mutationsProperties = loadSecondaryMutationsProperties(primaryPropFilePath);
-        for (Map.Entry<Object, Object> entry : primaryProperties.entrySet()) {
-            String key = (String) entry.getKey();
-            String value = (String) entry.getValue();
-            DataPropFile primaryDataPropFile = getOrCreateDataFile().getOrPutNewDataPropFile(primaryPropFilePath);
-            // - porovná jejich hodnoty s hodnotou daného klíče v rámci daného souboru s hodnotou uloženou v datovém jsonu
-            primaryDataPropFile.putProperty(key, value);
-            /**
-             * v rámci každého souboru projede všechny klíče a:
-             * - porovná jejich hodnoty s hodnotou daného klíče v rámci daného souboru s hodnotou uloženou v datovém jsonu
-             * - zkontroluje, že daný klíč existuje v souborech sekundárních mutací (nebo, že neexistují soubor/y sekundárních mutací)
-             * pokud se:
-             * - hodnota liší (byla provedena úprava v primární mutaci a je potřeba přeložit znovu všechny sekundární mutace)
-             * - hodnota v jsonu úplně chybí (je to nová věc v primární mutace a je třeba ji přeložit do všech sekundárních mutací)
-             * - nebo neexistuje soubor některé ze sekundárních mutacích uvedených v konfiguraci (je to nová mutace do které se bude překládat)
-             */
-
-            /**
-             * ** zkontroluje, že daný klíč existuje v souborech sekundárních mutací (nebo, že neexistují soubor/y sekundárních mutací)
-             */
-            processSecondaryMutations(key, mutationsProperties, primaryPropFilePath, primaryDataPropFile);
+        Map<String, FileProperties> mutationsProperties = loadSecondaryMutationsProperties(primaryPropFilePath);
+        for (Map.Entry<String, Property> entry : primaryProperties.entrySet()) {
+            String key = entry.getKey();
+            Property value = entry.getValue();
+            // Skip processing of comments and empty lines, process only simple or multiline key=value values.
+            if (!value.isPropValue() && !value.isPropValueMultiLine()) {
+                continue;
+            }
+            DataPropFile primaryDataPropFile = getOrCreateDataFile().getOrPutNewPropFileByFileName(primaryPropFilePath);
+            // Compares value to that key value within a given file with the value stored in the DataPropFile object read from Json data file.
+            // - Keys which not found in Json data file is marked as NEW.
+            // - Keys which value is different from value in Json data file is marked as CHANGED.
+            primaryDataPropFile.putProperty(key, value.getValue());
+            // Checks that the key exists in secondary mutation files (or that there are no secondary mutations)
+            processSecondaryMutations(key, mutationsProperties, primaryDataPropFile);
         }
     }
 
@@ -112,16 +113,12 @@ public class ExportProcessor extends BaseProcessor {
      * Method loads all properties from mutation files for given primary language file.
      * @return returns map where key is mutation and value is properties loaded from mutation file.
      */
-    private Map<String, Properties> loadSecondaryMutationsProperties(String primaryPropertyFilePath) throws IOException {
-        Map<String, Properties> map = new HashMap<>();
+    private Map<String, FileProperties> loadSecondaryMutationsProperties(String primaryPropertyFilePath) throws IOException {
+        Map<String, FileProperties> map = new HashMap<>();
         for (String mutation : configuration.getMutations()) {
             String secPropFileNamePath = getFileNameForMutation(primaryPropertyFilePath, mutation);
-            Properties properties = loadPropertiesFromFile(secPropFileNamePath);
-            if (properties == null) {
-                log.warn("Properties file \"" + secPropFileNamePath + "\" for mutation: \"" + mutation + "\" doesn't exists");
-            } else {
-                map.put(mutation, properties);
-            }
+            FileProperties properties = Optional.ofNullable(loadPropertiesFromFile(secPropFileNamePath)).orElse(new FileProperties());
+            map.put(mutation, properties);
         }
         return map;
     }
@@ -130,102 +127,87 @@ public class ExportProcessor extends BaseProcessor {
      * Processing all defined secondary mutations of key, defined in configuration for given primary properties file.
      * @param key primary property key
      * @param filesMutationProps map with all properties from secondary mutation files
-     * @param primaryPropertyFilePath file path of primary property
      * @param primaryDataPropFile data of primary property file
-     * @throws IOException
      */
     private void processSecondaryMutations(String key,
-                                           Map<String, Properties> filesMutationProps,
-                                           String primaryPropertyFilePath,
-                                           DataPropFile primaryDataPropFile) throws IOException {
-        PropertyStatus primaryPropertyStatus = primaryDataPropFile.getPropertyStatus(key);
+                                           Map<String, FileProperties> filesMutationProps,
+                                           DataPropFile primaryDataPropFile) {
+        PropertyStatus primaryPropStatus = primaryDataPropFile.getPropertyStatus(key);
         for (String mutation : configuration.getMutations()) {
-            final Properties properties = Optional.ofNullable(filesMutationProps.get(mutation)).orElse(new Properties());
-            // Set value of property from existing properties file or set defaultValue if property not found.
-            final String propValue = (String) Optional.ofNullable(properties.get(key)).orElse(EMPTY_VAL);
-            // Log property not found if value is default and properties is not empty (which indicates a nonexistent mutation properties file)
-            if (propValue.isEmpty() && !properties.isEmpty()) {
-                String secPropFileNamePath = getFileNameForMutation(primaryPropertyFilePath, mutation);
-                log.warn("Value for key \"" + key + "\" in properties file \"" + secPropFileNamePath + "\" for mutation \"" + mutation + "\" doesn't exists");
+            // Read all properties for secondary mutation.
+            final FileProperties properties = Optional.ofNullable(filesMutationProps.get(mutation)).orElse(new FileProperties());
+            // Get value of property from existing properties file or set empty value if property not found.
+            Property propValue = Optional.ofNullable(properties.get(key)).orElse(new PropValue(EMPTY_VAL));
+            PropertiesMap mutationPropsMap = primaryDataPropFile.getMutationProperties(mutation);
+            if (mutationPropsMap == null) {
+                mutationPropsMap = new PropertiesMap();
+                primaryDataPropFile.putMutationProperties(mutation, mutationPropsMap);
             }
-            // TODO: sekundarni soubor se tam vubec davat nebude, informace o sekundarnich mutacich
-            //  budou ulozeny do DataPropFile#mutationProperties
-            PropertiesMap mutationPropsMap = Optional.ofNullable(primaryDataPropFile.getMutationProperties(mutation)).orElse(new PropertiesMap());
-            mutationPropsMap.put(key, propValue, primaryPropertyStatus);
-            primaryDataPropFile.putMutationProperties(mutation, mutationPropsMap);
+            // If property doesn't exists in file of secondary mutation or file for secondary mutation doesn't exists...
+            if (properties.get(key) == null) {
+                // set its value to empty string and status to NEW.
+                mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.NEW);
+            } else {
+                // Otherwise use primaryPropStatus. This covers scenarios:
+                // - new property in primary mutation file (key not exists in Json DataFile) -> status = NEW
+                // - changes of property value in primary mutation file -> status = CHANGED, propValue = ""
+                if (primaryPropStatus == PropertyStatus.CHANGED) {
+                    propValue.setValue(EMPTY_VAL);
+                }
+                mutationPropsMap.put(key, propValue.getValue(), primaryPropStatus);
+            }
 
-//            DataPropFile secDataPropFile = getOrCreateDataFile().getOrPutNewDataPropFile(secPropFileNamePath);
-//            // If property doesn't exists in DataFile or DataFile itself doesn't exists...
-//            if (secDataPropFile.getPropertyValue(key) == null) {
-//                // Set its status to NEW.
-//                secDataPropFile.putProperty(key, EMPTY_VAL, PropertyStatus.NEW);
-//            } else {
-//                // Otherwise use primaryPropertyStatus
-//                switch (primaryPropertyStatus) {
-//                    case NEW:
-//                    case CHANGED:
-//                        secDataPropFile.putProperty(key, EMPTY_VAL);
-//                        break;
-//                    default:
-//                        secDataPropFile.putProperty(key, propValue);
-//                }
-//                secDataPropFile.putPropertyStatus(key, primaryPropertyStatus);
-//            }
         }
     }
 
-    public void uploadDataToGoogleSheet() throws GeneralSecurityException, IOException {
+    /**
+     * Uploads data {@link BaseProcessor#getOrCreateDataFile()} into google spreadsheet specified by {@link Arguments#getGoogleSheetId()}.
+     * @throws GeneralSecurityException
+     * @throws IOException some exception derived from {@link IOException}
+    */
+    private void uploadDataToGoogleSpreadsheet() throws GeneralSecurityException, IOException {
         Map<String, DataPropFile> dataPropFiles = getOrCreateDataFile().getDataPropFiles();
         for (Map.Entry<String, DataPropFile> entry : dataPropFiles.entrySet()) {
-            String sheetTitle = entry.getKey();
-            log.info("Uploading data of " + sheetTitle + " to google sheet...");
+            String fileNamePath = entry.getKey();
             DataPropFile dataPropFile = entry.getValue();
-            Integer columnCount = configuration.getMutations().size() + 2;
-            Integer rowCount = dataPropFile.getProperties().size() + 1;
-            SheetParams sheetParams = new SheetParams(sheetTitle, columnCount, rowCount);
-            // Freeze first row (header)
-            sheetParams.setFrozenRowCount(1);
-            // Disabled temporary for testing.
-            Sheet sheet = googleSheetService.addSheet(arguments.getGoogleSheetId(), sheetParams);
-//            if (sheet != null) {
-//                throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
-//            }
-            List<List<Object>> sheetData = new LinkedList<>();
-            // Add header into sheet
-            sheetData.addAll(createSheetHeader());
-            // Add data into sheet
-            sheetData.addAll(createSheetData(dataPropFile));
-            googleSheetService.writeDataIntoSheet(arguments.getGoogleSheetId(), sheetTitle, sheetData);
-            sheet = googleSheetService.getSheet(arguments.getGoogleSheetId(), sheetTitle);
-            googleSheetService.setAutoResizeColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
-            // TODO: Ukotvit prvni radek, mozna by bylo i dobre tu hlavicku nejak zvyraznit.
-            // GridProperties#setFrozenRowCount udělal jsem v metodě addSheet nastavenim SheetParams#frozenRowCount
-            // TODO: Skrýt první sloupec s klíči, protože ty nejsou pro překladatele důležité.
-            /**
-             * requests.append({
-             *   'updateDimensionProperties': {
-             *     "range": {
-             *       "sheetId": sheet_id,
-             *       "dimension": 'COLUMNS',
-             *       "startIndex": 4,
-             *       "endIndex": 5,
-             *     },
-             *     "properties": {
-             *       "hiddenByUser": True,
-             *     },
-             *     "fields": 'hiddenByUser',
-             * }})
-             * Pro danou dimension nastavím skrytí takto. dimension nastavím na "COLUMNS"
-             * a startIndex a endIndex nastavím na 1 abych skryl první sloupec.
-             * Jako přepravku použiju přímo DimensionRange to se vyplatí.
-             * UpdateDimensionPropertiesRequest#DimensionProperties#setHiddenByUser
-             */
+            // Title of target google sheet is created from "properties fileName only" + "#" + "fileName id".
+            String sheetTitle = FilenameUtils.getBaseName(fileNamePath) + "#" + dataPropFile.getId();
+            log.info("Uploading data of \"" + fileNamePath + "\" into google sheet \"" + sheetTitle + "\"...");
+            Sheet sheet = createGoogleSheet(dataPropFile, sheetTitle);
+            if (sheet != null) {
+                throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
+            }
+            uploadDataToGoogleSheet(dataPropFile, sheetTitle);
         }
+    }
+
+    private Sheet createGoogleSheet(DataPropFile dataPropFile, String sheetTitle) throws GeneralSecurityException, IOException {
+        Integer columnCount = configuration.getMutations().size() + 2;
+        Integer rowCount = dataPropFile.getProperties().size() + 1;
+        SheetParams sheetParams = new SheetParams(sheetTitle, columnCount, rowCount);
+        // Freezes first row (header) to prevent scrolling of this row with rest of data.
+        if (rowCount > 1) {
+            sheetParams.setFrozenRowCount(1);
+        }
+        return googleSheetService.addSheet(arguments.getGoogleSheetId(), sheetParams);
+    }
+
+    private void uploadDataToGoogleSheet(DataPropFile dataPropFile, String sheetTitle) throws IOException, GeneralSecurityException {
+        Sheet sheet;
+        List<List<Object>> sheetData = new LinkedList<>();
+        // Add header into sheet
+        sheetData.addAll(createSheetHeader());
+        // Add data into sheet
+        sheetData.addAll(createSheetData(dataPropFile));
+        googleSheetService.writeDataIntoSheet(arguments.getGoogleSheetId(), sheetTitle, sheetData);
+        sheet = googleSheetService.getSheet(arguments.getGoogleSheetId(), sheetTitle);
+        googleSheetService.setAutoResizeColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
+        hideSheetFirstColumn(sheet.getProperties().getSheetId());
     }
 
     private List<List<Object>> createSheetHeader() {
         List<List<Object>> sheetHeader = new LinkedList<>();
-        List<Object> headerValues = new LinkedList<>(Arrays.asList("key", "primary"));
+        List<Object> headerValues = new LinkedList<>(Arrays.asList(COL_KEY, COL_PRIMARY));
         headerValues.addAll(configuration.getMutations());
         sheetHeader.add(headerValues);
         return sheetHeader;
@@ -239,12 +221,41 @@ public class ExportProcessor extends BaseProcessor {
             // Add all secondary mutations values
             for (String mutation : configuration.getMutations()) {
                 PropertiesMap mutationsPropsMap = dataPropFile.getMutationProperties(mutation);
+                if (mutationsPropsMap == null) {
+                    mutationsPropsMap = new PropertiesMap();
+                    dataPropFile.putMutationProperties(mutation, mutationsPropsMap);
+                }
                 String mutationValue = mutationsPropsMap.get(entry.getKey());
                 rowValues.add(mutationValue);
             }
             sheetData.add(rowValues);
         }
         return sheetData;
+    }
+
+    /**
+     * Hiding of first column which contains properties keys, because it's not important for workers in translation agency.
+     * @param sheetId ID of the target sheet
+     * @throws IOException some exception derived from {@link IOException}
+     * @throws GeneralSecurityException
+     */
+    private void hideSheetFirstColumn(Integer sheetId) throws IOException, GeneralSecurityException {
+        DimensionRange dimensionRange = new DimensionRange()
+                .setSheetId(sheetId)
+                .setDimension("COLUMNS")
+                .setStartIndex(0)
+                .setEndIndex(1);
+        googleSheetService.hideDimensionRange(arguments.getGoogleSheetId(), dimensionRange);
+    }
+
+    /**
+     * Saves created DataFile object without properties into file on disk.
+     */
+    public void saveDataFileWithoutProperties() throws IOException {
+        String[] ignorableFieldNames = { "properties" };
+        FilterProvider filters = new SimpleFilterProvider()
+                .addFilter("DataPropFileFilter", SimpleBeanPropertyFilter.serializeAllExcept(ignorableFieldNames));
+        JsonUtils.objToJsonFile(new File(configuration.getDataFileName()), getOrCreateDataFile(), true, filters);
     }
 
 }

@@ -30,11 +30,6 @@ public class GoogleSheetServiceTest {
     protected GoogleSheetService googleSheetService;
 
     @Test
-    public void checkGoogleSheet() throws GeneralSecurityException, IOException {
-        googleSheetService.testReadExample(GOOGLE_SHEET_ID, "A1:D8");
-    }
-
-    @Test
     public void checkAddSheet() throws GeneralSecurityException, IOException {
         SheetParams sheetParams = new SheetParams(SHEET_NAME, 5, 1000);
         Sheet sheet = googleSheetService.addSheet(GOOGLE_SHEET_ID, sheetParams);
@@ -46,11 +41,6 @@ public class GoogleSheetServiceTest {
     }
 
     @Test
-    public void checkClearSheet() throws GeneralSecurityException, IOException {
-        googleSheetService.clearSheetData(GOOGLE_SHEET_ID, SHEET_NAME);
-    }
-
-    @Test
     @Ignore
     public void checkSetSheetRowAndColCount() throws IOException, GeneralSecurityException {
         SheetParams sheetParams = new SheetParams(SHEET_NAME, 10, 10);
@@ -58,11 +48,12 @@ public class GoogleSheetServiceTest {
     }
 
     @Test
+    @Ignore
     public void chekWriteData() throws IOException, GeneralSecurityException {
         List<List<Object>> values = Arrays.asList(
-                // TODO: Put header into sheet
+                // Put header into sheet
                 Arrays.asList("headA1", "headA2", "headA3", "headA4", "headA5", "headA6"),
-                // TODO: Put properties into sheet
+                // Put properties into sheet
                 Arrays.asList("valB1", "headB2", "headB3"),
                 Arrays.asList("valC1", "headC2", "headC3")
         );

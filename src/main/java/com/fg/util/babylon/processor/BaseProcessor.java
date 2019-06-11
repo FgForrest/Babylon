@@ -3,8 +3,11 @@ package com.fg.util.babylon.processor;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.Configuration;
 import com.fg.util.babylon.entity.DataFile;
+import com.fg.util.babylon.exception.EmptyDbFileException;
+import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.util.JsonUtils;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -16,23 +19,27 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Properties;
 
 /**
  * Base class for all processors.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @Component
+@CommonsLog
 public abstract class BaseProcessor {
 
-    protected static final String EMPTY_VAL = "";
+    /** Name of the column with names of the properties in google sheet. */
+    static final String COL_KEY = "key";
+    /** Name of the column with text values of the primary mutation in google sheet. */
+    static final String COL_PRIMARY = "primary";
+    static final String EMPTY_VAL = "";
 
     @Autowired
     protected GoogleSheetService googleSheetService;
 
     protected Arguments arguments;
     protected Configuration configuration;
-    protected PathMatchingResourcePatternResolver pathResolver = new PathMatchingResourcePatternResolver();
+    PathMatchingResourcePatternResolver pathResolver = new PathMatchingResourcePatternResolver();
     private DataFile dataFile;
 
     public void startTranslation(Arguments arguments) throws IOException, GeneralSecurityException {
@@ -54,29 +61,34 @@ public abstract class BaseProcessor {
     /**
      * Loads properties from file.
      * @param fileNamePath
-     * @return Returns loaded file properties or null if file not exists.
-     * @throws IOException
-     */
-    protected Properties loadPropertiesFromFile(String fileNamePath) throws IOException {
+     * @return Returns loaded file {@link FileProperties} or null if file not exists.
+     * @throws IOException some exception derived from {@link IOException}
+    */
+    FileProperties loadPropertiesFromFile(String fileNamePath) throws IOException {
         if (!new File(fileNamePath).exists()) {
             return null;
         }
-        Properties properties = new Properties();
+        FileProperties fileProperties = new FileProperties();
         FileReader fileReader = new FileReader(fileNamePath);
-        properties.load(fileReader);
-        return properties;
+        fileProperties.load(fileReader);
+        return fileProperties;
     }
 
     /**
-     * Gets existing or create new {@link DataFile} according to physically existence of file with name specified by {@link Configuration#getDataFileName()}{@link DataFile}
+     * Gets existing {@link DataFile} object (from Json file on disk) or create new {@link DataFile} object,
+     * according to file name specified by  {@link Configuration#getDataFileName()}
      * @return {@link DataFile}
-     * @throws IOException
-     */
+     * @throws IOException some exception derived from {@link IOException}
+    */
     protected DataFile getOrCreateDataFile() throws IOException {
         if (dataFile == null) {
             File file = new File(getDataFileName());
             if (file.exists()) {
+                if (file.length() == 0) {
+                    throw new EmptyDbFileException("Db file \"" + file.getAbsolutePath() + "\" is empty");
+                }
                 dataFile = JsonUtils.jsonObjFromFile(file, DataFile.class);
+                loadDataPropFilesIds();
             } else {
                 dataFile = new DataFile();
             }
@@ -85,8 +97,22 @@ public abstract class BaseProcessor {
     }
 
     /**
-     * Get data file name like {@link Configuration#getDataFileName()} .json extension if not appended.
-     * @return
+     * This map {@link DataFile#getDataPropFilesById()} is excluded from Json serialization, so after deserialization of
+     * {@link DataFile} from file is necessary to load this map from loaded {@link DataFile#getDataPropFiles()}.
+     */
+    private void loadDataPropFilesIds() {
+        dataFile.getDataPropFiles().forEach((key, value) -> {
+            if (value.getId() != null) {
+                dataFile.putDataPropFileById(value.getId(), value);
+            } else {
+                log.warn("Id for path \"" + key + "\" not found.");
+            }
+        });
+    }
+
+    /**
+     * Get data file name like {@link Configuration#getDataFileName()} + .json extension if not appended.
+     * @return correct file name.
      */
     private String getDataFileName() {
         String resultFileName = configuration.getDataFileName();
@@ -97,21 +123,21 @@ public abstract class BaseProcessor {
     }
 
     /**
-     * Get file name like primaryPropertyFilePath + ("_" + mutation if is not null or empty) + possible original extension of primaryPropertyFilePath.
-     * @param primaryPropertyFilePath
-     * @param mutation
-     * @return
+     * Get file name like primaryPropFilePath + ("_" + mutation if is not null or empty) + possible original extension of primaryPropFilePath.
+     * @param primaryPropFilePath path to the primary mutation file
+     * @param mutation mutation of the file what you want
+     * @return correct file name for mutation
      */
-    protected String getFileNameForMutation(String primaryPropertyFilePath, String mutation) {
+    String getFileNameForMutation(String primaryPropFilePath, String mutation) {
         if (StringUtils.isEmpty(mutation)) {
-            return primaryPropertyFilePath;
+            return primaryPropFilePath;
         }
-        String fileExtension = FilenameUtils.getExtension(primaryPropertyFilePath);
+        String fileExtension = FilenameUtils.getExtension(primaryPropFilePath);
         if (!StringUtils.isEmpty(fileExtension)) {
             fileExtension = "." + fileExtension;
         }
         String fileMutation = "_" + mutation;
-        String mutationFileName = FilenameUtils.removeExtension(primaryPropertyFilePath);
+        String mutationFileName = FilenameUtils.removeExtension(primaryPropFilePath);
         mutationFileName += fileMutation + fileExtension;
         return mutationFileName;
     }

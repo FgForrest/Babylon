@@ -20,8 +20,8 @@ public class TranslationServiceTest {
 
     /**
      * Checks of {@link Configuration} serialization from object to string and back.
-     * @throws IOException
-     */
+     * @throws IOException some exception derived from {@link IOException}
+    */
     @Test
     public void checkConfigSerializationAndDeserialization() throws IOException {
         Configuration configuration = TestUtils.createTestConfiguration();
@@ -34,8 +34,8 @@ public class TranslationServiceTest {
 
     /**
      * Checks creation of json configuration file.
-     * @throws IOException
-     */
+     * @throws IOException some exception derived from {@link IOException}
+    */
     @Test
     public void checkCreateConfigurationFile() throws IOException {
         File file = new File("test-config.json");

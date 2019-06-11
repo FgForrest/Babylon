@@ -1,5 +1,6 @@
 package com.fg.util.babylon.entity;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fg.util.babylon.enums.PropertyStatus;
 import lombok.Data;
@@ -15,14 +16,16 @@ import java.util.Map;
  */
 @Data
 @NoArgsConstructor
+@JsonFilter("DataPropFileFilter")
 public class DataPropFile implements Serializable {
 
     private static final long serialVersionUID = 2426359297082283380L;
 
     /**
-     * Hash code of relative path to source/destination properties file. This code is used like the short unique identifier of the path.
+     * Unique id of relative path to source/destination properties file. This code is used like the short unique identifier
+     * of the path in google sheet.
      */
-    private String code;
+    private Integer id;
 
     /**
      * Properties like {@link PropertiesMap}
@@ -30,7 +33,8 @@ public class DataPropFile implements Serializable {
     private PropertiesMap properties = new PropertiesMap();
 
     /**
-     * Secondary mutations properties data like {@link Map<String, PropertiesMap>}. Property isn't serialized to Json file.<br>
+     * Secondary mutations properties data like {@link Map&lt;String, PropertiesMap&gt;}. Property isn't serialized to Json file.<br>
+     * Map is used for transfer translated values from google sheet to target mutation properties file. <br>
      * key - contains name of the mutation e.g. "en, fr, ..."<br>
      * value - contains {@link PropertiesMap}
      */
@@ -38,12 +42,24 @@ public class DataPropFile implements Serializable {
     private Map<String, PropertiesMap> mutationProperties = new LinkedHashMap<>();
 
     /**
-     * See {@link PropertiesMap#put(String, String)}
+     * Puts value for property for specified key and set logical working state of property like value of {@link PropertyStatus}: <br>
+     * - {@link PropertyStatus#NEW} if key not exists<br>
+     * - {@link PropertyStatus#CHANGED} if value of key is different than previous value<br>
+     * - {@link PropertyStatus#UNCHANGED} if value of key is same<br>
      * @param key
      * @param value
+     * @return Old value of property or null if no property exists for given key.
      */
     public String putProperty(String key, String value) {
-        return properties.put(key, value);
+        String result = properties.put(key, value);
+        if (result == null) {
+            putPropertyStatus(key, PropertyStatus.NEW);
+        } else if (!result.equals(value)) {
+            putPropertyStatus(key, PropertyStatus.CHANGED);
+        } else {
+            putPropertyStatus(key, PropertyStatus.UNCHANGED);
+        }
+        return result;
     }
 
     /**
@@ -55,11 +71,20 @@ public class DataPropFile implements Serializable {
         return properties.put(key, value, propertyStatus);
     }
 
+    public String putMutationProperty(String mutation, String key, String value) {
+        PropertiesMap propertiesMap = mutationProperties.get(mutation);
+        if (propertiesMap == null) {
+            propertiesMap = new PropertiesMap();
+            mutationProperties.put(mutation, propertiesMap);
+        }
+        return propertiesMap.put(key, value);
+    }
+
     public String getPropertyValue(String propertyKey) {
         return properties.get(propertyKey);
     }
 
-    public PropertyStatus putPropertyStatus(String key, PropertyStatus propertyStatus) {
+    PropertyStatus putPropertyStatus(String key, PropertyStatus propertyStatus) {
         return properties.putPropertyStatus(key, propertyStatus);
     }
 

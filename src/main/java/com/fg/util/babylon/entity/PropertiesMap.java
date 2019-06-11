@@ -2,15 +2,17 @@ package com.fg.util.babylon.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fg.util.babylon.enums.PropertyStatus;
+import lombok.extern.apachecommons.CommonsLog;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Properties with its statuses like {@link PropertyStatus}
+ * Properties with its statuses like {@link PropertyStatus} and protection from null values.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
+@CommonsLog
 public class PropertiesMap extends LinkedHashMap<String, String> {
 
     /**
@@ -19,26 +21,12 @@ public class PropertiesMap extends LinkedHashMap<String, String> {
     @JsonIgnore
     private Map<String, PropertyStatus> propertiesStatus = new HashMap<>();
 
-    /**
-     * Puts value for property for specified key and set logical working state of property like value of {@link PropertyStatus}: <br>
-     * - {@link PropertyStatus#NEW} if key not exists<br>
-     * - {@link PropertyStatus#CHANGED} if value of key is different than previous value<br>
-     * - {@link PropertyStatus#UNCHANGED} if value of key is same<br>
-     * @param key
-     * @param value
-     * @return Old value of property or null if no property exists for given key.
-     */
     @Override
     public String put(String key, String value) {
-        String result = super.put(key, value);
-        if (result == null) {
-            propertiesStatus.put(key, PropertyStatus.NEW);
-        } else if (!result.equals(value)) {
-            propertiesStatus.put(key, PropertyStatus.CHANGED);
-        } else {
-            propertiesStatus.put(key, PropertyStatus.UNCHANGED);
+        if (value == null) {
+            value = "";
         }
-        return result;
+        return super.put(key, value);
     }
 
     /**
@@ -50,7 +38,7 @@ public class PropertiesMap extends LinkedHashMap<String, String> {
      */
     public String put(String key, String value, PropertyStatus propertyStatus) {
         String result = super.put(key, value);
-        propertiesStatus.put(key, propertyStatus);
+        putPropertyStatus(key, propertyStatus);
         return result;
     }
 
@@ -61,6 +49,7 @@ public class PropertiesMap extends LinkedHashMap<String, String> {
      * @return Previous {@link PropertyStatus} of property.
      */
     public PropertyStatus putPropertyStatus(String key, PropertyStatus propertyStatus) {
+        log.debug("Put property status: " + key + " -> " + propertyStatus.name());
         return propertiesStatus.put(key, propertyStatus);
     }
 

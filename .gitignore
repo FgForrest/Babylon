@@ -1,3 +1,4 @@
 .idea
 target
+logs
 test-config.json
