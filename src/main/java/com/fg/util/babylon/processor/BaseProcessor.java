@@ -14,10 +14,8 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
 /**
@@ -69,8 +67,8 @@ public abstract class BaseProcessor {
             return null;
         }
         FileProperties fileProperties = new FileProperties();
-        FileReader fileReader = new FileReader(fileNamePath);
-        fileProperties.load(fileReader);
+        InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(fileNamePath), StandardCharsets.UTF_8);
+        fileProperties.load(inputStreamReader);
         return fileProperties;
     }
 

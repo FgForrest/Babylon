@@ -16,8 +16,10 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -230,8 +232,8 @@ public class ImportProcessor extends BaseProcessor {
             log.info("Property keys only in mutation file \"" + String.join(",", propsOnlyInMutation.keySet()) + "\"");
         }
         // Save changes into file on disk.
-        FileWriter fileWriter = new FileWriter(mutationPropFilePath);
-        updatedFileProps.save(fileWriter);
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(mutationPropFilePath), StandardCharsets.UTF_8);
+        updatedFileProps.save(outputStreamWriter);
     }
 
 }
