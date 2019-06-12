@@ -3,6 +3,7 @@ package com.fg.util.babylon.processor;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.Configuration;
 import com.fg.util.babylon.entity.DataFile;
+import com.fg.util.babylon.statistics.TranslationStatistics;
 import com.fg.util.babylon.exception.EmptyDbFileException;
 import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.service.GoogleSheetService;
@@ -39,11 +40,14 @@ public abstract class BaseProcessor {
     protected Configuration configuration;
     PathMatchingResourcePatternResolver pathResolver = new PathMatchingResourcePatternResolver();
     private DataFile dataFile;
+    TranslationStatistics statistics;
 
     public void startTranslation(Arguments arguments) throws IOException, GeneralSecurityException {
         this.arguments = arguments;
+        statistics = new TranslationStatistics();
         readConfiguration();
         processTranslation();
+        log.info(statistics);
     }
 
     protected abstract void processTranslation() throws IOException, GeneralSecurityException;

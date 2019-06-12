@@ -54,7 +54,6 @@ public class PropValueMultiLine extends Property {
                 sb.append(System.lineSeparator());
             }
         }
-        log.info(sb.toString());
         return sb.toString();
     }
 

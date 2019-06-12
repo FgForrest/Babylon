@@ -82,6 +82,16 @@ public class GoogleSheetService {
                 .findFirst().orElse(null);
     }
 
+    public void deleteSheets(final String spreadsheetId, List<Sheet> sheets) throws IOException, GeneralSecurityException {
+        List<Request> requests = new ArrayList<>();
+        sheets.forEach(sheet -> {
+            DeleteSheetRequest request = new DeleteSheetRequest()
+                    .setSheetId(sheet.getProperties().getSheetId());
+            requests.add(new Request().setDeleteSheet(request));
+        });
+        executeSpreadsheetBatchUpdate(spreadsheetId, requests);
+    }
+
     /**
      * Gets all sheets from given spreadsheet. Method gets only basic information about each sheet without their data.
      * Data of each sheet must be read individually by {@link #readDataFromSheet(String, String)} method or if you want
@@ -104,8 +114,8 @@ public class GoogleSheetService {
      * @throws IOException some exception derived from {@link IOException}
     */
     public List<Sheet> getAllSheetsWithData(final String spreadsheetId) throws GeneralSecurityException, IOException {
-        Sheets.Spreadsheets.Get request = getSheetService().spreadsheets().get(spreadsheetId);
-        request.setIncludeGridData(true);
+        Sheets.Spreadsheets.Get request = getSheetService().spreadsheets().get(spreadsheetId)
+                .setIncludeGridData(true);
         Spreadsheet spreadsheet = request.execute();
         return spreadsheet.getSheets();
     }
@@ -134,8 +144,8 @@ public class GoogleSheetService {
     public void setSheetRowAndColCount(final String spreadsheetId, final SheetParams sheetParams) throws IOException, GeneralSecurityException {
         SheetProperties sheetProperties = createSheetProperties(sheetParams);
         List<Request> requests = new ArrayList<>();
-        UpdateSheetPropertiesRequest request = new UpdateSheetPropertiesRequest();
-        request.setProperties(sheetProperties);
+        UpdateSheetPropertiesRequest request = new UpdateSheetPropertiesRequest()
+                .setProperties(sheetProperties);
         requests.add(new Request().setUpdateSheetProperties(request));
         executeSpreadsheetBatchUpdate(spreadsheetId, requests);
     }

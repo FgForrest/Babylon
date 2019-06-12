@@ -4,10 +4,8 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
 
@@ -25,15 +23,15 @@ public class FilePropertiesTest {
         long stTime = System.currentTimeMillis();
         FileProperties fileProperties = new FileProperties();
         try {
-            // Set encoding is maybe not necessary, but in case it is needed...
             File sourceFile = new File(getClass().getClassLoader().getResource("META-INF/09_mail_form/messages.properties").getFile());
-            fileProperties.load(new FileReader(sourceFile));
+            InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(sourceFile), StandardCharsets.UTF_8);
+            fileProperties.load(inputStreamReader);
             fileProperties.entrySet().forEach(log::info);
             log.info("Load time: " + (System.currentTimeMillis() - stTime) + " ms");
             stTime = System.currentTimeMillis();
             File targetFile = new File("messages-out.properties");
-            FileWriter fileWriter = new FileWriter(targetFile);
-            fileProperties.save(fileWriter);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8);
+            fileProperties.save(outputStreamWriter);
             log.info("Save time: " + (System.currentTimeMillis() - stTime) + " ms");
             assertTrue("Source and target file is different", FileUtils.contentEquals(sourceFile, targetFile));
         } catch (IOException e) {

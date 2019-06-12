@@ -37,6 +37,7 @@ public class ImportProcessor extends BaseProcessor {
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
+        statistics.setAction(Action.IMPORT);
         List<Sheet> sheets = googleSheetService.getAllSheetsWithData(arguments.getGoogleSheetId());
         if (sheets == null || sheets.isEmpty()) {
             throw new NoSheetsException("Source spreadsheet " + arguments.getGoogleSheetId() + " not contains any sheets.");
@@ -167,6 +168,7 @@ public class ImportProcessor extends BaseProcessor {
             DataPropFile dataPropFile = entry.getValue();
             // Save all translated properties into all mutation files defined by configuration.
             for (String mutation : configuration.getMutations()) {
+                statistics.incTotalPropFilesProcessed(1);
                 saveMutationPropertiesToFile(primaryPropFilePath, mutation, dataPropFile);
             }
         }

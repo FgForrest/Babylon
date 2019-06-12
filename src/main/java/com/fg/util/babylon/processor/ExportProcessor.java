@@ -42,6 +42,7 @@ public class ExportProcessor extends BaseProcessor {
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
+        statistics.setAction(Action.EXPORT);
         for (String path : configuration.getPath()) {
             processPath(path);
         }
@@ -61,6 +62,7 @@ public class ExportProcessor extends BaseProcessor {
         propFilesPaths.removeIf(item -> item.matches(REMOVE_MUTATIONS_REGEX));
         log.info("Processing properties files: ");
         propFilesPaths.stream().forEach(propFilesPath -> log.info(propFilesPath));
+        statistics.incPrimaryPropFilesProcessed(propFilesPaths.size());
         // Process all properties of all files.
         for (String propFilePath : propFilesPaths) {
             processPropertiesOfFile(propFilePath);
@@ -91,6 +93,7 @@ public class ExportProcessor extends BaseProcessor {
         if (primaryProperties == null) {
             throw new FileNotFoundException("Primary properties file: " + primaryPropFilePath + " not exists.");
         }
+        statistics.incTotalPropFilesProcessed(1);
         Map<String, FileProperties> mutationsProperties = loadSecondaryMutationsProperties(primaryPropFilePath);
         for (Map.Entry<String, Property> entry : primaryProperties.entrySet()) {
             String key = entry.getKey();
@@ -118,6 +121,9 @@ public class ExportProcessor extends BaseProcessor {
         for (String mutation : configuration.getMutations()) {
             String secPropFileNamePath = getFileNameForMutation(primaryPropertyFilePath, mutation);
             FileProperties properties = Optional.ofNullable(loadPropertiesFromFile(secPropFileNamePath)).orElse(new FileProperties());
+            if (!properties.isEmpty()) {
+                statistics.incTotalPropFilesProcessed(1);
+            }
             map.put(mutation, properties);
         }
         return map;

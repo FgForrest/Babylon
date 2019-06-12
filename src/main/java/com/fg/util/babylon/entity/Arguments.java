@@ -21,7 +21,7 @@ public class Arguments {
     private String configFileName;
 
     /**
-     * Id of the target google sheet.
+     * Id of the target google spreadsheet.
      */
     private String googleSheetId;
 }

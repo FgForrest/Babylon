@@ -21,10 +21,11 @@ import java.util.List;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = GoogleSheetService.class)
 @CommonsLog
+@Ignore("Only for dev testing, because it's meaningful only with real google spreadsheet and valid credentials.json to access to it.")
 public class GoogleSheetServiceTest {
 
-    private static final String GOOGLE_SHEET_ID = "1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc";
-    private static final String SHEET_NAME = "New test sheet";
+    private static final String GOOGLE_SHEET_ID = "1HONBwFFaXT0-MR-3TkckqhbYKaCbnYpTJ_GZBbWbAyg";
+    private static final String SHEET_NAME = "List 1";
 
     @Autowired
     protected GoogleSheetService googleSheetService;
@@ -41,14 +42,12 @@ public class GoogleSheetServiceTest {
     }
 
     @Test
-    @Ignore
     public void checkSetSheetRowAndColCount() throws IOException, GeneralSecurityException {
         SheetParams sheetParams = new SheetParams(SHEET_NAME, 10, 10);
         googleSheetService.setSheetRowAndColCount(GOOGLE_SHEET_ID, sheetParams);
     }
 
     @Test
-    @Ignore
     public void chekWriteData() throws IOException, GeneralSecurityException {
         List<List<Object>> values = Arrays.asList(
                 // Put header into sheet
@@ -58,5 +57,14 @@ public class GoogleSheetServiceTest {
                 Arrays.asList("valC1", "headC2", "headC3")
         );
         googleSheetService.writeDataIntoSheet(GOOGLE_SHEET_ID, SHEET_NAME, values);
+    }
+
+    @Test
+    public void checkDeleteAllSheets() throws GeneralSecurityException, IOException {
+        List<Sheet> allSheets = googleSheetService.getAllSheets(GOOGLE_SHEET_ID);
+        String uniqueSheetTitle = "Sheet " + System.currentTimeMillis();
+        SheetParams sheetParams = new SheetParams(uniqueSheetTitle, 5, 1000);
+        googleSheetService.addSheet(GOOGLE_SHEET_ID, sheetParams);
+        googleSheetService.deleteSheets(GOOGLE_SHEET_ID, allSheets);
     }
 }
