@@ -115,8 +115,8 @@
                 <artifactId>babylon-maven-plugin</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <configuration>
-                    <configFileName>test-config.json</configFileName>
-                    <googleSheetId>1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc</googleSheetId>
+                    <configFileName>test-config-fg.json</configFileName>
+                    <googleSheetId>17lfqAPI1o1EsIAYb66La2VcWTJIaJdEiHBu0Tc_bkcg</googleSheetId>
                 </configuration>
             </plugin>
         </plugins>

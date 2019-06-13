@@ -23,7 +23,7 @@ public class TranslationService {
     private ApplicationContext context;
 
     public void startTranslation(Arguments arguments) throws IOException, GeneralSecurityException {
-        log.info("Translation started with parameters: " + arguments.toString());
+        log.info("Translation started with arguments: " + arguments.toString());
         long stTime = System.currentTimeMillis();
         switch (arguments.getAction()) {
             case EXPORT:

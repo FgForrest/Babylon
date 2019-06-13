@@ -7,6 +7,8 @@ import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.exception.*;
 import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.properties.Property;
+import com.fg.util.babylon.statistics.ImportFileStatistic;
+import com.fg.util.babylon.statistics.TranslationStatisticsOfImport;
 import com.fg.util.babylon.util.JsonUtils;
 import com.google.api.services.sheets.v4.model.CellData;
 import com.google.api.services.sheets.v4.model.GridData;
@@ -35,8 +37,11 @@ import java.util.regex.PatternSyntaxException;
 @CommonsLog
 public class ImportProcessor extends BaseProcessor {
 
+    private TranslationStatisticsOfImport statistics;
+
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
+        statistics = new TranslationStatisticsOfImport();
         statistics.setAction(Action.IMPORT);
         List<Sheet> sheets = googleSheetService.getAllSheetsWithData(arguments.getGoogleSheetId());
         if (sheets == null || sheets.isEmpty()) {
@@ -55,6 +60,7 @@ public class ImportProcessor extends BaseProcessor {
         } else {
             throw new EmptyDataFileException("Cannot save empty DataFile object to file \"" + configuration.getDataFileName() + "\"");
         }
+        log.info(statistics);
     }
 
     private void processSheet(Sheet sheet) throws IOException {
@@ -83,7 +89,7 @@ public class ImportProcessor extends BaseProcessor {
     }
 
     private Map<Integer,String> createHeader(RowData headerData) {
-        Integer col = 0;
+        int col = 0;
         Map<Integer,String> header = new LinkedHashMap<>();
         for (CellData cellData : headerData.getValues()) {
             String cellValue = cellData.getFormattedValue();
@@ -100,7 +106,7 @@ public class ImportProcessor extends BaseProcessor {
      * @throws ParsePropIdException
      */
     private void processRowData(String sheetTitle, Map<Integer,String> header, RowData rowData) throws IOException {
-        Integer col = 0;
+        int col = 0;
         List<CellData> values = rowData.getValues();
         Integer fileId = parseFileIdFromSheetTitle(sheetTitle);
         String propKey = "";
@@ -168,7 +174,6 @@ public class ImportProcessor extends BaseProcessor {
             DataPropFile dataPropFile = entry.getValue();
             // Save all translated properties into all mutation files defined by configuration.
             for (String mutation : configuration.getMutations()) {
-                statistics.incTotalPropFilesProcessed(1);
                 saveMutationPropertiesToFile(primaryPropFilePath, mutation, dataPropFile);
             }
         }
@@ -184,6 +189,8 @@ public class ImportProcessor extends BaseProcessor {
     private void saveMutationPropertiesToFile(String primaryPropFilePath, String mutation, DataPropFile dataPropFile) throws IOException {
         PropertiesMap mutationProperties = dataPropFile.getMutationProperties(mutation);
         String mutationPropFilePath = getFileNameForMutation(primaryPropFilePath, mutation);
+        ImportFileStatistic fileStatistic = new ImportFileStatistic();
+        statistics.putFileStatistic(mutationPropFilePath, fileStatistic);
         log.info("Saving translations into \"" + mutationPropFilePath + "\"...");
         if (mutationProperties == null || mutationProperties.isEmpty()) {
             String msg = "No properties found in source google sheet for import data into \"" + mutationPropFilePath + "\"";
@@ -227,10 +234,12 @@ public class ImportProcessor extends BaseProcessor {
             Property property = updatedFileProps.get(key);
             property.setValue(value);
             updatedFileProps.put(key, property);
+            fileStatistic.incUpdatedCnt();
         });
         // Add possible keys and values present only in mutation file to the end of the file.
         if (!propsOnlyInMutation.isEmpty()) {
-            propsOnlyInMutation.forEach((key, value) -> updatedFileProps.put(key, value));
+            fileStatistic.setNotFoundInPrimaryFile(propsOnlyInMutation.size());
+            propsOnlyInMutation.forEach(updatedFileProps::put);
             log.info("Property keys only in mutation file \"" + String.join(",", propsOnlyInMutation.keySet()) + "\"");
         }
         // Save changes into file on disk.

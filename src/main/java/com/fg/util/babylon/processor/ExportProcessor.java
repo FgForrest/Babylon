@@ -14,6 +14,8 @@ import com.fg.util.babylon.exception.SheetExistsException;
 import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.properties.PropValue;
 import com.fg.util.babylon.properties.Property;
+import com.fg.util.babylon.statistics.ExportFileStatistic;
+import com.fg.util.babylon.statistics.TranslationStatisticsOfExport;
 import com.fg.util.babylon.util.JsonUtils;
 import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
@@ -40,14 +42,18 @@ public class ExportProcessor extends BaseProcessor {
     /** Regex for filter out possible secondary mutations files */
     private static final String REMOVE_MUTATIONS_REGEX = ".*_[a-zA-Z]{2,3}\\..*";
 
+    private TranslationStatisticsOfExport statistics;
+
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
+        statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
         for (String path : configuration.getPath()) {
             processPath(path);
         }
         uploadDataToGoogleSpreadsheet();
         saveDataFileWithoutProperties();
+        log.info(statistics);
     }
 
     /**
@@ -61,7 +67,7 @@ public class ExportProcessor extends BaseProcessor {
         // Filter out possible mutations properties files, because we need only primary mutation properties files.
         propFilesPaths.removeIf(item -> item.matches(REMOVE_MUTATIONS_REGEX));
         log.info("Processing properties files: ");
-        propFilesPaths.stream().forEach(propFilesPath -> log.info(propFilesPath));
+        propFilesPaths.forEach(log::info);
         statistics.incPrimaryPropFilesProcessed(propFilesPaths.size());
         // Process all properties of all files.
         for (String propFilePath : propFilesPaths) {
@@ -108,7 +114,7 @@ public class ExportProcessor extends BaseProcessor {
             // - Keys which value is different from value in Json data file is marked as CHANGED.
             primaryDataPropFile.putProperty(key, value.getValue());
             // Checks that the key exists in secondary mutation files (or that there are no secondary mutations)
-            processSecondaryMutations(key, mutationsProperties, primaryDataPropFile);
+            processSecondaryMutations(key, primaryPropFilePath, mutationsProperties, primaryDataPropFile);
         }
     }
 
@@ -132,10 +138,12 @@ public class ExportProcessor extends BaseProcessor {
     /**
      * Processing all defined secondary mutations of key, defined in configuration for given primary properties file.
      * @param key primary property key
+     * @param primaryPropFilePath path to the primary mutation file
      * @param filesMutationProps map with all properties from secondary mutation files
      * @param primaryDataPropFile data of primary property file
      */
     private void processSecondaryMutations(String key,
+                                           String primaryPropFilePath,
                                            Map<String, FileProperties> filesMutationProps,
                                            DataPropFile primaryDataPropFile) {
         PropertyStatus primaryPropStatus = primaryDataPropFile.getPropertyStatus(key);
@@ -149,20 +157,25 @@ public class ExportProcessor extends BaseProcessor {
                 mutationPropsMap = new PropertiesMap();
                 primaryDataPropFile.putMutationProperties(mutation, mutationPropsMap);
             }
+            String mutationPropFilePath = getFileNameForMutation(primaryPropFilePath, mutation);
+            ExportFileStatistic fileStatistic = new ExportFileStatistic();
+            statistics.putFileStatistic(mutationPropFilePath, fileStatistic);
             // If property doesn't exists in file of secondary mutation or file for secondary mutation doesn't exists...
             if (properties.get(key) == null) {
                 // set its value to empty string and status to NEW.
                 mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.NEW);
+                fileStatistic.incNewKeysCnt();
             } else {
                 // Otherwise use primaryPropStatus. This covers scenarios:
                 // - new property in primary mutation file (key not exists in Json DataFile) -> status = NEW
                 // - changes of property value in primary mutation file -> status = CHANGED, propValue = ""
                 if (primaryPropStatus == PropertyStatus.CHANGED) {
                     propValue.setValue(EMPTY_VAL);
+                    fileStatistic.incKeysToUpdateCnt();
                 }
                 mutationPropsMap.put(key, propValue.getValue(), primaryPropStatus);
             }
-
+            fileStatistic.incTotalKeysCnt();
         }
     }
 
@@ -173,6 +186,8 @@ public class ExportProcessor extends BaseProcessor {
     */
     private void uploadDataToGoogleSpreadsheet() throws GeneralSecurityException, IOException {
         Map<String, DataPropFile> dataPropFiles = getOrCreateDataFile().getDataPropFiles();
+        // Gets all existing sheets in this time.
+        List<Sheet> prevAllSheets = googleSheetService.getAllSheets(arguments.getGoogleSheetId());
         for (Map.Entry<String, DataPropFile> entry : dataPropFiles.entrySet()) {
             String fileNamePath = entry.getKey();
             DataPropFile dataPropFile = entry.getValue();
@@ -184,6 +199,12 @@ public class ExportProcessor extends BaseProcessor {
                 throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
             }
             uploadDataToGoogleSheet(dataPropFile, sheetTitle);
+        }
+        // Delete all previously existing sheets (usually default "Sheet 1" of new empty spreadsheet) if
+        // current sheets count is greater then previous.
+        List<Sheet> currAllSheets = googleSheetService.getAllSheets(arguments.getGoogleSheetId());
+        if (currAllSheets.size() > prevAllSheets.size()) {
+            googleSheetService.deleteSheets(arguments.getGoogleSheetId(), prevAllSheets);
         }
     }
 
@@ -255,13 +276,18 @@ public class ExportProcessor extends BaseProcessor {
     }
 
     /**
-     * Saves created DataFile object without properties into file on disk.
+     * Saves created DataFile object without properties into file on disk. Only if DataFile not exists on disk!
      */
-    public void saveDataFileWithoutProperties() throws IOException {
+    private void saveDataFileWithoutProperties() throws IOException {
+        File file = new File(configuration.getDataFileName());
+        if (file.exists()) {
+            log.info("DataFile \"" + file.getPath() + "\" already exists. File unchanged.");
+            return;
+        }
         String[] ignorableFieldNames = { "properties" };
         FilterProvider filters = new SimpleFilterProvider()
                 .addFilter("DataPropFileFilter", SimpleBeanPropertyFilter.serializeAllExcept(ignorableFieldNames));
-        JsonUtils.objToJsonFile(new File(configuration.getDataFileName()), getOrCreateDataFile(), true, filters);
+        JsonUtils.objToJsonFile(file, getOrCreateDataFile(), true, filters);
     }
 
 }
