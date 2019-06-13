@@ -37,8 +37,8 @@ public class GoogleSheetService {
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
+    private static final String GOOGLE_CREDENTIALS_JSON = "credentials.json";
 
-    private String googleCredentialsJson = "credentials.json";
     /** Use only by cached and null safe access by {@link #getCredentials(NetHttpTransport)} method. */
     private Credential credential;
     /** Use only by cached and null safe access by {@link #getSheetService()} method */
@@ -231,10 +231,9 @@ public class GoogleSheetService {
                 .setRowCount(sheetParams.getRowCount())
                 .setColumnCount(sheetParams.getColumnCount())
                 .setFrozenRowCount(sheetParams.getFrozenRowCount());
-        SheetProperties sheetProperties = new SheetProperties()
+        return new SheetProperties()
                 .setTitle(sheetParams.getSheetTitle())
                 .setGridProperties(gridProperties);
-        return sheetProperties;
     }
 
     private BatchUpdateSpreadsheetResponse executeSpreadsheetBatchUpdate(String spreadsheetId, List<Request> requests) throws IOException, GeneralSecurityException {
@@ -242,20 +241,6 @@ public class GoogleSheetService {
                 .setRequests(requests)
                 .setIncludeSpreadsheetInResponse(false);
         return getSheetService().spreadsheets().batchUpdate(spreadsheetId, req).execute();
-    }
-
-    /**
-     * Set credentials json file name and path if different from default "credentials.json".
-     * @param googleCredentialsJson
-     */
-    public void setGoogleCredentialsJson(String googleCredentialsJson) {
-        if (this.googleCredentialsJson.equals(googleCredentialsJson)) {
-            return;
-        }
-        this.googleCredentialsJson = googleCredentialsJson;
-        // Invalidate existing loaded credential and sheetService.
-        this.credential = null;
-        this.sheetService = null;
     }
 
     /**
@@ -284,9 +269,16 @@ public class GoogleSheetService {
     @NonNull
     private Credential getCredentials(final NetHttpTransport httpTransport) throws IOException {
         if (credential == null) {
-            // Load client secrets.
-            InputStream in = new FileInputStream(googleCredentialsJson);
-            GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+            // Load client secrets, first try to use file from current directory
+            File credentialsFile = new File(GOOGLE_CREDENTIALS_JSON);
+            InputStream credentialsStream;
+            if (credentialsFile.exists()) {
+                credentialsStream = new FileInputStream(credentialsFile);
+            } else {
+                // If not exists then fallback into default credentials.json for FG Forest company in resources.
+                credentialsStream = getClass().getClassLoader().getResourceAsStream(GOOGLE_CREDENTIALS_JSON);
+            }
+            GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(credentialsStream));
             // Build flow and trigger user authorization request.
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                     httpTransport, JSON_FACTORY, clientSecrets, SCOPES)

@@ -11,6 +11,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-@interface FieldName {
-    String value();
+@interface StatisticsField {
+    /** Optional field value name, if not present default empty is used and only value will be printed */
+    String value() default "";
 }
