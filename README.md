@@ -5,17 +5,13 @@
 ### Description and usage 
 Babylon is standalone console application in basic. Conditions for usage is: 
 1. You must run it in root directory of your project.
-2. You must have prepared your Json configuration file (see [Configuration](#configuration) section).
+2. You must have prepared your Json configuration file (see "Configuration" section).
 3. You must have prepared target Google spreadsheet.
 
 But primary use case is to run Babylon as Maven plugin "babylon-maven-plugin". For this case you must configure them as 
-described below in [Run Babylon as Maven plugin](#run-babylon-as-maven-plugin)
-
-<a name="configuration">
+described below (see "Run Babylon as Maven" plugin section).
 
 ### Configuration
-
-</a>
 Configuration file is in Json format and have this structure: 
 ```json
 {
@@ -38,11 +34,7 @@ This file can be generated for your google acount here:
 [ENABLE THE GOOGLE SHEETS API](https://developers.google.com/sheets/api/quickstart/java) When you are logged in 
 on google account which you want to use, just click to "ENABLE THE GOOGLE SHEETS API" button and follow instructions.
 
-<a name="run-babylon-as-console-application">
-
 #### Run Babylon as console application
-
-</a>
 Application needs this arguments:
 1. expected action (export, import)
 * export - takes all properties files specified in configuration file and export their properties into specified google spreadsheet. Each properties 
@@ -59,11 +51,7 @@ java -jar babylon-1.0-SNAPSHOT.jar export test-config.json 1xhnBAOpy8-9KWhl8NP0Z
 
 java -jar babylon-1.0-SNAPSHOT.jar import test-config.json 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc
 
-<a name="run-babylon-as-maven-plugin">
-
 #### Run Babylon as Maven plugin
-
-</a>
 To get it work put this XML structure into your build->plugins section of your POM.xml file: 
 ```xml
 <plugin>
@@ -84,4 +72,4 @@ After that this configured plugin is possible to use from terminal by this way:
 - "mvn babylon::export" for export translations from properties file to google spreadsheet
 - "mvn babylon::import" for import translations from google spreadsheet back to properties files
 
-Detailed description of this actions is provided in section above [Run Babylon as console application](#run-babylon-as-console-application)
+Detailed description of this actions is provided in section above (see "Run Babylon as console application" section)
