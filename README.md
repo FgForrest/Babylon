@@ -9,7 +9,7 @@ Babylon is standalone console application in basic. Conditions for usage is:
 3. You must have prepared target Google spreadsheet.
 
 But primary use case is to run Babylon as Maven plugin "babylon-maven-plugin". For this case you must configure them as 
-described below (see "Run Babylon as Maven" plugin section).
+described below (see "Run Babylon as Maven plugin" section).
 
 ### Configuration
 Configuration file is in Json format and have this structure: 
