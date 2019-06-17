@@ -30,7 +30,8 @@ You can use * convention to specify multiple files on path.
 ##### **Before first attempt to use Babylon**
 
 **For access from FG Forest company** Necessary "credentials.json" file is already included in application. 
-All your Google spreadsheets must be created under the "analytics@fg.cz" google account.
+All your Google spreadsheets must be created under the "analytics@fg.cz" google account or if you want to use 
+Google spreadsheet created under your account, you can simply share it with account "analytics@fg.cz".
 
 **For access by users outside of FG Forest company** You need "credentials.json" for accessing google spreadsheet. 
 This file must exists in same folder from where you running Babylon application. This file can be generated for your google account here: 
@@ -44,7 +45,7 @@ This action ensure access to Google spreadsheets. This is a one-time action only
 until you not delete created "tokens" folder.
 
 #### Run Babylon as console application
-Application needs this arguments:
+Application needs this arguments:mvn babylon:export -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc 
 1. expected action (export, import)
 * export - takes all properties files specified in configuration file and export their properties into specified google spreadsheet. Each properties 
   bundle (primary properties file and its mutation) is exported into sheet labeled with primary properties file name + # + unique number of file.
@@ -67,6 +68,26 @@ To get it work put this XML structure into your build->plugins section of your P
     <groupId>com.fg.util</groupId>
     <artifactId>babylon-maven-plugin</artifactId>
     <version>1.0-SNAPSHOT</version>
+</plugin>
+```
+After that this configured plugin is possible to use from terminal by this way:
+- "mvn babylon::export" for export translations from properties file to google spreadsheet
+- "mvn babylon::import" for import translations from google spreadsheet back to properties files
+
+Parameters is: 
+- config.file - path to translator-config.json file. This file serves as database for translation process.
+- google.sheet.id - ID of the google spreadsheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc) 
+
+e.g. mvn babylon:import -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc <br/>
+Detailed description of this actions is provided in section above (see "Run Babylon as console application" section)
+
+Parameters can be also set in POM.xml this way, if it is your use case:
+
+```xml
+<plugin>
+    <groupId>com.fg.util</groupId>
+    <artifactId>babylon-maven-plugin</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <configuration>
         <configFileName>{FILL ME UP}</configFileName>
         <googleSheetId>{FILL ME UP}</googleSheetId>
@@ -74,11 +95,5 @@ To get it work put this XML structure into your build->plugins section of your P
 </plugin>
 ```
 Replace {FILL ME UP} placeholders by your values: 
-- configFileName - path to translator-config.json file. This file serves as database for translation process.
-- googleSheetId - ID of the google spreadsheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc) 
-
-After that this configured plugin is possible to use from terminal by this way: 
-- "mvn babylon::export" for export translations from properties file to google spreadsheet
-- "mvn babylon::import" for import translations from google spreadsheet back to properties files
-
-Detailed description of this actions is provided in section above (see "Run Babylon as console application" section)
+- configFileName is same as parameter "config.file" described above.
+- googleSheetId is same as parameter "google.sheet.id" described above.

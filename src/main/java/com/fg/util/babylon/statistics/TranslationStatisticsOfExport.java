@@ -2,6 +2,7 @@ package com.fg.util.babylon.statistics;
 
 import com.fg.util.babylon.enums.Action;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.apachecommons.CommonsLog;
 
 import java.util.LinkedHashMap;
@@ -11,6 +12,7 @@ import java.util.LinkedHashMap;
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @CommonsLog
 public class TranslationStatisticsOfExport extends TranslationStatisticsBase {
 
@@ -20,6 +22,15 @@ public class TranslationStatisticsOfExport extends TranslationStatisticsBase {
     @StatisticsField("Total properties files processed")
     private int totalPropFilesProcessed;
 
+    @StatisticsField("Count of all new keys to translate")
+    private int totalNewKeysCnt;
+
+    @StatisticsField("Count of all keys to update translation")
+    private int totalKeysToUpdateCnt;
+
+    @StatisticsField("Count of all keys with missing translation")
+    private int totalMissingKeysTranslationCnt;
+
     /**
      * Statistics data for each processed file.
      */
@@ -27,7 +38,7 @@ public class TranslationStatisticsOfExport extends TranslationStatisticsBase {
 
     /**
      * Increment value of {@link TranslationStatisticsOfExport#getPrimaryPropFilesProcessed()} by inc value.
-     * @param inc
+     * @param inc increment value
      */
     public void incPrimaryPropFilesProcessed(int inc) {
         primaryPropFilesProcessed += inc;
@@ -35,10 +46,21 @@ public class TranslationStatisticsOfExport extends TranslationStatisticsBase {
 
     /**
      * Increment value of {@link TranslationStatisticsOfExport#getTotalPropFilesProcessed()} by inc value.
-     * @param inc
      */
-    public void incTotalPropFilesProcessed(int inc) {
-        totalPropFilesProcessed += inc;
+    public void incTotalPropFilesProcessed() {
+        totalPropFilesProcessed++;
+    }
+
+    public void incTotalNewKeysCnt() {
+        totalNewKeysCnt++;
+    }
+
+    public void incTotalKeysToUpdateCnt() {
+        totalKeysToUpdateCnt++;
+    }
+
+    public void incTotalMissingKeysTranslationCnt() {
+        totalMissingKeysTranslationCnt++;
     }
 
     public ExportFileStatistic putFileStatistic(String fileName, ExportFileStatistic exportFileStatistic) {

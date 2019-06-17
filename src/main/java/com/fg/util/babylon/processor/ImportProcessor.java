@@ -100,10 +100,10 @@ public class ImportProcessor extends BaseProcessor {
 
     /**
      * Processes data of the one row in google sheet.
-     * @param sheetTitle
-     * @param header
-     * @param rowData
-     * @throws ParsePropIdException
+     * @param sheetTitle Sheet title for target file identification
+     * @param header header values with column numbers as keys
+     * @param rowData data of the one row
+     * @throws IOException some exception derived from {@link IOException}
      */
     private void processRowData(String sheetTitle, Map<Integer,String> header, RowData rowData) throws IOException {
         int col = 0;
@@ -149,7 +149,7 @@ public class ImportProcessor extends BaseProcessor {
     /**
      * Parse unique id of the target properties file from sheet title (title format is "FileName" + "#" + "UniqueId")
      * @param sheetTitle title of the sheet.
-     * @return
+     * @return File ID parsed from sheet title.
      * @throws ParsePropIdException If unique id cannot be parse from title.
      */
     private Integer parseFileIdFromSheetTitle(String sheetTitle) throws ParsePropIdException {
@@ -182,20 +182,25 @@ public class ImportProcessor extends BaseProcessor {
     /**
      * Save all translated properties into target mutation file. Uses {@link FileProperties} to ensure to that
      * file is stored in same format and keys is placed on same row numbers.
-     * @param mutation
-     * @param dataPropFile
+     * @param mutation mutation to save
+     * @param dataPropFile {@link DataPropFile} object with data for target properties file
      * @throws IOException some exception derived from {@link IOException}
     */
     private void saveMutationPropertiesToFile(String primaryPropFilePath, String mutation, DataPropFile dataPropFile) throws IOException {
         PropertiesMap mutationProperties = dataPropFile.getMutationProperties(mutation);
         String mutationPropFilePath = getFileNameForMutation(primaryPropFilePath, mutation);
-        ImportFileStatistic fileStatistic = new ImportFileStatistic();
-        statistics.putFileStatistic(mutationPropFilePath, fileStatistic);
-        log.info("Saving translations into \"" + mutationPropFilePath + "\"...");
         if (mutationProperties == null || mutationProperties.isEmpty()) {
             String msg = "No properties found in source google sheet for import data into \"" + mutationPropFilePath + "\"";
-            throw new MutationNotFoundException(msg);
+            log.info(msg);
+            return;
         }
+        log.info("Saving translations into \"" + mutationPropFilePath + "\"...");
+        ImportFileStatistic fs = statistics.getFileStatistic(mutationPropFilePath);
+        if (fs == null) {
+            fs = new ImportFileStatistic();
+            statistics.putFileStatistic(mutationPropFilePath, fs);
+        }
+        final ImportFileStatistic fileStatistic = fs;
         // Load target properties file to get formatting and row numbers of all its properties.
         FileProperties originalMutationFileProps = Optional.ofNullable(loadPropertiesFromFile(mutationPropFilePath)).orElse(new FileProperties());
         // Load also properties of primary mutation file to get format from it.
@@ -232,9 +237,11 @@ public class ImportProcessor extends BaseProcessor {
         // Sets all values for keys from properties map (data from google sheet filled up by translation agency).
         mutationProperties.forEach((key, value) -> {
             Property property = updatedFileProps.get(key);
-            property.setValue(value);
-            updatedFileProps.put(key, property);
-            fileStatistic.incUpdatedCnt();
+            if (!value.equals(property.getValue())) {
+                property.setValue(value);
+                updatedFileProps.put(key, property);
+                fileStatistic.imcUpdatedCnt();
+            }
         });
         // Add possible keys and values present only in mutation file to the end of the file.
         if (!propsOnlyInMutation.isEmpty()) {

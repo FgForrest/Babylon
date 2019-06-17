@@ -24,6 +24,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,7 +43,7 @@ public class ExportProcessor extends BaseProcessor {
     /** Regex for filter out possible secondary mutations files */
     private static final String REMOVE_MUTATIONS_REGEX = ".*_[a-zA-Z]{2,3}\\..*";
 
-    private TranslationStatisticsOfExport statistics;
+    protected TranslationStatisticsOfExport statistics;
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
@@ -78,7 +79,7 @@ public class ExportProcessor extends BaseProcessor {
     /**
      * Gets all relative paths of files for given path by org.springframework.core.io.support.PathMatchingResourcePatternResolver.
      * @param path Path can contains masked expressions for by org.springframework.core.io.support.PathMatchingResourcePatternResolver.
-     * @return
+     * @return List of relative paths to files
      * @throws IOException some exception derived from {@link IOException}
     */
     private List<String> getPropertiesFilesPathsFromPath(String path) throws IOException {
@@ -99,8 +100,9 @@ public class ExportProcessor extends BaseProcessor {
         if (primaryProperties == null) {
             throw new FileNotFoundException("Primary properties file: " + primaryPropFilePath + " not exists.");
         }
-        statistics.incTotalPropFilesProcessed(1);
+        statistics.incTotalPropFilesProcessed();
         Map<String, FileProperties> mutationsProperties = loadSecondaryMutationsProperties(primaryPropFilePath);
+        final DataPropFile primaryDataPropFile = getOrCreateDataFile().getOrPutNewPropFileByFileName(primaryPropFilePath);
         for (Map.Entry<String, Property> entry : primaryProperties.entrySet()) {
             String key = entry.getKey();
             Property value = entry.getValue();
@@ -108,7 +110,6 @@ public class ExportProcessor extends BaseProcessor {
             if (!value.isPropValue() && !value.isPropValueMultiLine()) {
                 continue;
             }
-            DataPropFile primaryDataPropFile = getOrCreateDataFile().getOrPutNewPropFileByFileName(primaryPropFilePath);
             // Compares value to that key value within a given file with the value stored in the DataPropFile object read from Json data file.
             // - Keys which not found in Json data file is marked as NEW.
             // - Keys which value is different from value in Json data file is marked as CHANGED.
@@ -128,7 +129,7 @@ public class ExportProcessor extends BaseProcessor {
             String secPropFileNamePath = getFileNameForMutation(primaryPropertyFilePath, mutation);
             FileProperties properties = Optional.ofNullable(loadPropertiesFromFile(secPropFileNamePath)).orElse(new FileProperties());
             if (!properties.isEmpty()) {
-                statistics.incTotalPropFilesProcessed(1);
+                statistics.incTotalPropFilesProcessed();
             }
             map.put(mutation, properties);
         }
@@ -147,36 +148,104 @@ public class ExportProcessor extends BaseProcessor {
                                            Map<String, FileProperties> filesMutationProps,
                                            DataPropFile primaryDataPropFile) {
         PropertyStatus primaryPropStatus = primaryDataPropFile.getPropertyStatus(key);
+        PropertiesMap mutationPropsMap;
         for (String mutation : configuration.getMutations()) {
-            // Read all properties for secondary mutation.
+            log.debug("Processing key \"" + key + "\" for mutation \"" + mutation + "\" of \"" + primaryPropFilePath + "\"");
+            // Get all properties for secondary mutation.
             final FileProperties properties = Optional.ofNullable(filesMutationProps.get(mutation)).orElse(new FileProperties());
-            // Get value of property from existing properties file or set empty value if property not found.
+            // Get value of property from existing mutation properties file or set empty value if property not found.
             Property propValue = Optional.ofNullable(properties.get(key)).orElse(new PropValue(EMPTY_VAL));
-            PropertiesMap mutationPropsMap = primaryDataPropFile.getMutationProperties(mutation);
+            mutationPropsMap = primaryDataPropFile.getMutationProperties(mutation);
             if (mutationPropsMap == null) {
                 mutationPropsMap = new PropertiesMap();
                 primaryDataPropFile.putMutationProperties(mutation, mutationPropsMap);
             }
             String mutationPropFilePath = getFileNameForMutation(primaryPropFilePath, mutation);
-            ExportFileStatistic fileStatistic = new ExportFileStatistic();
-            statistics.putFileStatistic(mutationPropFilePath, fileStatistic);
+            // Default status of mutation property is UNCHANGED.
+            mutationPropsMap.putPropertyStatus(key, PropertyStatus.UNCHANGED);
+            // Set default value from properties file
+            mutationPropsMap.put(key, propValue.getValue());
+            /* Resolves final status of the property value. If its status is not PropertyStatus.UNCHANGED then property will be exported. */
             // If property doesn't exists in file of secondary mutation or file for secondary mutation doesn't exists...
             if (properties.get(key) == null) {
-                // set its value to empty string and status to NEW.
-                mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.NEW);
-                fileStatistic.incNewKeysCnt();
+                // set its value to empty string and status to MISSING.
+                mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.MISSING);
+            } else if(primaryPropStatus == PropertyStatus.CHANGED) {
+                mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.CHANGED);
             } else {
-                // Otherwise use primaryPropStatus. This covers scenarios:
-                // - new property in primary mutation file (key not exists in Json DataFile) -> status = NEW
-                // - changes of property value in primary mutation file -> status = CHANGED, propValue = ""
-                if (primaryPropStatus == PropertyStatus.CHANGED) {
-                    propValue.setValue(EMPTY_VAL);
-                    fileStatistic.incKeysToUpdateCnt();
+                // Value for this mutation is missing -> MISSING
+                if (propValue.getValue().isEmpty()) {
+                    mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.MISSING);
+                } else {
+                    /* Otherwise compare key value from actual DataFile from data.json file on disk.
+                       This covers scenarios:
+                       - new property in primary mutation file (key not exists in Json DataFile) -> status = NEW
+                       - changes of property value in primary mutation file -> status = CHANGED, propValue = ""
+                       (secured in DataPropFile#putProperty(String key, String value) method)
+                     */
+                    DataPropFile propFileByFileName = null;
+                    // No json datafile exists on disk or no record for this file in Json DataFile on disk -> NEW
+                    if (originalDataFileOnDisk != null) {
+                        propFileByFileName = originalDataFileOnDisk.getPropFileByFileName(primaryPropFilePath);
+                    }
+                    if (propFileByFileName == null) {
+                        mutationPropsMap.putPropertyStatus(key, PropertyStatus.NEW);
+                    } else {
+                        // Value from json DataPropFile from disk.
+                        String propVal = propFileByFileName.getProperties().get(key);
+                        // Value is missing in json data file -> NEW
+                        if (StringUtils.isEmpty(propVal)) {
+                            mutationPropsMap.putPropertyStatus(key, PropertyStatus.NEW);
+                        } else {
+                            // Value in primary properties file is changed (against stored value in json DataFile) ->
+                            // all secondary mutations must be translated again.
+                            String primaryPropVal = primaryDataPropFile.getPropertyValue(key);
+                            if (!propVal.equals(primaryPropVal)) {
+                                mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.CHANGED);
+                            }
+                        }
+                    }
                 }
-                mutationPropsMap.put(key, propValue.getValue(), primaryPropStatus);
             }
-            fileStatistic.incTotalKeysCnt();
+            countStatistics(key, mutationPropsMap, mutationPropFilePath);
         }
+        /* Set final primary properties status by statuses of this key in all secondary properties.
+          - if all secondary properties for this key have status UNCHANGED then set primary property status to UNCHANGED
+          - if at least one secondary properties status is not UNCHANGED then set primary property status to CHANGED
+         */
+        boolean allUnchanged = primaryDataPropFile.getMutationProperties().values().stream().allMatch(propertiesMap ->
+                propertiesMap.getPropertiesStatus().entrySet().stream()
+                        .filter(entry -> entry.getKey().equals(key))
+                        .allMatch(entry -> entry.getValue() == PropertyStatus.UNCHANGED)
+        );
+        primaryDataPropFile.putPropertyStatus(key, allUnchanged ? PropertyStatus.UNCHANGED : PropertyStatus.CHANGED);
+    }
+
+    /**
+     * Final Re-count of statistics by final status of property.
+     * @param key key of property
+     * @param mutationPropsMap map of mutation properties
+     * @param mutationPropFilePath relative path to the mutation property file
+     */
+    private void countStatistics(String key, PropertiesMap mutationPropsMap, String mutationPropFilePath) {
+        PropertyStatus primaryPropStatus;
+        ExportFileStatistic fileStatistic = statistics.getFileStatistic(mutationPropFilePath);
+        if (fileStatistic == null) {
+            fileStatistic = new ExportFileStatistic();
+            statistics.putFileStatistic(mutationPropFilePath, fileStatistic);
+        }
+        primaryPropStatus = mutationPropsMap.getPropertyStatus(key);
+        if (primaryPropStatus == PropertyStatus.NEW) {
+            fileStatistic.incNewKeysCnt();
+            statistics.incTotalNewKeysCnt();
+        } else if (primaryPropStatus == PropertyStatus.CHANGED) {
+            fileStatistic.incKeysToUpdateCnt();
+            statistics.incTotalKeysToUpdateCnt();
+        } else if (primaryPropStatus == PropertyStatus.MISSING) {
+            fileStatistic.incMissingKeysTranslationCnt();
+            statistics.incTotalMissingKeysTranslationCnt();
+        }
+        fileStatistic.incTotalKeysCnt();
     }
 
     /**
@@ -191,14 +260,7 @@ public class ExportProcessor extends BaseProcessor {
         for (Map.Entry<String, DataPropFile> entry : dataPropFiles.entrySet()) {
             String fileNamePath = entry.getKey();
             DataPropFile dataPropFile = entry.getValue();
-            // Title of target google sheet is created from "properties fileName only" + "#" + "fileName id".
-            String sheetTitle = FilenameUtils.getBaseName(fileNamePath) + "#" + dataPropFile.getId();
-            log.info("Uploading data of \"" + fileNamePath + "\" into google sheet \"" + sheetTitle + "\"...");
-            Sheet sheet = createGoogleSheet(dataPropFile, sheetTitle);
-            if (sheet != null) {
-                throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
-            }
-            uploadDataToGoogleSheet(dataPropFile, sheetTitle);
+            uploadDataToGoogleSheet(dataPropFile, fileNamePath);
         }
         // Delete all previously existing sheets (usually default "Sheet 1" of new empty spreadsheet) if
         // current sheets count is greater then previous.
@@ -208,9 +270,9 @@ public class ExportProcessor extends BaseProcessor {
         }
     }
 
-    private Sheet createGoogleSheet(DataPropFile dataPropFile, String sheetTitle) throws GeneralSecurityException, IOException {
-        Integer columnCount = configuration.getMutations().size() + 2;
-        Integer rowCount = dataPropFile.getProperties().size() + 1;
+    private Sheet createGoogleSheet(List<List<Object>> sheetRows, String sheetTitle) throws GeneralSecurityException, IOException {
+        Integer columnCount = sheetRows.get(0).size();
+        Integer rowCount = sheetRows.size();
         SheetParams sheetParams = new SheetParams(sheetTitle, columnCount, rowCount);
         // Freezes first row (header) to prevent scrolling of this row with rest of data.
         if (rowCount > 1) {
@@ -219,14 +281,25 @@ public class ExportProcessor extends BaseProcessor {
         return googleSheetService.addSheet(arguments.getGoogleSheetId(), sheetParams);
     }
 
-    private void uploadDataToGoogleSheet(DataPropFile dataPropFile, String sheetTitle) throws IOException, GeneralSecurityException {
-        Sheet sheet;
-        List<List<Object>> sheetData = new LinkedList<>();
+    private void uploadDataToGoogleSheet(DataPropFile dataPropFile, String fileNamePath) throws IOException, GeneralSecurityException {
         // Add header into sheet
-        sheetData.addAll(createSheetHeader());
+        List<List<Object>> sheetRows = new LinkedList<>(createSheetHeader());
         // Add data into sheet
-        sheetData.addAll(createSheetData(dataPropFile));
-        googleSheetService.writeDataIntoSheet(arguments.getGoogleSheetId(), sheetTitle, sheetData);
+        List<List<Object>> sheetData = createSheetData(dataPropFile);
+        // If no data to upload return
+        if (sheetData.isEmpty()) {
+            log.info("No changed data for primary properties file and its mutation files: " + fileNamePath);
+            return;
+        }
+        // Title of target google sheet is created from "properties fileName only" + "#" + "fileName id".
+        String sheetTitle = FilenameUtils.getBaseName(fileNamePath) + "#" + dataPropFile.getId();
+        log.info("Uploading data of \"" + fileNamePath + "\" into google sheet \"" + sheetTitle + "\"...");
+        sheetRows.addAll(sheetData);
+        Sheet sheet = createGoogleSheet(sheetRows, sheetTitle);
+        if (sheet != null) {
+            throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
+        }
+        googleSheetService.writeDataIntoSheet(arguments.getGoogleSheetId(), sheetTitle, sheetRows);
         sheet = googleSheetService.getSheet(arguments.getGoogleSheetId(), sheetTitle);
         googleSheetService.setAutoResizeColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
         hideSheetFirstColumn(sheet.getProperties().getSheetId());
@@ -243,6 +316,11 @@ public class ExportProcessor extends BaseProcessor {
     private List<List<Object>> createSheetData(DataPropFile dataPropFile) {
         List<List<Object>> sheetData = new LinkedList<>();
         for (Map.Entry<String, String> entry : dataPropFile.getProperties().entrySet()) {
+            // Add row only if status != UNCHANGED
+            PropertyStatus propertyStatus = dataPropFile.getPropertyStatus(entry.getKey());
+            if (propertyStatus == PropertyStatus.UNCHANGED) {
+                continue;
+            }
             // Add key name and primary mutation value
             List<Object> rowValues = new LinkedList<>(Arrays.asList(entry.getKey(), entry.getValue()));
             // Add all secondary mutations values

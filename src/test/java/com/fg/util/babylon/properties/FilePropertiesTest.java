@@ -1,13 +1,15 @@
 package com.fg.util.babylon.properties;
 
+import com.fg.util.babylon.util.TestUtils;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
@@ -23,13 +25,13 @@ public class FilePropertiesTest {
         long stTime = System.currentTimeMillis();
         FileProperties fileProperties = new FileProperties();
         try {
-            File sourceFile = new File(getClass().getClassLoader().getResource("META-INF/09_mail_form/messages.properties").getFile());
+            File sourceFile = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("META-INF/09_mail_form/messages.properties")).getFile());
             InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(sourceFile), StandardCharsets.UTF_8);
             fileProperties.load(inputStreamReader);
             fileProperties.entrySet().forEach(log::info);
             log.info("Load time: " + (System.currentTimeMillis() - stTime) + " ms");
             stTime = System.currentTimeMillis();
-            File targetFile = new File("messages-out.properties");
+            File targetFile = new File(TestUtils.getTempDir() + "messages-out.properties");
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(targetFile), StandardCharsets.UTF_8);
             fileProperties.save(outputStreamWriter);
             log.info("Save time: " + (System.currentTimeMillis() - stTime) + " ms");

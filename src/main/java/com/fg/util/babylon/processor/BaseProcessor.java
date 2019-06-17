@@ -35,30 +35,42 @@ public abstract class BaseProcessor {
     @Autowired
     protected GoogleSheetService googleSheetService;
 
-    protected Arguments arguments;
-    protected Configuration configuration;
+    Arguments arguments;
+    Configuration configuration;
     PathMatchingResourcePatternResolver pathResolver = new PathMatchingResourcePatternResolver();
-    private DataFile dataFile;
+    /**  */
+    DataFile originalDataFileOnDisk;
+    /**
+     * Working DataFile object that changing during the export process. Initial state is given from existing json DataFile.
+     * If DataFile not exists then new object DataFile is created. For this reasons this variable must be accessed in child
+     * classes only by {@link #getOrCreateDataFile()} method.
+     * "Package private" access is used only for simplicity of JUnit testing.
+     */
+    DataFile dataFile;
 
     public void startTranslation(Arguments arguments) throws IOException, GeneralSecurityException {
         this.arguments = arguments;
-        readConfiguration();
+        readAndCheckConfiguration();
         processTranslation();
     }
 
     protected abstract void processTranslation() throws IOException, GeneralSecurityException;
 
-    private void readConfiguration() throws IOException {
+    private void readAndCheckConfiguration() throws IOException {
         File file = new File(arguments.getConfigFileName());
         if (!file.exists()) {
             throw new FileNotFoundException("Cannot find configuration file: " + file.getAbsolutePath());
         }
         configuration = JsonUtils.jsonObjFromFile(file, Configuration.class);
+        originalDataFileOnDisk = getExistingDataFileFromDisk();
+        if (configuration.getMutations().isEmpty()) {
+            throw new IllegalArgumentException("No primary mutations defined in configuration file \"" + arguments.getConfigFileName() + "\"");
+        }
     }
 
     /**
      * Loads properties from file.
-     * @param fileNamePath
+     * @param fileNamePath path to existing properties file
      * @return Returns loaded file {@link FileProperties} or null if file not exists.
      * @throws IOException some exception derived from {@link IOException}
     */
@@ -80,28 +92,37 @@ public abstract class BaseProcessor {
     */
     protected DataFile getOrCreateDataFile() throws IOException {
         if (dataFile == null) {
-            File file = new File(getDataFileName());
-            if (file.exists()) {
-                if (file.length() == 0) {
-                    throw new EmptyDbFileException("Db file \"" + file.getAbsolutePath() + "\" is empty");
-                }
-                dataFile = JsonUtils.jsonObjFromFile(file, DataFile.class);
-                loadDataPropFilesIds();
-            } else {
+            dataFile = getExistingDataFileFromDisk();
+            if (dataFile == null) {
                 dataFile = new DataFile();
             }
         }
         return dataFile;
     }
 
+    private DataFile getExistingDataFileFromDisk() throws IOException {
+        File file = new File(getDataFileName());
+        if (file.exists()) {
+            if (file.length() == 0) {
+                throw new EmptyDbFileException("Db file \"" + file.getAbsolutePath() + "\" is empty");
+            }
+            DataFile df = JsonUtils.jsonObjFromFile(file, DataFile.class);
+            loadDataPropFilesIds(df);
+            return df;
+        } else {
+            return null;
+        }
+    }
+
     /**
      * This map {@link DataFile#getDataPropFilesById()} is excluded from Json serialization, so after deserialization of
      * {@link DataFile} from file is necessary to load this map from loaded {@link DataFile#getDataPropFiles()}.
+     * @param df DataFile object with map to load in.
      */
-    private void loadDataPropFilesIds() {
-        dataFile.getDataPropFiles().forEach((key, value) -> {
+    private void loadDataPropFilesIds(DataFile df) {
+        df.getDataPropFiles().forEach((key, value) -> {
             if (value.getId() != null) {
-                dataFile.putDataPropFileById(value.getId(), value);
+                df.putDataPropFileById(value.getId(), value);
             } else {
                 log.warn("Id for path \"" + key + "\" not found.");
             }

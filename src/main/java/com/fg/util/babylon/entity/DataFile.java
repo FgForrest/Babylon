@@ -62,10 +62,14 @@ public class DataFile implements Serializable {
         return dataPropFile;
     }
 
+    public DataPropFile getPropFileByFileName(String fileName) {
+        return dataPropFiles.get(fileName);
+    }
+
     /**
      * Get {@link DataPropFile} by id of the path.
      * @param id unique id of the relative file name and path to source/destination properties file.
-     * @return
+     * @return get {@link DataPropFile} if exists
      */
     public DataPropFile getPropFileById(Integer id) {
         return dataPropFilesById.get(id);
@@ -73,7 +77,7 @@ public class DataFile implements Serializable {
 
     /**
      * Gets next unique ID for identification of one properties bundle in translation.
-     * @return
+     * @return Get unique ID
      */
     private Integer getNextUniqueId() {
         Set<Integer> ids = dataPropFilesById.keySet();
