@@ -258,7 +258,7 @@ public class ExportProcessorTest {
         // Remove value of one "en" mutation property
         String changedFileName = "A_en.properties";
         String changedPropKey = "A.properties0";
-        filePropsMap.get(changedFileName).get(changedPropKey).setValue("");
+        filePropsMap.get(changedFileName).remove(changedPropKey);
         exportProcessor.startTranslation(new Arguments());
         dataFile = exportProcessor.getOrCreateDataFile();
         DataPropFile propFile = dataFile.getPropFileByFileName("A.properties");

@@ -155,12 +155,7 @@ public class ExportProcessor extends BaseProcessor {
             final FileProperties properties = Optional.ofNullable(filesMutationProps.get(mutation)).orElse(new FileProperties());
             // Get value of property from existing mutation properties file or set empty value if property not found.
             Property propValue = Optional.ofNullable(properties.get(key)).orElse(new PropValue(EMPTY_VAL));
-            mutationPropsMap = primaryDataPropFile.getMutationProperties(mutation);
-            if (mutationPropsMap == null) {
-                mutationPropsMap = new PropertiesMap();
-                primaryDataPropFile.putMutationProperties(mutation, mutationPropsMap);
-            }
-            String mutationPropFilePath = getFileNameForMutation(primaryPropFilePath, mutation);
+            mutationPropsMap = getMutationPropertiesMap(primaryDataPropFile, mutation);
             // Default status of mutation property is UNCHANGED.
             mutationPropsMap.putPropertyStatus(key, PropertyStatus.UNCHANGED);
             // Set default value from properties file
@@ -173,40 +168,36 @@ public class ExportProcessor extends BaseProcessor {
             } else if(primaryPropStatus == PropertyStatus.CHANGED) {
                 mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.CHANGED);
             } else {
-                // Value for this mutation is missing -> MISSING
-                if (propValue.getValue().isEmpty()) {
-                    mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.MISSING);
+                /* Otherwise compare key value from actual DataFile from data.json file on disk.
+                   This covers scenarios:
+                   - new property in primary mutation file (key not exists in Json DataFile) -> status = NEW
+                   - changes of property value in primary mutation file -> status = CHANGED, propValue = ""
+                   (secured in DataPropFile#putProperty(String key, String value) method)
+                 */
+                DataPropFile propFileByFileName = null;
+                // No json datafile exists on disk or no record for this file in Json DataFile on disk -> NEW
+                if (originalDataFileOnDisk != null) {
+                    propFileByFileName = originalDataFileOnDisk.getPropFileByFileName(primaryPropFilePath);
+                }
+                if (propFileByFileName == null) {
+                    mutationPropsMap.putPropertyStatus(key, PropertyStatus.NEW);
                 } else {
-                    /* Otherwise compare key value from actual DataFile from data.json file on disk.
-                       This covers scenarios:
-                       - new property in primary mutation file (key not exists in Json DataFile) -> status = NEW
-                       - changes of property value in primary mutation file -> status = CHANGED, propValue = ""
-                       (secured in DataPropFile#putProperty(String key, String value) method)
-                     */
-                    DataPropFile propFileByFileName = null;
-                    // No json datafile exists on disk or no record for this file in Json DataFile on disk -> NEW
-                    if (originalDataFileOnDisk != null) {
-                        propFileByFileName = originalDataFileOnDisk.getPropFileByFileName(primaryPropFilePath);
-                    }
-                    if (propFileByFileName == null) {
+                    // Value from json DataPropFile from disk.
+                    String propVal = propFileByFileName.getProperties().get(key);
+                    // Value is missing in json data file -> NEW
+                    if (StringUtils.isEmpty(propVal)) {
                         mutationPropsMap.putPropertyStatus(key, PropertyStatus.NEW);
                     } else {
-                        // Value from json DataPropFile from disk.
-                        String propVal = propFileByFileName.getProperties().get(key);
-                        // Value is missing in json data file -> NEW
-                        if (StringUtils.isEmpty(propVal)) {
-                            mutationPropsMap.putPropertyStatus(key, PropertyStatus.NEW);
-                        } else {
-                            // Value in primary properties file is changed (against stored value in json DataFile) ->
-                            // all secondary mutations must be translated again.
-                            String primaryPropVal = primaryDataPropFile.getPropertyValue(key);
-                            if (!propVal.equals(primaryPropVal)) {
-                                mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.CHANGED);
-                            }
+                        // Value in primary properties file is changed (against stored value in json DataFile) ->
+                        // all secondary mutations must be translated again.
+                        String primaryPropVal = primaryDataPropFile.getPropertyValue(key);
+                        if (!propVal.equals(primaryPropVal)) {
+                            mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.CHANGED);
                         }
                     }
                 }
             }
+            String mutationPropFilePath = getFileNameForMutation(primaryPropFilePath, mutation);
             countStatistics(key, mutationPropsMap, mutationPropFilePath);
         }
         /* Set final primary properties status by statuses of this key in all secondary properties.
@@ -219,6 +210,16 @@ public class ExportProcessor extends BaseProcessor {
                         .allMatch(entry -> entry.getValue() == PropertyStatus.UNCHANGED)
         );
         primaryDataPropFile.putPropertyStatus(key, allUnchanged ? PropertyStatus.UNCHANGED : PropertyStatus.CHANGED);
+    }
+
+    private PropertiesMap getMutationPropertiesMap(DataPropFile primaryDataPropFile, String mutation) {
+        PropertiesMap mutationPropsMap;
+        mutationPropsMap = primaryDataPropFile.getMutationProperties(mutation);
+        if (mutationPropsMap == null) {
+            mutationPropsMap = new PropertiesMap();
+            primaryDataPropFile.putMutationProperties(mutation, mutationPropsMap);
+        }
+        return mutationPropsMap;
     }
 
     /**

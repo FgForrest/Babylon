@@ -122,16 +122,16 @@
                 <artifactId>maven-plugin-plugin</artifactId>
                 <version>3.6.0</version>
             </plugin>
-            <!-- Adds yourself as Maven plugin. To run it set correct values in configuration and then use:
-                "mvn babylon:export" or "mvn babylon:import" in terminal. -->
+            <!-- Adds yourself as Maven plugin. To run it use:
+                "mvn babylon:export -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc"
+                or
+                "mvn babylon:import -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc"
+                in terminal.
+             -->
             <plugin>
                 <groupId>com.fg.util</groupId>
                 <artifactId>babylon-maven-plugin</artifactId>
                 <version>1.0-SNAPSHOT</version>
-                <configuration>
-                    <configFileName>test-config-fg.json</configFileName>
-                    <googleSheetId>1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc</googleSheetId>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
