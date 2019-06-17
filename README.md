@@ -78,11 +78,14 @@ Parameters is:
 - config.file - path to translator-config.json file. This file serves as database for translation process.
 - google.sheet.id - ID of the google spreadsheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc) 
 
-e.g. mvn babylon:import -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc <br/>
+e.g.
+``` 
+mvn babylon:import -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc
+```
 Detailed description of this actions is provided in section above (see "Run Babylon as console application" section)
 
+###### Another use case
 Parameters can be also set in POM.xml this way, if it is your use case:
-
 ```xml
 <plugin>
     <groupId>com.fg.util</groupId>
