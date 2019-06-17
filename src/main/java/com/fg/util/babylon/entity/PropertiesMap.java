@@ -31,35 +31,43 @@ public class PropertiesMap extends LinkedHashMap<String, String> {
 
     /**
      * Puts property value and its status at once.
-     * @param key
-     * @param value
+     * @param key property key
+     * @param value property value
      * @param propertyStatus State to be set.
      * @return Old value of property or null if no property exists for given key.
      */
     public String put(String key, String value, PropertyStatus propertyStatus) {
-        String result = super.put(key, value);
+        String result = put(key, value);
+        if (log.isDebugEnabled()) {
+            log.debug("Put property value: " + key + " = " + value);
+        }
         putPropertyStatus(key, propertyStatus);
         return result;
     }
 
     /**
      * Changes state of property by specified key externally.
-     * @param key
-     * @param propertyStatus
+     * @param key property property key
+     * @param propertyStatus property value
      * @return Previous {@link PropertyStatus} of property.
      */
     public PropertyStatus putPropertyStatus(String key, PropertyStatus propertyStatus) {
-        log.debug("Put property status: " + key + " -> " + propertyStatus.name());
+        if (log.isDebugEnabled()) {
+            log.debug("Put property status: " + key + " = " + propertyStatus.name());
+        }
         return propertiesStatus.put(key, propertyStatus);
     }
 
     /**
      * Get {@link PropertyStatus} by key.
-     * @param key
+     * @param key property key
      * @return Actual {@link PropertyStatus} of property.
      */
     public PropertyStatus getPropertyStatus(String key) {
         return propertiesStatus.get(key);
     }
 
+    public Map<String, PropertyStatus> getPropertiesStatus() {
+        return propertiesStatus;
+    }
 }

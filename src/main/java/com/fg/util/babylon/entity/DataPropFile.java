@@ -46,8 +46,8 @@ public class DataPropFile implements Serializable {
      * - {@link PropertyStatus#NEW} if key not exists<br>
      * - {@link PropertyStatus#CHANGED} if value of key is different than previous value<br>
      * - {@link PropertyStatus#UNCHANGED} if value of key is same<br>
-     * @param key
-     * @param value
+     * @param key property key
+     * @param value property value
      * @return Old value of property or null if no property exists for given key.
      */
     public String putProperty(String key, String value) {
@@ -64,8 +64,8 @@ public class DataPropFile implements Serializable {
 
     /**
      * See {@link PropertiesMap#put(String, String, PropertyStatus)}
-     * @param key
-     * @param value
+     * @param key property key
+     * @param value property value
      */
     public String putProperty(String key, String value, PropertyStatus propertyStatus) {
         return properties.put(key, value, propertyStatus);
@@ -84,7 +84,7 @@ public class DataPropFile implements Serializable {
         return properties.get(propertyKey);
     }
 
-    PropertyStatus putPropertyStatus(String key, PropertyStatus propertyStatus) {
+    public PropertyStatus putPropertyStatus(String key, PropertyStatus propertyStatus) {
         return properties.putPropertyStatus(key, propertyStatus);
     }
 
@@ -99,7 +99,6 @@ public class DataPropFile implements Serializable {
     public PropertiesMap getMutationProperties(String mutation) {
         return mutationProperties.get(mutation);
     }
-
 }
 
 

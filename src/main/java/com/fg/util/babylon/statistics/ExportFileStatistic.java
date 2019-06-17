@@ -16,6 +16,9 @@ public class ExportFileStatistic {
     @StatisticsField("Count of new keys to translate")
     private int newKeysCnt;
 
+    @StatisticsField("Count of keys with missing translation")
+    private int missingKeysTranslationCnt;
+
     @StatisticsField("Count of all keys in file")
     private int totalKeysCnt;
 
@@ -31,6 +34,13 @@ public class ExportFileStatistic {
      */
     public void incNewKeysCnt() {
         newKeysCnt++;
+    }
+
+    /**
+     * Increment value of {@link ExportFileStatistic#getMissingKeysTranslationCnt()} by 1.
+     */
+    public void incMissingKeysTranslationCnt() {
+        missingKeysTranslationCnt++;
     }
 
     /**

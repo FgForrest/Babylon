@@ -16,6 +16,14 @@ public class TestUtils {
     private TestUtils() {
     }
 
+    public static String getTempDir() {
+        String dir = System.getProperty("java.io.tmpdir");
+        if (!dir.endsWith(System.lineSeparator())) {
+            dir += System.lineSeparator();
+        }
+        return dir;
+    }
+
     public static DataFile createTestDataFile() {
         DataFile dataFile = new DataFile();
         DataPropFile propFile = new DataPropFile();

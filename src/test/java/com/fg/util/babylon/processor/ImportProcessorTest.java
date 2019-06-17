@@ -9,7 +9,7 @@ public class ImportProcessorTest {
 
     @Test
     public void checkWholeImport() {
-        // TODO create integration test of import.
+        // TODO create complex test of import.
         //  Mock files read/write operations and google sheet API read/write operations.
     }
 }

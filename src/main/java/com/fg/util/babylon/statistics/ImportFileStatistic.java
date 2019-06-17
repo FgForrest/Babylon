@@ -16,10 +16,8 @@ public class ImportFileStatistic {
     @StatisticsField("Count of keys not found in primary file")
     private int notFoundInPrimaryFile;
 
-    /**
-     * Increment value of {@link ImportFileStatistic#getUpdatedCnt()} by 1.
-     */
-    public void incUpdatedCnt() {
+    public void imcUpdatedCnt() {
         updatedCnt++;
     }
+
 }

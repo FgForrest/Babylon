@@ -23,8 +23,6 @@ public class TranslationStatisticsOfImport extends TranslationStatisticsBase {
         return fileStatistics.get(fileName);
     }
 
-    //TODO pouzit
-
     @Override
     public String toString() {
         return super.toString();
