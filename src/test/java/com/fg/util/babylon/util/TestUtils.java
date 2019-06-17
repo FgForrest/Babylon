@@ -6,6 +6,7 @@ import com.fg.util.babylon.entity.DataPropFile;
 import com.fg.util.babylon.entity.PropertiesMap;
 import com.fg.util.babylon.enums.PropertyStatus;
 
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -18,8 +19,8 @@ public class TestUtils {
 
     public static String getTempDir() {
         String dir = System.getProperty("java.io.tmpdir");
-        if (!dir.endsWith(System.lineSeparator())) {
-            dir += System.lineSeparator();
+        if (!dir.endsWith(File.separator)) {
+            dir += File.separator;
         }
         return dir;
     }
