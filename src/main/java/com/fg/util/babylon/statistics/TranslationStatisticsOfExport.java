@@ -25,13 +25,13 @@ public class TranslationStatisticsOfExport extends TranslationStatisticsBase {
     @StatisticsField("Total properties files processed")
     private int totalPropFilesProcessed;
 
-    @StatisticsField("Count of all new keys to translate")
+    @StatisticsField("Total new keys to translate")
     private int totalNewKeysCnt;
 
-    @StatisticsField("Count of all keys to update translation")
+    @StatisticsField("Total keys to update translation")
     private int totalKeysToUpdateCnt;
 
-    @StatisticsField("Count of all keys with missing translation")
+    @StatisticsField("Total keys with missing translation")
     private int totalMissingKeysTranslationCnt;
 
     /**

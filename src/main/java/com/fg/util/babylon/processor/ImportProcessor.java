@@ -253,11 +253,13 @@ public class ImportProcessor extends BaseProcessor {
                 property.setValue(value);
                 updatedFileProps.put(key, property);
                 fileStatistic.incUpdatedCnt();
+                statistics.incTotalUpdatedCnt();
             }
         });
         // Add possible keys and values present only in mutation file to the end of the file.
         if (!propsOnlyInMutation.isEmpty()) {
             fileStatistic.setNotFoundInPrimaryFile(propsOnlyInMutation.size());
+            statistics.incTotalNotFoundInPrimaryFile(propsOnlyInMutation.size());
             propsOnlyInMutation.forEach(updatedFileProps::put);
             log.info("Property keys only in mutation file \"" + String.join(",", propsOnlyInMutation.keySet()) + "\"");
         }

@@ -17,6 +17,20 @@ public class TranslationStatisticsOfImport extends TranslationStatisticsBase {
     @StatisticsField("Action")
     private Action action;
 
+    @StatisticsField("Total updated keys")
+    private int totalUpdatedCnt;
+
+    @StatisticsField("Total keys not found in primary file")
+    private int totalNotFoundInPrimaryFile;
+
+    public void incTotalUpdatedCnt() {
+        totalUpdatedCnt++;
+    }
+
+    public void incTotalNotFoundInPrimaryFile(int inc) {
+        totalNotFoundInPrimaryFile += inc;
+    }
+
     /**
      * Statistics data for each processed file.
      */
