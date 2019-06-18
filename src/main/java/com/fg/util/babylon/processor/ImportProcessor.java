@@ -4,7 +4,10 @@ import com.fg.util.babylon.entity.DataFile;
 import com.fg.util.babylon.entity.DataPropFile;
 import com.fg.util.babylon.entity.PropertiesMap;
 import com.fg.util.babylon.enums.Action;
-import com.fg.util.babylon.exception.*;
+import com.fg.util.babylon.exception.EmptyDataFileException;
+import com.fg.util.babylon.exception.NoSheetsException;
+import com.fg.util.babylon.exception.ParsePropIdException;
+import com.fg.util.babylon.exception.PropIdNotFoundException;
 import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.properties.Property;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
@@ -17,10 +20,7 @@ import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.LinkedHashMap;
@@ -37,7 +37,7 @@ import java.util.regex.PatternSyntaxException;
 @CommonsLog
 public class ImportProcessor extends BaseProcessor {
 
-    private TranslationStatisticsOfImport statistics;
+    protected TranslationStatisticsOfImport statistics;
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
@@ -49,18 +49,26 @@ public class ImportProcessor extends BaseProcessor {
         }
         // Processes data from google spreadsheet into internal BaseProcessor#dataFile object
         // accessible by BaseProcessor#getOrCreateDataFile() method.
+        // Using "for" loop to propagating of IOException.
         for (Sheet sheet : sheets) {
             processSheet(sheet);
         }
         saveTranslations();
-        // Saves BaseProcessor#dataFile with all set primary mutation properties values into file on disk.
+        saveDataFile();
+        log.info(statistics);
+    }
+
+    /**
+     * Saves BaseProcessor#dataFile with all set primary mutation properties values into file on disk.
+     * @throws IOException some exception derived from {@link IOException}
+     */
+    private void saveDataFile() throws IOException {
         DataFile dataFile = getOrCreateDataFile();
         if (!dataFile.getDataPropFiles().isEmpty()) {
             JsonUtils.objToJsonFile(new File(configuration.getDataFileName()), dataFile, true);
         } else {
             throw new EmptyDataFileException("Cannot save empty DataFile object to file \"" + configuration.getDataFileName() + "\"");
         }
-        log.info(statistics);
     }
 
     private void processSheet(Sheet sheet) throws IOException {
@@ -137,6 +145,12 @@ public class ImportProcessor extends BaseProcessor {
         propFile.putMutationProperty(mutation, propKey, propValue);
     }
 
+    /**
+     * Gets {@link DataPropFile} object for one properties file by your unique id in json DataFile.
+     * @param fileId unique file ID
+     * @return Found {@link DataPropFile} object or null if not found.
+     * @throws IOException some exception derived from {@link IOException}
+     */
     private DataPropFile getPropFileById(Integer fileId) throws IOException {
         DataPropFile propFile = getOrCreateDataFile().getPropFileById(fileId);
         if (propFile == null) {
@@ -207,17 +221,15 @@ public class ImportProcessor extends BaseProcessor {
         FileProperties updatedFileProps = loadPropertiesFromFile(primaryPropFilePath);
         // Clears all keys values in loaded primaryFileProps to create template for making of mutation properties file.
         // In this point we have clear format, this means each key and value on correct row,
-        // empty rows and comments from primary mutation file  also on correct rows.
+        // empty rows and comments from primary mutation file is also on correct rows.
         updatedFileProps.values().forEach(property -> {
             if (property.isPropValue() || property.isPropValueMultiLine()) {
                 property.setValue(EMPTY_VAL);
             }
         });
-        // Get last row number in updatedFileProps
-//        Integer maxRow = updatedFileProps.size();
         FileProperties propsOnlyInMutation = new FileProperties();
         // Sets values of all keys from mutation properties file into updatedFileProps. Properties which exists only
-        // in secondary mutation file add to other map and append at end of mutation property file.
+        // in secondary mutation file is added to another map and append at end of mutation property file.
         originalMutationFileProps.forEach((key, sourceProp) -> {
             // Process only this values
             if (!sourceProp.isPropValue() && !sourceProp.isPropValueMultiLine()) {
@@ -240,7 +252,7 @@ public class ImportProcessor extends BaseProcessor {
             if (!value.equals(property.getValue())) {
                 property.setValue(value);
                 updatedFileProps.put(key, property);
-                fileStatistic.imcUpdatedCnt();
+                fileStatistic.incUpdatedCnt();
             }
         });
         // Add possible keys and values present only in mutation file to the end of the file.
@@ -249,9 +261,13 @@ public class ImportProcessor extends BaseProcessor {
             propsOnlyInMutation.forEach(updatedFileProps::put);
             log.info("Property keys only in mutation file \"" + String.join(",", propsOnlyInMutation.keySet()) + "\"");
         }
-        // Save changes into file on disk.
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(mutationPropFilePath), StandardCharsets.UTF_8);
-        updatedFileProps.save(outputStreamWriter);
+        // Save changes into target file on disk.
+        savePropertiesToFile(updatedFileProps, mutationPropFilePath);
+    }
+
+    private void savePropertiesToFile(FileProperties fileProperties, String pathFileName) throws IOException {
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(pathFileName), StandardCharsets.UTF_8);
+        fileProperties.save(outputStreamWriter);
     }
 
 }

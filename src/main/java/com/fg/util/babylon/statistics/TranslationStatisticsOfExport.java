@@ -16,6 +16,9 @@ import java.util.LinkedHashMap;
 @CommonsLog
 public class TranslationStatisticsOfExport extends TranslationStatisticsBase {
 
+    @StatisticsField("Action")
+    private Action action;
+
     @StatisticsField("Total primary properties files processed")
     private int primaryPropFilesProcessed;
 
