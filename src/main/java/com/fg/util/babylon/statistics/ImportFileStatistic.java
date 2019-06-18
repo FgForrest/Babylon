@@ -16,7 +16,7 @@ public class ImportFileStatistic {
     @StatisticsField("Count of keys not found in primary file")
     private int notFoundInPrimaryFile;
 
-    public void imcUpdatedCnt() {
+    public void incUpdatedCnt() {
         updatedCnt++;
     }
 

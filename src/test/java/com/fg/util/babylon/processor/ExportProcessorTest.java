@@ -6,7 +6,6 @@ import com.fg.util.babylon.entity.DataFile;
 import com.fg.util.babylon.entity.DataPropFile;
 import com.fg.util.babylon.enums.PropertyStatus;
 import com.fg.util.babylon.properties.FileProperties;
-import com.fg.util.babylon.properties.PropValue;
 import com.fg.util.babylon.util.JsonUtils;
 import com.fg.util.babylon.util.TestUtils;
 import lombok.extern.apachecommons.CommonsLog;
@@ -22,21 +21,22 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 
 import static org.junit.Assert.*;
 
 /**
+ * Test of {@link ExportProcessor}
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ExportProcessor.class)
 @CommonsLog
-public class ExportProcessorTest {
+public class ExportProcessorTest extends CommonProcessorTest {
 
-    private List<String> mutations = new LinkedList<>(Collections.singletonList("en"));
-    private List<String> testPropFilesPaths = new LinkedList<>(Arrays.asList("A.properties", "A_en.properties", "B.properties", "B_en.properties"));
-    private LinkedHashMap<String, FileProperties> filePropsMap = new LinkedHashMap<>();
     private ExportProcessor exportProcessor;
 
     /**
@@ -44,8 +44,8 @@ public class ExportProcessorTest {
      * @throws Exception when mocking failed
      */
     private void mockExportProcessor() throws Exception {
-        exportProcessor = PowerMock.createPartialMock(ExportProcessor.class
-                , "readAndCheckConfiguration",
+        exportProcessor = PowerMock.createPartialMock(ExportProcessor.class,
+                "readAndCheckConfiguration",
                 "getPropertiesFilesPathsFromPath",
                 "loadPropertiesFromFile",
                 "saveDataFileWithoutProperties",
@@ -69,30 +69,6 @@ public class ExportProcessorTest {
         PowerMock.expectPrivate(exportProcessor, "saveDataFileWithoutProperties").andVoid().anyTimes();
         PowerMock.expectPrivate(exportProcessor, "uploadDataToGoogleSpreadsheet").andVoid().anyTimes();
         PowerMock.replay(exportProcessor);
-    }
-
-    /**
-     * Generates default properties test data.
-     */
-    private void loadDefaultFilesPropsMap() {
-        loadFilesPropsMap(testPropFilesPaths);
-    }
-
-    /**
-     * Generates properties test data for given list of FileNames
-     * (simulates real properties files with expected generated data).
-     * @param propFilesPaths List of FileNames.
-     */
-    private void loadFilesPropsMap(List<String> propFilesPaths) {
-        propFilesPaths.forEach(fileName -> {
-            // Key is by primary prop file fileName
-            String key = fileName.replaceAll("_[a-zA-Z]{2}", "");
-            FileProperties fileProperties = new FileProperties();
-            for (int i=0 ; i < 5 ; i++) {
-                fileProperties.put((key + i), new PropValue("value " + fileName + i));
-            }
-            filePropsMap.put(fileName, fileProperties);
-        });
     }
 
     @Test
@@ -126,10 +102,9 @@ public class ExportProcessorTest {
         DataFile dataFile = runFirstExport();
         // Checks of results in DataFile.
         assertNotNull("DataFile is null", dataFile);
-        assertEquals("File count not match", testPropFilesPaths.size(), dataFile.getDataPropFiles().size());
         boolean allPrimaryPropsPresent = filePropsMap.entrySet().stream().allMatch(entry -> {
             String fileName = entry.getKey();
-            if (fileName.matches(".*_[a-zA-Z]{2}.*")) {
+            if (fileName.matches(MUTATION_FILENAME_REGEX)) {
                 // Skip mutation properties file
                 return true;
             }
@@ -180,7 +155,7 @@ public class ExportProcessorTest {
             Collection<PropertyStatus> propertyStatuses = dataPropFile.getProperties().getPropertiesStatus().values();
             unchangedCnt += propertyStatuses.stream().filter(propertyStatus -> propertyStatus == PropertyStatus.UNCHANGED).count();
         }
-        long allPrimaryPropsCnt = filePropsMap.entrySet().stream().filter(entry -> !entry.getKey().matches(".*_[a-zA-Z]{2}.*"))
+        long allPrimaryPropsCnt = filePropsMap.entrySet().stream().filter(entry -> !entry.getKey().matches(MUTATION_FILENAME_REGEX))
                 .map(stringFilePropertiesEntry -> stringFilePropertiesEntry.getValue().values()).mapToInt(Collection::size).sum();
         assertEquals("Not all other properties have status UNCHANGED.", allPrimaryPropsCnt - 1, unchangedCnt);
     }
@@ -206,7 +181,7 @@ public class ExportProcessorTest {
             Collection<PropertyStatus> propertyStatuses = dataPropFile.getProperties().getPropertiesStatus().values();
             missingCnt += propertyStatuses.stream().filter(propertyStatus -> propertyStatus == PropertyStatus.CHANGED).count();
         }
-        long allPrimaryPropsCnt = filePropsMap.entrySet().stream().filter(entry -> !entry.getKey().matches(".*_[a-zA-Z]{2}.*"))
+        long allPrimaryPropsCnt = filePropsMap.entrySet().stream().filter(entry -> !entry.getKey().matches(MUTATION_FILENAME_REGEX))
                 .map(stringFilePropertiesEntry -> stringFilePropertiesEntry.getValue().values()).mapToInt(Collection::size).sum();
         assertEquals("Not all primary properties have status CHANGED.", allPrimaryPropsCnt, missingCnt);
     }
@@ -234,7 +209,7 @@ public class ExportProcessorTest {
             Collection<PropertyStatus> propertyStatuses = dataPropFile.getProperties().getPropertiesStatus().values();
             missingCnt += propertyStatuses.stream().filter(propertyStatus -> propertyStatus == PropertyStatus.UNCHANGED).count();
         }
-        long allPrimaryPropsCnt = filePropsMap.entrySet().stream().filter(entry -> !entry.getKey().matches(".*_[a-zA-Z]{2}.*"))
+        long allPrimaryPropsCnt = filePropsMap.entrySet().stream().filter(entry -> !entry.getKey().matches(MUTATION_FILENAME_REGEX))
                 .map(stringFilePropertiesEntry -> stringFilePropertiesEntry.getValue().values()).mapToInt(Collection::size).sum();
         assertEquals("Not all properties have status UNCHANGED.", allPrimaryPropsCnt, missingCnt);
     }

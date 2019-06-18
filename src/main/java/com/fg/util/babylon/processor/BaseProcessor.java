@@ -38,7 +38,7 @@ public abstract class BaseProcessor {
     Arguments arguments;
     Configuration configuration;
     PathMatchingResourcePatternResolver pathResolver = new PathMatchingResourcePatternResolver();
-    /**  */
+    /** Original untouched DataFile loaded from json file on disk while configuration reading phase. */
     DataFile originalDataFileOnDisk;
     /**
      * Working DataFile object that changing during the export process. Initial state is given from existing json DataFile.

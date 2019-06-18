@@ -1,6 +1,8 @@
 package com.fg.util.babylon.statistics;
 
 import com.fg.util.babylon.enums.Action;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.LinkedHashMap;
 
@@ -8,7 +10,12 @@ import java.util.LinkedHashMap;
  * Class for collecting and presenting statistics from {@link Action#IMPORT} processing.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class TranslationStatisticsOfImport extends TranslationStatisticsBase {
+
+    @StatisticsField("Action")
+    private Action action;
 
     /**
      * Statistics data for each processed file.

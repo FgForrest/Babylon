@@ -49,6 +49,7 @@ public class ExportProcessor extends BaseProcessor {
     protected void processTranslation() throws IOException, GeneralSecurityException {
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
+        // Using "for" loop to propagating of IOException
         for (String path : configuration.getPath()) {
             processPath(path);
         }
@@ -251,7 +252,7 @@ public class ExportProcessor extends BaseProcessor {
 
     /**
      * Uploads data {@link BaseProcessor#getOrCreateDataFile()} into google spreadsheet specified by {@link Arguments#getGoogleSheetId()}.
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException when authentication to Google sheets API problem is appeared.
      * @throws IOException some exception derived from {@link IOException}
     */
     private void uploadDataToGoogleSpreadsheet() throws GeneralSecurityException, IOException {
@@ -343,7 +344,7 @@ public class ExportProcessor extends BaseProcessor {
      * Hiding of first column which contains properties keys, because it's not important for workers in translation agency.
      * @param sheetId ID of the target sheet
      * @throws IOException some exception derived from {@link IOException}
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException when authentication to Google sheets API problem is appeared.
      */
     private void hideSheetFirstColumn(Integer sheetId) throws IOException, GeneralSecurityException {
         DimensionRange dimensionRange = new DimensionRange()

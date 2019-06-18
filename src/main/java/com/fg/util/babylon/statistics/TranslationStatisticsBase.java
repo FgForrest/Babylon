@@ -1,6 +1,5 @@
 package com.fg.util.babylon.statistics;
 
-import com.fg.util.babylon.enums.Action;
 import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
 
@@ -15,9 +14,6 @@ import java.util.Map;
 @Data
 @CommonsLog
 public class TranslationStatisticsBase {
-
-    @StatisticsField("Action")
-    protected Action action;
 
     @Override
     public String toString() {
