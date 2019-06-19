@@ -45,7 +45,7 @@ This action ensure access to Google spreadsheets. This is a one-time action only
 until you not delete created "tokens" folder.
 
 #### Run Babylon as console application
-Application needs this arguments:mvn babylon:export -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc 
+Application needs this arguments: 1.action 2.config.json 3.google sheet id
 1. expected action (export, import)
 * export - takes all properties files specified in configuration file and export their properties into specified google spreadsheet. Each properties 
   bundle (primary properties file and its mutation) is exported into sheet labeled with primary properties file name + # + unique number of file.
