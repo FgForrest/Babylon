@@ -41,12 +41,14 @@ import java.util.*;
 public class ExportProcessor extends BaseProcessor {
 
     /** Regex for filter out possible secondary mutations files */
+    /* TODO TLN ... možná .properties? */
     private static final String REMOVE_MUTATIONS_REGEX = ".*_[a-zA-Z]{2,3}\\..*";
 
     protected TranslationStatisticsOfExport statistics;
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
+        /* TODO TLN jen poznámka - sice jedeme jednovláknově a po spuštění se to vše vymaže, ale ve vícevláknovém by tohle moc nefungovalo ... spíš by tu měl být nějaký kontextový objekt */
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
         // Using "for" loop to propagating of IOException
@@ -88,6 +90,7 @@ public class ExportProcessor extends BaseProcessor {
         List<String> list = new ArrayList<>();
         for (Resource resource : resources) {
             String relativePath = resource.getURL().getPath();
+            /* TODO TLN - tady by to skoro mohl být Assert.isTrue ne? Kdyby resource nebyl typu FileSystemResource, tak by to potichu celé nefungovalo ne? */
             if (resource instanceof FileSystemResource) {
                 relativePath = relativePath.substring(System.getProperty("user.dir").length() + 2);
             }
@@ -108,6 +111,7 @@ public class ExportProcessor extends BaseProcessor {
             String key = entry.getKey();
             Property value = entry.getValue();
             // Skip processing of comments and empty lines, process only simple or multiline key=value values.
+            /* TODO TLN - hele multiline se tedy úplně ignorují a nedostanou se do překladů? to by nebylo dobře */
             if (!value.isPropValue() && !value.isPropValueMultiLine()) {
                 continue;
             }

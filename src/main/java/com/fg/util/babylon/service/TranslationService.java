@@ -27,10 +27,12 @@ public class TranslationService {
         long stTime = System.currentTimeMillis();
         switch (arguments.getAction()) {
             case EXPORT:
+                // TODO TLN proč nemáš ExportProcessor rovnou jako inicializovaný field třídy?
                 ExportProcessor exportProcessor = context.getBean(ExportProcessor.class);
                 exportProcessor.startTranslation(arguments);
                 break;
             case IMPORT:
+                // TODO TLN proč nemáš ImportProcessor rovnou jako inicializovaný field třídy?
                 ImportProcessor importProcessor = context.getBean(ImportProcessor.class);
                 importProcessor.startTranslation(arguments);
                 break;
