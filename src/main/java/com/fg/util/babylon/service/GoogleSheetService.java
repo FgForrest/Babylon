@@ -278,6 +278,7 @@ public class GoogleSheetService {
                 // If not exists then fallback into default credentials.json for FG Forest company in resources.
                 credentialsStream = getClass().getClassLoader().getResourceAsStream(GOOGLE_CREDENTIALS_JSON);
             }
+            /* TODO TLN ... kde se zavřou ty streamy? */
             GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(credentialsStream));
             // Build flow and trigger user authorization request.
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(

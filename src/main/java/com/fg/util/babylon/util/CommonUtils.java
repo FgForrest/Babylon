@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
+ * TODO TLN  - smazat? Zdá se, že se už nepoužívá
+ *
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 public class CommonUtils {

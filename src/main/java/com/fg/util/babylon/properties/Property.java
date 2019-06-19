@@ -14,18 +14,22 @@ public class Property {
     private String value;
 
     public final boolean isPropValue() {
+        /* TODO TLN ... tohle je z pohledu inheritance dost divné */
         return this instanceof PropValue;
     }
 
     public final boolean isPropValueMultiLine() {
+        /* TODO TLN ... tohle je z pohledu inheritance dost divné */
         return this instanceof PropValueMultiLine;
     }
 
     final boolean isPropEmptyLine() {
+        /* TODO TLN ... tohle je z pohledu inheritance dost divné */
         return this instanceof PropEmptyLine;
     }
 
     final boolean isPropComment() {
+        /* TODO TLN ... tohle je z pohledu inheritance dost divné */
         return this instanceof PropComment;
     }
 
