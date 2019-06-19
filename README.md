@@ -29,11 +29,11 @@ You can use * convention to specify multiple files on path.
 
 ##### **Before first attempt to use Babylon**
 
-**For access from FG Forest company** Necessary "credentials.json" file is already included in application. 
+**For access from FG Forrest company** Necessary "credentials.json" file is already included in application. 
 All your Google spreadsheets must be created under the "analytics@fg.cz" google account or if you want to use 
 Google spreadsheet created under your account, you can simply share it with account "analytics@fg.cz".
 
-**For access by users outside of FG Forest company** You need "credentials.json" for accessing google spreadsheet. 
+**For access by users outside of FG Forrest company** You need "credentials.json" for accessing google spreadsheet. 
 This file must exists in same folder from where you running Babylon application. This file can be generated for your google account here: 
 [ENABLE THE GOOGLE SHEETS API](https://developers.google.com/sheets/api/quickstart/java) When you are logged in 
 on google account which you want to use, just click to "ENABLE THE GOOGLE SHEETS API" button and follow instructions.
