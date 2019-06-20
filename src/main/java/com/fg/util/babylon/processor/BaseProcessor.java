@@ -79,9 +79,9 @@ public abstract class BaseProcessor {
             return null;
         }
         FileProperties fileProperties = new FileProperties();
-        /* TODO TLN ... nezavíráš streamy! */
-        InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(fileNamePath), StandardCharsets.UTF_8);
-        fileProperties.load(inputStreamReader);
+        try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(fileNamePath), StandardCharsets.UTF_8)) {
+            fileProperties.load(inputStreamReader);
+        }
         return fileProperties;
     }
 

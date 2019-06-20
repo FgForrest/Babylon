@@ -18,9 +18,13 @@ import com.google.api.services.sheets.v4.model.GridData;
 import com.google.api.services.sheets.v4.model.RowData;
 import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.LinkedHashMap;
@@ -33,6 +37,7 @@ import java.util.regex.PatternSyntaxException;
  * Processor for {@link Action#IMPORT} action.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
+@Lazy
 @Component
 @CommonsLog
 public class ImportProcessor extends BaseProcessor {

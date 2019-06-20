@@ -49,7 +49,7 @@ public class GoogleSheetService {
      * @param spreadsheetId spreadsheet ID
      * @param sheetParams sheet parameters
      * @return If sheet already exists then will be returned. If not then null will be returned.
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
     public Sheet addSheet(final String spreadsheetId, final SheetParams sheetParams) throws GeneralSecurityException, IOException {
@@ -70,8 +70,8 @@ public class GoogleSheetService {
      * Gets sheet of spreadsheet by its title.
      * @param spreadsheetId spreadsheet ID
      * @param sheetTitle unique sheet title
-     * @return
-     * @throws GeneralSecurityException
+     * @return {@link Sheet} if exists otherwise null
+     * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
     public Sheet getSheet(final String spreadsheetId, final String sheetTitle) throws GeneralSecurityException, IOException {
@@ -97,8 +97,8 @@ public class GoogleSheetService {
      * Data of each sheet must be read individually by {@link #readDataFromSheet(String, String)} method or if you want
      * to get all sheet with their data at once, then you must use {@link #getAllSheetsWithData(String)} method instead.
      * @param spreadsheetId spreadsheet ID
-     * @return
-     * @throws GeneralSecurityException
+     * @return List of {@link Sheet} if exists otherwise null
+     * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
     public List<Sheet> getAllSheets(final String spreadsheetId) throws GeneralSecurityException, IOException {
@@ -109,8 +109,8 @@ public class GoogleSheetService {
     /**
      * Gets all sheets from given spreadsheet with all their data.
      * @param spreadsheetId spreadsheet ID
-     * @return
-     * @throws GeneralSecurityException
+     * @return List of {@link Sheet} if exists otherwise null
+     * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
     public List<Sheet> getAllSheetsWithData(final String spreadsheetId) throws GeneralSecurityException, IOException {
@@ -124,8 +124,8 @@ public class GoogleSheetService {
      * Use with great caution! Clears all data of spreadsheet (not formatting) in target sheet (by range)!
      * @param spreadsheetId spreadsheet ID
      * @param range The A1 notation of the values to clear. You can also target to whole sheet by using its unique sheet title e.g. "Sheet 1".
-     * @return
-     * @throws GeneralSecurityException
+     * @return {@link ClearValuesResponse}
+     * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
     public ClearValuesResponse clearSheetData(final String spreadsheetId, final String range) throws GeneralSecurityException, IOException {
@@ -139,9 +139,9 @@ public class GoogleSheetService {
      * @param spreadsheetId spreadsheet ID
      * @param sheetParams sheet parameters
      * @throws IOException some exception derived from {@link IOException}
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      */
-    public void setSheetRowAndColCount(final String spreadsheetId, final SheetParams sheetParams) throws IOException, GeneralSecurityException {
+    void setSheetRowAndColCount(final String spreadsheetId, final SheetParams sheetParams) throws IOException, GeneralSecurityException {
         SheetProperties sheetProperties = createSheetProperties(sheetParams);
         List<Request> requests = new ArrayList<>();
         UpdateSheetPropertiesRequest request = new UpdateSheetPropertiesRequest()
@@ -156,7 +156,7 @@ public class GoogleSheetService {
      * @param range You can also specify sheet name like e.g. "List1!A1:D3", if sheet name is missing,
      *              then range will be read from first sheet.
      * @return Data as List of {@link List&lt;List&lt;Object&gt;&gt;} or {@link Collections#emptyList()} if data not found.
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
     public List<List<Object>> readDataFromSheet(final String spreadsheetId, final String range) throws GeneralSecurityException, IOException {
@@ -180,7 +180,7 @@ public class GoogleSheetService {
      * @param range The A1 notation of the values to update. You can also target to whole sheet by using its unique sheet title e.g. "Sheet 1".
      * @param values Values to write.
      * @throws IOException some exception derived from {@link IOException}
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      */
     public void writeDataIntoSheet(final String spreadsheetId, final String range, final List<List<Object>> values) throws IOException, GeneralSecurityException {
         ValueRange body = new ValueRange()
@@ -195,7 +195,7 @@ public class GoogleSheetService {
      * Set auto resizing by content for given range of spreadsheet.
      * @param spreadsheetId spreadsheet ID
      * @param sheetId sheet ID
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
     public void setAutoResizeColumns(final String spreadsheetId, final Integer sheetId) throws GeneralSecurityException, IOException {
@@ -245,8 +245,8 @@ public class GoogleSheetService {
 
     /**
      * Get cached or build a new authorized API client service.
-     * @return
-     * @throws GeneralSecurityException
+     * @return {@link Sheets} service for access to google sheets.
+     * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
     @NonNull
@@ -271,23 +271,34 @@ public class GoogleSheetService {
         if (credential == null) {
             // Load client secrets, first try to use file from current directory
             File credentialsFile = new File(GOOGLE_CREDENTIALS_JSON);
-            InputStream credentialsStream;
-            if (credentialsFile.exists()) {
-                credentialsStream = new FileInputStream(credentialsFile);
-            } else {
-                // If not exists then fallback into default credentials.json for FG Forest company in resources.
-                credentialsStream = getClass().getClassLoader().getResourceAsStream(GOOGLE_CREDENTIALS_JSON);
+            InputStream credentialsStream = null;
+            InputStreamReader credentialsReader = null;
+            try {
+                if (credentialsFile.exists()) {
+                    credentialsStream = new FileInputStream(credentialsFile);
+                } else {
+                    // If not exists then fallback into default credentials.json for FG Forest company in resources.
+                    credentialsStream = getClass().getClassLoader().getResourceAsStream(GOOGLE_CREDENTIALS_JSON);
+                }
+                assert credentialsStream != null;
+                credentialsReader = new InputStreamReader(credentialsStream);
+                GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, credentialsReader);
+                // Build flow and trigger user authorization request.
+                GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                        httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
+                        .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
+                        .setAccessType("offline")
+                        .build();
+                LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+                credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+            } finally {
+                if (credentialsStream != null) {
+                    credentialsStream.close();
+                }
+                if (credentialsReader != null) {
+                    credentialsReader.close();
+                }
             }
-            /* TODO TLN ... kde se zavřou ty streamy? */
-            GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(credentialsStream));
-            // Build flow and trigger user authorization request.
-            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                    httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
-                    .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
-                    .setAccessType("offline")
-                    .build();
-            LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-            credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
         }
         return credential;
     }

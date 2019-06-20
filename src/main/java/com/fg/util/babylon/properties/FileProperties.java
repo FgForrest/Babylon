@@ -1,5 +1,6 @@
 package com.fg.util.babylon.properties;
 
+import com.fg.util.babylon.enums.PropertyType;
 import com.google.common.io.LineReader;
 
 import java.io.BufferedWriter;
@@ -47,7 +48,7 @@ public class FileProperties extends LinkedHashMap<String, Property> {
                 put(entry.getKey(), entry.getValue());
                 // In case of PropValueMultiLine row number must be incremented by lines count of PropValueMultiLine.
                 if (entry.getValue().isPropValueMultiLine()) {
-                    row += ((PropValueMultiLine)entry.getValue()).getRowCount();
+                    row += entry.getValue().getRowCount();
                 } else {
                     row++;
                 }
@@ -97,19 +98,20 @@ public class FileProperties extends LinkedHashMap<String, Property> {
             String[] keyAndVal = line.split("=");
             return createPropValueEntry(keyAndVal, lr);
         } else if (line.isEmpty()) {
-            PropEmptyLine propEmptyLine = new PropEmptyLine("");
+            Property propEmptyLine = new Property(PropertyType.EMPTY, "");
             return new SimpleEntry<>("" + row, propEmptyLine);
         } else if (line.startsWith("#") || line.startsWith("!")) {
-            PropComment propComment = new PropComment(line);
+            Property propComment = new Property(PropertyType.COMMENT, line);
             return new SimpleEntry<>("" + row, propComment);
         } else {
-            PropUnknown propUnknown = new PropUnknown(line);
+            Property propUnknown = new Property(PropertyType.UNKNOWN, line);
             return new SimpleEntry<>("" + row, propUnknown);
         }
     }
 
     /**
-     * Creates property entry with key and value. Can produce {@link PropValue} or {@link PropValueMultiLine}.
+     * Creates property entry with key and value. Can produce map of {@link Property} instances with type {@link PropertyType#VALUE}
+     * or {@link PropertyType#MULTILINE}.
      * @param keyAndVal {@link String} array where 0th element is key and 1th element is value.
      * @param lr line reader is used for reading multi-line properties values escaped by '\'
      * @return map entry with key and value.
@@ -118,10 +120,10 @@ public class FileProperties extends LinkedHashMap<String, Property> {
         Property propValue;
         String key = keyAndVal[0].trim();
         String value = keyAndVal.length > 1 ? keyAndVal[1].trim() : "";
-        if (!value.endsWith(PropValueMultiLine.MULTILINE_SEPARATOR)) {
-            propValue = new PropValue(value);
+        if (!value.endsWith(Property.MULTILINE_SEPARATOR)) {
+            propValue = new Property(PropertyType.VALUE, value);
         } else {
-            PropValueMultiLine multiLine = new PropValueMultiLine(value);
+            Property multiLine = new Property(PropertyType.MULTILINE, value);
             multiLine.addLine(value);
             // Adds rest of lines of this multiline value.
             while(true) {
@@ -130,7 +132,7 @@ public class FileProperties extends LinkedHashMap<String, Property> {
                     multiLine.addLine(line);
                 }
                 // If end of multi line value is reached.
-                if (!line.endsWith(PropValueMultiLine.MULTILINE_SEPARATOR) || line.trim().isEmpty()) {
+                if (!line.endsWith(Property.MULTILINE_SEPARATOR) || line.trim().isEmpty()) {
                     break;
                 }
             }
