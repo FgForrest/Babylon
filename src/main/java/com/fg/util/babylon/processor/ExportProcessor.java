@@ -10,9 +10,9 @@ import com.fg.util.babylon.entity.PropertiesMap;
 import com.fg.util.babylon.entity.SheetParams;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.enums.PropertyStatus;
+import com.fg.util.babylon.enums.PropertyType;
 import com.fg.util.babylon.exception.SheetExistsException;
 import com.fg.util.babylon.properties.FileProperties;
-import com.fg.util.babylon.properties.PropValue;
 import com.fg.util.babylon.properties.Property;
 import com.fg.util.babylon.statistics.ExportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfExport;
@@ -21,7 +21,7 @@ import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -36,19 +36,18 @@ import java.util.*;
  * Processor for {@link Action#EXPORT} action.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
+@Lazy
 @Component
 @CommonsLog
 public class ExportProcessor extends BaseProcessor {
 
     /** Regex for filter out possible secondary mutations files */
-    /* TODO TLN ... možná .properties? */
-    private static final String REMOVE_MUTATIONS_REGEX = ".*_[a-zA-Z]{2,3}\\..*";
+    private static final String REMOVE_MUTATIONS_REGEX = ".*_[a-zA-Z]{2,3}\\.properties";
 
     protected TranslationStatisticsOfExport statistics;
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
-        /* TODO TLN jen poznámka - sice jedeme jednovláknově a po spuštění se to vše vymaže, ale ve vícevláknovém by tohle moc nefungovalo ... spíš by tu měl být nějaký kontextový objekt */
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
         // Using "for" loop to propagating of IOException
@@ -88,11 +87,12 @@ public class ExportProcessor extends BaseProcessor {
     private List<String> getPropertiesFilesPathsFromPath(String path) throws IOException {
         Resource[] resources = pathResolver.getResources("file:" + path);
         List<String> list = new ArrayList<>();
+        String currentDir = System.getProperty("user.dir");
         for (Resource resource : resources) {
-            String relativePath = resource.getURL().getPath();
-            /* TODO TLN - tady by to skoro mohl být Assert.isTrue ne? Kdyby resource nebyl typu FileSystemResource, tak by to potichu celé nefungovalo ne? */
-            if (resource instanceof FileSystemResource) {
-                relativePath = relativePath.substring(System.getProperty("user.dir").length() + 2);
+            String relativePath = resource.getFile().getPath();
+            // If is it absolute path then parse relative path to current directory.
+            if (relativePath.startsWith(currentDir)) {
+                relativePath = relativePath.substring(currentDir.length() + 1);
             }
             list.add(relativePath);
         }
@@ -111,7 +111,6 @@ public class ExportProcessor extends BaseProcessor {
             String key = entry.getKey();
             Property value = entry.getValue();
             // Skip processing of comments and empty lines, process only simple or multiline key=value values.
-            /* TODO TLN - hele multiline se tedy úplně ignorují a nedostanou se do překladů? to by nebylo dobře */
             if (!value.isPropValue() && !value.isPropValueMultiLine()) {
                 continue;
             }
@@ -159,7 +158,7 @@ public class ExportProcessor extends BaseProcessor {
             // Get all properties for secondary mutation.
             final FileProperties properties = Optional.ofNullable(filesMutationProps.get(mutation)).orElse(new FileProperties());
             // Get value of property from existing mutation properties file or set empty value if property not found.
-            Property propValue = Optional.ofNullable(properties.get(key)).orElse(new PropValue(EMPTY_VAL));
+            Property propValue = Optional.ofNullable(properties.get(key)).orElse(new Property(PropertyType.VALUE, EMPTY_VAL));
             mutationPropsMap = getMutationPropertiesMap(primaryDataPropFile, mutation);
             // Default status of mutation property is UNCHANGED.
             mutationPropsMap.putPropertyStatus(key, PropertyStatus.UNCHANGED);

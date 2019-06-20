@@ -1,7 +1,8 @@
 package com.fg.util.babylon.processor;
 
+import com.fg.util.babylon.enums.PropertyType;
 import com.fg.util.babylon.properties.FileProperties;
-import com.fg.util.babylon.properties.PropValue;
+import com.fg.util.babylon.properties.Property;
 
 import java.util.*;
 
@@ -36,7 +37,7 @@ class CommonProcessorTest {
             String key = fileName.replaceAll("_[a-zA-Z]{2}", "");
             FileProperties fileProperties = new FileProperties();
             for (int i=0 ; i < TEST_KEYS_CNT ; i++) {
-                fileProperties.put((key + i), new PropValue("value " + fileName + i));
+                fileProperties.put((key + i), new Property(PropertyType.VALUE, "value " + fileName + i));
             }
             filePropsMap.put(fileName, fileProperties);
         });

@@ -1,8 +1,9 @@
 package com.fg.util.babylon.processor;
 
 import com.fg.util.babylon.entity.*;
+import com.fg.util.babylon.enums.PropertyType;
 import com.fg.util.babylon.properties.FileProperties;
-import com.fg.util.babylon.properties.PropValue;
+import com.fg.util.babylon.properties.Property;
 import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
 import com.fg.util.babylon.util.JsonUtils;
@@ -105,7 +106,7 @@ public class ImportProcessorTest extends CommonProcessorTest {
     public void checkWholeImportPropertyOnlyInMutationFile() throws IOException, GeneralSecurityException {
         // Add property existing only in "A_en.properties" file.
         FileProperties fileProperties = filePropsMap.get("A_en.properties");
-        fileProperties.put("A.properties" + TEST_KEYS_CNT, new PropValue("value A_en.properties" + TEST_KEYS_CNT));
+        fileProperties.put("A.properties" + TEST_KEYS_CNT, new Property(PropertyType.VALUE, "value A_en.properties" + TEST_KEYS_CNT));
         importProcessor.startTranslation(new Arguments());
         importProcessor.getOrCreateDataFile();
         ImportFileStatistic fileStatistic = importProcessor.statistics.getFileStatistic("A_en.properties");
