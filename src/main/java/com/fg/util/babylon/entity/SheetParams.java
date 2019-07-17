@@ -25,5 +25,6 @@ public class SheetParams {
     private Integer rowCount;
 
     private Integer frozenRowCount;
+    private Integer frozenColumnCount;
 
 }
