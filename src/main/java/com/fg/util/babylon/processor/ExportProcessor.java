@@ -17,8 +17,10 @@ import com.fg.util.babylon.properties.Property;
 import com.fg.util.babylon.statistics.ExportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfExport;
 import com.fg.util.babylon.util.JsonUtils;
+import com.google.api.services.sheets.v4.model.CellFormat;
 import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
+import com.google.api.services.sheets.v4.model.UpdateCellsRequest;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.context.annotation.Lazy;
@@ -260,11 +262,26 @@ public class ExportProcessor extends BaseProcessor {
     */
     private void uploadDataToGoogleSpreadsheet() throws GeneralSecurityException, IOException {
         Map<String, DataPropFile> dataPropFiles = getOrCreateDataFile().getDataPropFiles();
+        int count = 0;
         // Gets all existing sheets in this time.
         List<Sheet> prevAllSheets = googleSheetService.getAllSheets(arguments.getGoogleSheetId());
         for (Map.Entry<String, DataPropFile> entry : dataPropFiles.entrySet()) {
             String fileNamePath = entry.getKey();
             DataPropFile dataPropFile = entry.getValue();
+
+            // This sleep is cause of google limit where user cannot have more than 500 request in less than 100 secs
+            // *2 is for updating styles :(
+            count = count + ( dataPropFile.getProperties().size() * 2 );
+            // 400 is minus average keys that updates as frozen
+            if (count > 400){
+                try {
+                    log.info("Google has it's limits I have to go to bed for about two minutes, so sorry :( .");
+                    Thread.sleep(120*1000L);
+                    count = 0;
+                }catch (Exception e){
+                    // do nothing
+                }
+            }
             uploadDataToGoogleSheet(dataPropFile, fileNamePath);
         }
         // Delete all previously existing sheets (usually default "Sheet 1" of new empty spreadsheet) if
@@ -282,6 +299,7 @@ public class ExportProcessor extends BaseProcessor {
         // Freezes first row (header) to prevent scrolling of this row with rest of data.
         if (rowCount > 1) {
             sheetParams.setFrozenRowCount(1);
+            sheetParams.setFrozenColumnCount(2);
         }
         return googleSheetService.addSheet(arguments.getGoogleSheetId(), sheetParams);
     }
@@ -304,9 +322,11 @@ public class ExportProcessor extends BaseProcessor {
         if (sheet != null) {
             throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
         }
+
         googleSheetService.writeDataIntoSheet(arguments.getGoogleSheetId(), sheetTitle, sheetRows);
         sheet = googleSheetService.getSheet(arguments.getGoogleSheetId(), sheetTitle);
-        googleSheetService.setAutoResizeColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
+        googleSheetService.setWrappingStrategy(arguments.getGoogleSheetId(),sheet.getProperties().getSheetId());
+        googleSheetService.resizeAllColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
         hideSheetFirstColumn(sheet.getProperties().getSheetId());
     }
 
