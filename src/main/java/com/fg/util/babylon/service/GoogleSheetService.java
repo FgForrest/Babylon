@@ -20,10 +20,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
 
 /**
  * Service to work with google spreadsheets.
@@ -35,7 +35,7 @@ public class GoogleSheetService {
 
     private static final String APPLICATION_NAME = "Google Sheets API for Babylon";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-    private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
+    private static final List<String> SCOPES = singletonList(SheetsScopes.SPREADSHEETS);
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
     private static final String GOOGLE_CREDENTIALS_JSON = "credentials.json";
 
@@ -198,15 +198,28 @@ public class GoogleSheetService {
      * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
+    @Deprecated
     public void setAutoResizeColumns(final String spreadsheetId, final Integer sheetId) throws GeneralSecurityException, IOException {
         List<Request> requests = new ArrayList<>();
         DimensionRange dimensionRange = new DimensionRange()
                 .setDimension("COLUMNS")
                 .setSheetId(sheetId);
-        AutoResizeDimensionsRequest dimensionsRequest = new AutoResizeDimensionsRequest()
-                .setDimensions(dimensionRange);
-        requests.add(new Request().setAutoResizeDimensions(dimensionsRequest));
         executeSpreadsheetBatchUpdate(spreadsheetId, requests);
+    }
+
+    public BatchUpdateSpreadsheetResponse resizeAllColumns(String spreadsheetId, Integer sheetId) throws IOException, GeneralSecurityException {
+        List<Request> requests = new ArrayList<>();
+        DimensionRange dimensionRange = new DimensionRange()
+                .setDimension("COLUMNS")
+                .setSheetId(sheetId);
+        UpdateDimensionPropertiesRequest dimensionsRequest = new UpdateDimensionPropertiesRequest()
+                .setRange(dimensionRange)
+                .setProperties(new DimensionProperties().setPixelSize(350))
+                .setFields("pixelSize");
+
+
+        requests.add(new Request().setUpdateDimensionProperties(dimensionsRequest));
+        return executeSpreadsheetBatchUpdate(spreadsheetId, requests);
     }
 
     /**
@@ -226,11 +239,25 @@ public class GoogleSheetService {
         executeSpreadsheetBatchUpdate(spreadsheetId, requests);
     }
 
+    /**
+     * Sets wrapping strategy to all cells.
+     * @param spreadsheetId spreadsheet ID
+     */
+    public void setWrappingStrategy(final String spreadsheetId, Integer sheetId) throws IOException, GeneralSecurityException {
+        RepeatCellRequest request = new RepeatCellRequest()
+             .setFields("userEnteredFormat.wrapStrategy")
+             .setCell(new CellData().setUserEnteredFormat(new CellFormat().setWrapStrategy("WRAP")))
+             .setRange(new GridRange().setSheetId(sheetId).setStartColumnIndex(0).setStartRowIndex(0));
+
+        executeSpreadsheetBatchUpdate(spreadsheetId, singletonList(new Request().setRepeatCell(request)));
+    }
+
     private SheetProperties createSheetProperties(SheetParams sheetParams) {
         GridProperties gridProperties = new GridProperties()
                 .setRowCount(sheetParams.getRowCount())
                 .setColumnCount(sheetParams.getColumnCount())
-                .setFrozenRowCount(sheetParams.getFrozenRowCount());
+                .setFrozenRowCount(sheetParams.getFrozenRowCount())
+                .setFrozenColumnCount(sheetParams.getFrozenColumnCount());
         return new SheetProperties()
                 .setTitle(sheetParams.getSheetTitle())
                 .setGridProperties(gridProperties);
