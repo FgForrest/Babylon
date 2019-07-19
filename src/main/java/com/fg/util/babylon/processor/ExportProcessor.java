@@ -272,8 +272,8 @@ public class ExportProcessor extends BaseProcessor {
             // This sleep is cause of google limit where user cannot have more than 500 request in less than 100 secs
             // *2 is for updating styles :(
             count = count + ( dataPropFile.getProperties().size() * 2 );
-            // 400 is minus average keys that updates as frozen
-            if (count > 400){
+            // 400 is minus average keys that updates as frozen and protected cols
+            if (count > 350){
                 try {
                     log.info("Google has it's limits I have to go to bed for about two minutes, so sorry :( .");
                     Thread.sleep(120*1000L);
@@ -327,6 +327,7 @@ public class ExportProcessor extends BaseProcessor {
         sheet = googleSheetService.getSheet(arguments.getGoogleSheetId(), sheetTitle);
         googleSheetService.setWrappingStrategy(arguments.getGoogleSheetId(),sheet.getProperties().getSheetId());
         googleSheetService.resizeAllColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
+        googleSheetService.protectFirstColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
         hideSheetFirstColumn(sheet.getProperties().getSheetId());
     }
 

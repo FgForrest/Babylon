@@ -222,6 +222,25 @@ public class GoogleSheetService {
         return executeSpreadsheetBatchUpdate(spreadsheetId, requests);
     }
 
+    public BatchUpdateSpreadsheetResponse protectFirstColumns(String spreadsheetId, Integer sheetId) throws IOException, GeneralSecurityException {
+        List<Request> requests = new ArrayList<>();
+        GridRange gridRange = new GridRange()
+                .setSheetId(sheetId)
+                .setStartColumnIndex(0)
+                .setEndColumnIndex(1)
+                .setStartRowIndex(0);
+        ProtectedRange protectedRange = new ProtectedRange()
+                .setRequestingUserCanEdit(false)
+                .setRange(gridRange)
+                .setWarningOnly(false)
+                .setEditors(new Editors().setUsers(singletonList("kosar@fg.cz")));
+        AddProtectedRangeRequest dimensionsRequest = new AddProtectedRangeRequest()
+                .setProtectedRange(protectedRange);
+
+        requests.add(new Request().setAddProtectedRange(dimensionsRequest));
+        return executeSpreadsheetBatchUpdate(spreadsheetId, requests);
+    }
+
     /**
      * Hide specified range (ROWS, COLUMNS) in spreadsheet.
      * @param spreadsheetId spreadsheet ID

@@ -95,7 +95,7 @@ public class FileProperties extends LinkedHashMap<String, Property> {
         line = line.trim();
         if (line.contains("=")) {
             // key=value
-            String[] keyAndVal = line.split("=");
+            String[] keyAndVal = line.split("=",2);
             return createPropValueEntry(keyAndVal, lr);
         } else if (line.isEmpty()) {
             Property propEmptyLine = new Property(PropertyType.EMPTY, "");
