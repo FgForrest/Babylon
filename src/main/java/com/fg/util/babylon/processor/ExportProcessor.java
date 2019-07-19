@@ -272,7 +272,7 @@ public class ExportProcessor extends BaseProcessor {
             // This sleep is cause of google limit where user cannot have more than 500 request in less than 100 secs
             // *2 is for updating styles :(
             count = count + ( dataPropFile.getProperties().size() * 2 );
-            // 400 is minus average keys that updates as frozen and protected cols
+            // 300 is minus average keys that updates as frozen and protected cols
             if (count > 300){
                 try {
                     log.info("Google has it's limits I have to go to bed for about two minutes, so sorry :( .");
