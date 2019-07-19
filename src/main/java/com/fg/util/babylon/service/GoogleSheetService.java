@@ -227,7 +227,7 @@ public class GoogleSheetService {
         GridRange gridRange = new GridRange()
                 .setSheetId(sheetId)
                 .setStartColumnIndex(0)
-                .setEndColumnIndex(1)
+                .setEndColumnIndex(2)
                 .setStartRowIndex(0);
         ProtectedRange protectedRange = new ProtectedRange()
                 .setRequestingUserCanEdit(false)
