@@ -67,7 +67,7 @@ To get it work put this XML structure into your build->plugins section of your P
 <plugin>
     <groupId>com.fg.util</groupId>
     <artifactId>babylon-maven-plugin</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.3</version>
 </plugin>
 ```
 After that this configured plugin is possible to use from terminal by this way:
@@ -90,7 +90,7 @@ Parameters can be also set in POM.xml this way, if it is your use case:
 <plugin>
     <groupId>com.fg.util</groupId>
     <artifactId>babylon-maven-plugin</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.3</version>
     <configuration>
         <configFileName>{FILL ME UP}</configFileName>
         <googleSheetId>{FILL ME UP}</googleSheetId>
