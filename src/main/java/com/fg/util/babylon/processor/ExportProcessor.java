@@ -273,7 +273,7 @@ public class ExportProcessor extends BaseProcessor {
             // *2 is for updating styles :(
             count = count + ( dataPropFile.getProperties().size() * 2 );
             // 400 is minus average keys that updates as frozen and protected cols
-            if (count > 350){
+            if (count > 300){
                 try {
                     log.info("Google has it's limits I have to go to bed for about two minutes, so sorry :( .");
                     Thread.sleep(120*1000L);
