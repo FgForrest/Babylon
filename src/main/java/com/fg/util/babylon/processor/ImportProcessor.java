@@ -27,10 +27,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 /**
@@ -97,7 +94,9 @@ public class ImportProcessor extends BaseProcessor {
         // First row is header
         Map<Integer,String> header = createHeader(rowsData.get(0));
         for (RowData rowData : rowsData.subList(1, rowsData.size())) {
-            processRowData(sheetTitle, header, rowData);
+            if (rowData.getValues().stream().anyMatch(i-> i.getFormattedValue() != null && !Objects.equals(i.getFormattedValue(), "null"))){
+                processRowData(sheetTitle, header, rowData);
+            }
         }
     }
 
@@ -254,7 +253,7 @@ public class ImportProcessor extends BaseProcessor {
         // Sets all values for keys from properties map (data from google sheet filled up by translation agency).
         mutationProperties.forEach((key, value) -> {
             Property property = updatedFileProps.get(key);
-            if (!value.equals(property.getValue())) {
+            if (property != null && !Objects.equals(value, property.getValue())) {
                 property.setValue(value);
                 updatedFileProps.put(key, property);
                 fileStatistic.incUpdatedCnt();
