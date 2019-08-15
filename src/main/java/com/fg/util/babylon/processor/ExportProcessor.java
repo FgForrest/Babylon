@@ -1,13 +1,7 @@
 package com.fg.util.babylon.processor;
 
 
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fg.util.babylon.entity.Arguments;
-import com.fg.util.babylon.entity.DataPropFile;
-import com.fg.util.babylon.entity.PropertiesMap;
-import com.fg.util.babylon.entity.SheetParams;
+import com.fg.util.babylon.entity.*;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.enums.PropertyStatus;
 import com.fg.util.babylon.enums.PropertyType;
@@ -17,10 +11,10 @@ import com.fg.util.babylon.properties.Property;
 import com.fg.util.babylon.statistics.ExportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfExport;
 import com.fg.util.babylon.util.JsonUtils;
-import com.google.api.services.sheets.v4.model.CellFormat;
 import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
-import com.google.api.services.sheets.v4.model.UpdateCellsRequest;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.context.annotation.Lazy;
@@ -33,6 +27,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Processor for {@link Action#EXPORT} action.
@@ -47,6 +43,7 @@ public class ExportProcessor extends BaseProcessor {
     private static final String REMOVE_MUTATIONS_REGEX = ".*_[a-zA-Z]{2,3}\\.properties";
 
     protected TranslationStatisticsOfExport statistics;
+    protected List<String> changedPropertiesDuringExport = new LinkedList<>();
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
@@ -109,6 +106,7 @@ public class ExportProcessor extends BaseProcessor {
         statistics.incTotalPropFilesProcessed();
         Map<String, FileProperties> mutationsProperties = loadSecondaryMutationsProperties(primaryPropFilePath);
         final DataPropFile primaryDataPropFile = getOrCreateDataFile().getOrPutNewPropFileByFileName(primaryPropFilePath);
+        changedPropertiesDuringExport.add(primaryPropFilePath);
         for (Map.Entry<String, Property> entry : primaryProperties.entrySet()) {
             String key = entry.getKey();
             Property value = entry.getValue();
@@ -261,28 +259,20 @@ public class ExportProcessor extends BaseProcessor {
      * @throws IOException some exception derived from {@link IOException}
     */
     private void uploadDataToGoogleSpreadsheet() throws GeneralSecurityException, IOException {
-        Map<String, DataPropFile> dataPropFiles = getOrCreateDataFile().getDataPropFiles();
-        int count = 0;
+        Map<String, DataPropFile> dataPropFiles = getOrCreateDataFile()
+                        .getDataPropFiles()
+                        .entrySet()
+                        .stream()
+                        .filter(i->changedPropertiesDuringExport.contains(i.getKey()))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        AtomicInteger processedCount = new AtomicInteger(0);
         // Gets all existing sheets in this time.
         List<Sheet> prevAllSheets = googleSheetService.getAllSheets(arguments.getGoogleSheetId());
         for (Map.Entry<String, DataPropFile> entry : dataPropFiles.entrySet()) {
             String fileNamePath = entry.getKey();
             DataPropFile dataPropFile = entry.getValue();
 
-            // This sleep is cause of google limit where user cannot have more than 500 request in less than 100 secs
-            // *2 is for updating styles :(
-            count = count + ( dataPropFile.getProperties().size() * 2 );
-            // 300 is minus average keys that updates as frozen and protected cols
-            if (count > 300){
-                try {
-                    log.info("Google has it's limits I have to go to bed for about two minutes, so sorry :( .");
-                    Thread.sleep(120*1000L);
-                    count = 0;
-                }catch (Exception e){
-                    // do nothing
-                }
-            }
-            uploadDataToGoogleSheet(dataPropFile, fileNamePath);
+            uploadDataToGoogleSheet(dataPropFile, fileNamePath, processedCount);
         }
         // Delete all previously existing sheets (usually default "Sheet 1" of new empty spreadsheet) if
         // current sheets count is greater then previous.
@@ -304,16 +294,20 @@ public class ExportProcessor extends BaseProcessor {
         return googleSheetService.addSheet(arguments.getGoogleSheetId(), sheetParams);
     }
 
-    private void uploadDataToGoogleSheet(DataPropFile dataPropFile, String fileNamePath) throws IOException, GeneralSecurityException {
+    private void uploadDataToGoogleSheet(DataPropFile dataPropFile, String fileNamePath, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
         // Add header into sheet
         List<List<Object>> sheetRows = new LinkedList<>(createSheetHeader());
         // Add data into sheet
         List<List<Object>> sheetData = createSheetData(dataPropFile);
+
         // If no data to upload return
         if (sheetData.isEmpty()) {
             log.info("No changed data for primary properties file and its mutation files: " + fileNamePath);
             return;
         }
+
+        pauseProcessIfGoogleLimitExceed(sheetData.size(),processedCount);
+
         // Title of target google sheet is created from "properties fileName only" + "#" + "fileName id".
         String sheetTitle = FilenameUtils.getBaseName(fileNamePath) + "#" + dataPropFile.getId();
         log.info("Uploading data of \"" + fileNamePath + "\" into google sheet \"" + sheetTitle + "\"...");
@@ -329,6 +323,22 @@ public class ExportProcessor extends BaseProcessor {
         googleSheetService.resizeAllColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
         googleSheetService.protectFirstColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
         hideSheetFirstColumn(sheet.getProperties().getSheetId());
+    }
+
+    private void pauseProcessIfGoogleLimitExceed(int size, AtomicInteger processedCount) {
+        // This sleep is cause of google limit where user cannot have more than 500 request in less than 100 secs
+        // *2 is for updating styles :(
+        int count = processedCount.addAndGet(size);
+        // 300 is minus average keys that updates as frozen and protected cols
+        if (count > 300){
+            try {
+                log.info("Google has it's limits I have to go to bed for about two minutes, so sorry :( .");
+                Thread.sleep(120*1000L);
+                processedCount.set(0);
+            }catch (Exception e){
+                // do nothing
+            }
+        }
     }
 
     private List<List<Object>> createSheetHeader() {
@@ -384,14 +394,17 @@ public class ExportProcessor extends BaseProcessor {
      */
     private void saveDataFileWithoutProperties() throws IOException {
         File file = new File(configuration.getDataFileName());
-        if (file.exists()) {
-            log.info("DataFile \"" + file.getPath() + "\" already exists. File unchanged.");
-            return;
-        }
-        String[] ignorableFieldNames = { "properties" };
-        FilterProvider filters = new SimpleFilterProvider()
-                .addFilter("DataPropFileFilter", SimpleBeanPropertyFilter.serializeAllExcept(ignorableFieldNames));
-        JsonUtils.objToJsonFile(file, getOrCreateDataFile(), true, filters);
+        Map<String, DataPropFile> originalDataPropFiles = originalDataFileOnDisk.getDataPropFiles();
+
+        DataFile overriddenDataFile = getOrCreateDataFile();
+        overriddenDataFile.getDataPropFiles().forEach((i,j)->{
+            if (!originalDataPropFiles.containsKey(i)){
+                j.setProperties(new PropertiesMap());
+                originalDataPropFiles.put(i,j);
+            }
+        });
+
+        JsonUtils.objToJsonFile(file, originalDataFileOnDisk, true);
     }
 
 }
