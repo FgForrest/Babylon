@@ -48,13 +48,13 @@ public abstract class BaseProcessor {
      */
     DataFile dataFile;
 
-    public void startTranslation(Arguments arguments) throws IOException, GeneralSecurityException {
+    public void startTranslation(Arguments arguments) throws IOException, GeneralSecurityException, InterruptedException {
         this.arguments = arguments;
         readAndCheckConfiguration();
         processTranslation();
     }
 
-    protected abstract void processTranslation() throws IOException, GeneralSecurityException;
+    protected abstract void processTranslation() throws IOException, GeneralSecurityException, InterruptedException;
 
     private void readAndCheckConfiguration() throws IOException {
         File file = new File(arguments.getConfigFileName());

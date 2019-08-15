@@ -22,7 +22,7 @@ public class TranslationService {
     @Autowired
     private ApplicationContext context;
 
-    public void startTranslation(Arguments arguments) throws IOException, GeneralSecurityException {
+    public void startTranslation(Arguments arguments) throws IOException, GeneralSecurityException, InterruptedException {
         log.info("Translation started with arguments: " + arguments.toString());
         long stTime = System.currentTimeMillis();
         switch (arguments.getAction()) {
