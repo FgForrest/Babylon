@@ -84,7 +84,7 @@ public class ImportProcessorTest extends CommonProcessorTest {
      * @throws GeneralSecurityException when authentication to Google sheets API problem is appeared.
      */
     @Test
-    public void checkFirstWholeImport() throws IOException, GeneralSecurityException {
+    public void checkFirstWholeImport() throws IOException, GeneralSecurityException, InterruptedException {
         importProcessor.startTranslation(new Arguments());
         DataFile dataFile = importProcessor.getOrCreateDataFile();
         assertNotNull("DataFile is null", dataFile);
@@ -103,7 +103,7 @@ public class ImportProcessorTest extends CommonProcessorTest {
      * @throws GeneralSecurityException when authentication to Google sheets API problem is appeared.
      */
     @Test
-    public void checkWholeImportPropertyOnlyInMutationFile() throws IOException, GeneralSecurityException {
+    public void checkWholeImportPropertyOnlyInMutationFile() throws IOException, GeneralSecurityException, InterruptedException {
         // Add property existing only in "A_en.properties" file.
         FileProperties fileProperties = filePropsMap.get("A_en.properties");
         fileProperties.put("A.properties" + TEST_KEYS_CNT, new Property(PropertyType.VALUE, "value A_en.properties" + TEST_KEYS_CNT));

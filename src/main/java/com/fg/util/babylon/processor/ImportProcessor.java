@@ -21,14 +21,13 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 /**
  * Processor for {@link Action#IMPORT} action.
@@ -42,7 +41,7 @@ public class ImportProcessor extends BaseProcessor {
     protected TranslationStatisticsOfImport statistics;
 
     @Override
-    protected void processTranslation() throws IOException, GeneralSecurityException {
+    protected void processTranslation() throws IOException, GeneralSecurityException, InterruptedException {
         statistics = new TranslationStatisticsOfImport();
         statistics.setAction(Action.IMPORT);
         List<Sheet> sheets = googleSheetService.getAllSheetsWithData(arguments.getGoogleSheetId());
@@ -185,7 +184,7 @@ public class ImportProcessor extends BaseProcessor {
     /**
      * Saves all translated secondary mutations properties into target properties files.
      */
-    private void saveTranslations() throws IOException {
+    private void saveTranslations() throws IOException, InterruptedException {
         Map<String, DataPropFile> dataPropFiles = getOrCreateDataFile().getDataPropFiles();
         for (Map.Entry<String, DataPropFile> entry : dataPropFiles.entrySet()) {
             String primaryPropFilePath = entry.getKey();
@@ -204,7 +203,7 @@ public class ImportProcessor extends BaseProcessor {
      * @param dataPropFile {@link DataPropFile} object with data for target properties file
      * @throws IOException some exception derived from {@link IOException}
     */
-    private void saveMutationPropertiesToFile(String primaryPropFilePath, String mutation, DataPropFile dataPropFile) throws IOException {
+    private void saveMutationPropertiesToFile(String primaryPropFilePath, String mutation, DataPropFile dataPropFile) throws IOException, InterruptedException {
         PropertiesMap mutationProperties = dataPropFile.getMutationProperties(mutation);
         String mutationPropFilePath = getFileNameForMutation(primaryPropFilePath, mutation);
         if (mutationProperties == null || mutationProperties.isEmpty()) {
@@ -267,13 +266,50 @@ public class ImportProcessor extends BaseProcessor {
             propsOnlyInMutation.forEach(updatedFileProps::put);
             log.info("Property keys only in mutation file \"" + String.join(",", propsOnlyInMutation.keySet()) + "\"");
         }
+        // Removes all properties, that does not occur in sheet and was not in mutation properties file before - e.g. loaded from original props..
+        List<String> propsToRemove = updatedFileProps
+                .entrySet()
+                .stream()
+                .filter(k -> k.getValue().getValue().equals(EMPTY_VAL) && !mutationProperties.containsKey(k.getKey()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+        propsToRemove.forEach(updatedFileProps::remove);
+
         // Save changes into target file on disk.
         savePropertiesToFile(updatedFileProps, mutationPropFilePath);
     }
 
-    private void savePropertiesToFile(FileProperties fileProperties, String pathFileName) throws IOException {
+    private void savePropertiesToFile(FileProperties fileProperties, String pathFileName) throws IOException, InterruptedException {
+        gitAddFile(pathFileName);
+
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(pathFileName), StandardCharsets.UTF_8);
         fileProperties.save(outputStreamWriter);
+
+    }
+
+//    TODO SKA po testování předělat
+    private void gitAddFile(String pathFileName) throws IOException, InterruptedException {
+        /* Doesn't matter whether it is already added or existing */
+        log.info(FileSystems.getDefault().getPath(".").toAbsolutePath());
+        int exdCode = Runtime.getRuntime().exec("touch " + pathFileName).waitFor();
+        log.info("touch returned " + exdCode + " for file: " + pathFileName);
+        exdCode = Runtime.getRuntime().exec("git add " + pathFileName).waitFor();
+        log.info("file git add ended with code : " + exdCode + " for file : " + pathFileName);
+        // Try it again
+        if (exdCode != 0){
+            Process p  = Runtime.getRuntime().exec("git add " + pathFileName);
+            exdCode=p.waitFor();
+            if (exdCode != 0){
+                log.info("Process exit code: " + exdCode);
+                log.info("Result:");
+                BufferedReader reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+
+                String line = "";
+                while ((line = reader.readLine()) != null) {
+                    log.warn(line);
+                }
+            }
+        }
     }
 
 }
