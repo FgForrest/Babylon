@@ -280,20 +280,18 @@ public class ImportProcessor extends BaseProcessor {
     }
 
     private void savePropertiesToFile(FileProperties fileProperties, String pathFileName) throws IOException, InterruptedException {
-        gitAddFile(pathFileName);
 
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(pathFileName), StandardCharsets.UTF_8);
         fileProperties.save(outputStreamWriter);
 
+        gitAddFile(pathFileName);
+
     }
 
-//    TODO SKA po testování předělat
     private void gitAddFile(String pathFileName) throws IOException, InterruptedException {
         /* Doesn't matter whether it is already added or existing */
         log.info(FileSystems.getDefault().getPath(".").toAbsolutePath());
-        int exdCode = Runtime.getRuntime().exec("touch " + pathFileName).waitFor();
-        log.info("touch returned " + exdCode + " for file: " + pathFileName);
-        exdCode = Runtime.getRuntime().exec("git add " + pathFileName).waitFor();
+        int exdCode = Runtime.getRuntime().exec("git add " + pathFileName).waitFor();
         log.info("file git add ended with code : " + exdCode + " for file : " + pathFileName);
         // Try it again
         if (exdCode != 0){
