@@ -63,6 +63,9 @@ public abstract class BaseProcessor {
         }
         configuration = JsonUtils.jsonObjFromFile(file, Configuration.class);
         originalDataFileOnDisk = getExistingDataFileFromDisk();
+        if (originalDataFileOnDisk == null){
+            originalDataFileOnDisk = new DataFile();
+        }
         if (configuration.getMutations().isEmpty()) {
             throw new IllegalArgumentException("No primary mutations defined in configuration file \"" + arguments.getConfigFileName() + "\"");
         }
@@ -103,10 +106,7 @@ public abstract class BaseProcessor {
 
     private DataFile getExistingDataFileFromDisk() throws IOException {
         File file = new File(getDataFileName());
-        if (file.exists()) {
-            if (file.length() == 0) {
-                throw new EmptyDbFileException("Db file \"" + file.getAbsolutePath() + "\" is empty");
-            }
+        if (file.exists() && file.length() != 0) {
             DataFile df = JsonUtils.jsonObjFromFile(file, DataFile.class);
             loadDataPropFilesIds(df);
             return df;
