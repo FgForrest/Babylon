@@ -124,6 +124,11 @@ public class ImportProcessor extends BaseProcessor {
         for (CellData cellData : values) {
             String colTitle = header.get(col);
             String propValue = cellData.getFormattedValue();
+
+            // Double quotes in case of variable in property
+            if (propValue.matches(".*\\{.}.*")){
+                propValue = propValue.replace("'","''");
+            }
             if (col == 0) {
                 // First column contains properties keys.
                 propKey = propValue;
