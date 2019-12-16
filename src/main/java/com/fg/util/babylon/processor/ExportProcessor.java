@@ -359,7 +359,9 @@ public class ExportProcessor extends BaseProcessor {
             }
             // Replace doubled quotes in case of variable in property
             String entryValue = entry.getValue();
-            entryValue = entryValue.replace("''","'");
+            if (entryValue.matches(".*\\{.}.*")){
+                entryValue = entryValue.replace("''","'");
+            }
 
             // Add key name and primary mutation value
             List<Object> rowValues = new LinkedList<>(Arrays.asList(entry.getKey(), entryValue));
@@ -372,7 +374,9 @@ public class ExportProcessor extends BaseProcessor {
                 }
                 String mutationValue = mutationsPropsMap.get(entry.getKey());
                 // Replace doubled quotes in case of variable in property
-                mutationValue = mutationValue.replace("''","'");
+                if (mutationValue.matches(".*\\{.}.*")) {
+                    mutationValue = mutationValue.replace("''", "'");
+                }
 
                 rowValues.add(mutationValue);
             }
