@@ -357,8 +357,12 @@ public class ExportProcessor extends BaseProcessor {
             if (propertyStatus == PropertyStatus.UNCHANGED) {
                 continue;
             }
+            // Replace doubled quotes in case of variable in property
+            String entryValue = entry.getValue();
+            entryValue = entryValue.replace("''","'");
+
             // Add key name and primary mutation value
-            List<Object> rowValues = new LinkedList<>(Arrays.asList(entry.getKey(), entry.getValue()));
+            List<Object> rowValues = new LinkedList<>(Arrays.asList(entry.getKey(), entryValue));
             // Add all secondary mutations values
             for (String mutation : configuration.getMutations()) {
                 PropertiesMap mutationsPropsMap = dataPropFile.getMutationProperties(mutation);
@@ -367,6 +371,9 @@ public class ExportProcessor extends BaseProcessor {
                     dataPropFile.putMutationProperties(mutation, mutationsPropsMap);
                 }
                 String mutationValue = mutationsPropsMap.get(entry.getKey());
+                // Replace doubled quotes in case of variable in property
+                mutationValue = mutationValue.replace("''","'");
+
                 rowValues.add(mutationValue);
             }
             sheetData.add(rowValues);
