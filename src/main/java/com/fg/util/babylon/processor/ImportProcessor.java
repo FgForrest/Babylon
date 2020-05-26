@@ -126,7 +126,7 @@ public class ImportProcessor extends BaseProcessor {
             String propValue = cellData.getFormattedValue();
 
             // Double quotes in case of variable in property
-            if (propValue.matches(".*\\{.}.*")){
+            if (propValue != null && propValue.matches(".*\\{.}.*")){
                 propValue = propValue.replace("'","''");
             }
             if (col == 0) {
