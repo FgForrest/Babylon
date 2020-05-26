@@ -50,6 +50,7 @@ public class ExportProcessorTest extends CommonProcessorTest {
                 "loadPropertiesFromFile",
                 "saveDataFileWithoutProperties",
                 "uploadDataToGoogleSpreadsheet");
+        exportProcessor.changedPropertiesDuringExport = new LinkedList<>();
         Configuration cfg = new Configuration();
         cfg.setPath(Collections.singletonList(""));
         cfg.setMutations(mutations);
