@@ -52,9 +52,9 @@ public class Property {
             setMultilineValue(value);
             return;
         }
-        if (isPropEmptyLine()) {
-            return;
-        }
+//        if (isPropEmptyLine()) {
+//            return;
+//        }
         this.value = value;
     }
 

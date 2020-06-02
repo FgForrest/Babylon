@@ -201,7 +201,7 @@ public class ExportProcessor extends BaseProcessor {
                     // Value from json DataPropFile from disk.
                     String propVal = propFileByFileName.getProperties().get(key);
                     // Value is missing in json data file -> NEW
-                    if (StringUtils.isEmpty(propVal)) {
+                    if (propVal == null ) {
                         mutationPropsMap.putPropertyStatus(key, PropertyStatus.NEW);
                     } else {
                         // Value in primary properties file is changed (against stored value in json DataFile) ->
