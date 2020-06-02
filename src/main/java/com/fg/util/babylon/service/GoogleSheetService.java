@@ -233,7 +233,7 @@ public class GoogleSheetService {
                 .setRequestingUserCanEdit(false)
                 .setRange(gridRange)
                 .setWarningOnly(false)
-                .setEditors(new Editors().setUsers(singletonList("kosar@fg.cz")));
+                .setEditors(new Editors().setUsers(Arrays.asList("kosar@fg.cz","kamenik@fg.cz")));
         AddProtectedRangeRequest dimensionsRequest = new AddProtectedRangeRequest()
                 .setProtectedRange(protectedRange);
 
