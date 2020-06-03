@@ -118,8 +118,20 @@ public class ExportProcessor extends BaseProcessor {
             // - Keys which not found in Json data file is marked as NEW.
             // - Keys which value is different from value in Json data file is marked as CHANGED.
             primaryDataPropFile.putProperty(key, value.getValue());
+        }
+        List<String> deprecatedProperties = new LinkedList<>();
+        primaryDataPropFile.getProperties().forEach((i,j)->{
+
+            Property property = primaryProperties.get(i);
+            if (property == null){
+                deprecatedProperties.add(i);
+            }
+        });
+        deprecatedProperties.forEach(i->primaryDataPropFile.getProperties().remove(i));
+
+        for (Map.Entry<String, Property> entry : primaryProperties.entrySet()) {
             // Checks that the key exists in secondary mutation files (or that there are no secondary mutations)
-            processSecondaryMutations(key, primaryPropFilePath, mutationsProperties, primaryDataPropFile);
+            processSecondaryMutations(entry.getKey(), primaryPropFilePath, mutationsProperties, primaryDataPropFile);
         }
     }
 
@@ -189,7 +201,7 @@ public class ExportProcessor extends BaseProcessor {
                     // Value from json DataPropFile from disk.
                     String propVal = propFileByFileName.getProperties().get(key);
                     // Value is missing in json data file -> NEW
-                    if (StringUtils.isEmpty(propVal)) {
+                    if (propVal == null ) {
                         mutationPropsMap.putPropertyStatus(key, PropertyStatus.NEW);
                     } else {
                         // Value in primary properties file is changed (against stored value in json DataFile) ->
@@ -374,7 +386,7 @@ public class ExportProcessor extends BaseProcessor {
                 }
                 String mutationValue = mutationsPropsMap.get(entry.getKey());
                 // Replace doubled quotes in case of variable in property
-                if (mutationValue.matches(".*\\{.}.*")) {
+                if (mutationValue != null && mutationValue.matches(".*\\{.}.*")) {
                     mutationValue = mutationValue.replace("''", "'");
                 }
 
