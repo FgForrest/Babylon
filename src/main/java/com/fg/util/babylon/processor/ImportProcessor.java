@@ -10,6 +10,7 @@ import com.fg.util.babylon.exception.ParsePropIdException;
 import com.fg.util.babylon.exception.PropIdNotFoundException;
 import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.properties.Property;
+import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfImport;
 import com.fg.util.babylon.util.JsonUtils;
@@ -18,8 +19,6 @@ import com.google.api.services.sheets.v4.model.GridData;
 import com.google.api.services.sheets.v4.model.RowData;
 import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -33,12 +32,14 @@ import java.util.stream.Collectors;
  * Processor for {@link Action#IMPORT} action.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-@Lazy
-@Component
 @CommonsLog
 public class ImportProcessor extends BaseProcessor {
 
     protected TranslationStatisticsOfImport statistics;
+
+    public ImportProcessor(GoogleSheetService googleSheetService) {
+        super(googleSheetService);
+    }
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException, InterruptedException {

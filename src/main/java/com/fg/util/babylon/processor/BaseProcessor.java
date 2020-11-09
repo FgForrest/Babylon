@@ -3,15 +3,12 @@ package com.fg.util.babylon.processor;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.Configuration;
 import com.fg.util.babylon.entity.DataFile;
-import com.fg.util.babylon.exception.EmptyDbFileException;
 import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.util.JsonUtils;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
@@ -22,7 +19,6 @@ import java.security.GeneralSecurityException;
  * Base class for all processors.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-@Component
 @CommonsLog
 public abstract class BaseProcessor {
 
@@ -32,8 +28,11 @@ public abstract class BaseProcessor {
     static final String COL_PRIMARY = "primary";
     static final String EMPTY_VAL = "";
 
-    @Autowired
     protected GoogleSheetService googleSheetService;
+
+    public BaseProcessor(GoogleSheetService googleSheetService) {
+        this.googleSheetService = googleSheetService;
+    }
 
     Arguments arguments;
     Configuration configuration;

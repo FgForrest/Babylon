@@ -16,7 +16,6 @@ import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.*;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.security.GeneralSecurityException;
@@ -29,7 +28,6 @@ import static java.util.Collections.singletonList;
  * Service to work with google spreadsheets.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-@Service
 @CommonsLog
 public class GoogleSheetService {
 
