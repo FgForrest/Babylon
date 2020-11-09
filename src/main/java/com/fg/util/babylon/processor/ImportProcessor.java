@@ -1,5 +1,6 @@
 package com.fg.util.babylon.processor;
 
+import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.DataFile;
 import com.fg.util.babylon.entity.DataPropFile;
 import com.fg.util.babylon.entity.PropertiesMap;
@@ -37,17 +38,18 @@ public class ImportProcessor extends BaseProcessor {
 
     protected TranslationStatisticsOfImport statistics;
 
-    public ImportProcessor(GoogleSheetService googleSheetService) {
-        super(googleSheetService);
+    public ImportProcessor(GoogleSheetService googleSheetService, Arguments arguments) {
+        super(googleSheetService, arguments);
     }
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException, InterruptedException {
+        log.info("Started translation IMPORT with config file: '" + configFileName + "', Google Sheet id: '" + googleSheetId +"'");
         statistics = new TranslationStatisticsOfImport();
         statistics.setAction(Action.IMPORT);
-        List<Sheet> sheets = googleSheetService.getAllSheetsWithData(arguments.getGoogleSheetId());
+        List<Sheet> sheets = googleSheetService.getAllSheetsWithData(googleSheetId);
         if (sheets == null || sheets.isEmpty()) {
-            throw new NoSheetsException("Source spreadsheet " + arguments.getGoogleSheetId() + " not contains any sheets.");
+            throw new NoSheetsException("Source spreadsheet " + googleSheetId + " not contains any sheets.");
         }
         // Processes data from google spreadsheet into internal BaseProcessor#dataFile object
         // accessible by BaseProcessor#getOrCreateDataFile() method.

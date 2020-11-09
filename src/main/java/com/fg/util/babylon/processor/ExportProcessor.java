@@ -39,12 +39,13 @@ public class ExportProcessor extends BaseProcessor {
     protected TranslationStatisticsOfExport statistics;
     protected List<String> changedPropertiesDuringExport = new LinkedList<>();
 
-    public ExportProcessor(GoogleSheetService googleSheetService) {
-        super(googleSheetService);
+    public ExportProcessor(GoogleSheetService googleSheetService, Arguments arguments) {
+        super(googleSheetService, arguments);
     }
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
+        log.info("Started translation EXPORT with config file: '" + configFileName + "', Google Sheet id: '" + googleSheetId +"'");
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
         // Using "for" loop to propagating of IOException
@@ -277,7 +278,7 @@ public class ExportProcessor extends BaseProcessor {
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         AtomicInteger processedCount = new AtomicInteger(0);
         // Gets all existing sheets in this time.
-        List<Sheet> prevAllSheets = googleSheetService.getAllSheets(arguments.getGoogleSheetId());
+        List<Sheet> prevAllSheets = googleSheetService.getAllSheets(googleSheetId);
         for (Map.Entry<String, DataPropFile> entry : dataPropFiles.entrySet()) {
             String fileNamePath = entry.getKey();
             DataPropFile dataPropFile = entry.getValue();
@@ -286,9 +287,9 @@ public class ExportProcessor extends BaseProcessor {
         }
         // Delete all previously existing sheets (usually default "Sheet 1" of new empty spreadsheet) if
         // current sheets count is greater then previous.
-        List<Sheet> currAllSheets = googleSheetService.getAllSheets(arguments.getGoogleSheetId());
+        List<Sheet> currAllSheets = googleSheetService.getAllSheets(googleSheetId);
         if (currAllSheets.size() > prevAllSheets.size()) {
-            googleSheetService.deleteSheets(arguments.getGoogleSheetId(), prevAllSheets);
+            googleSheetService.deleteSheets(googleSheetId, prevAllSheets);
         }
     }
 
@@ -301,7 +302,7 @@ public class ExportProcessor extends BaseProcessor {
             sheetParams.setFrozenRowCount(1);
             sheetParams.setFrozenColumnCount(2);
         }
-        return googleSheetService.addSheet(arguments.getGoogleSheetId(), sheetParams);
+        return googleSheetService.addSheet(googleSheetId, sheetParams);
     }
 
     private void uploadDataToGoogleSheet(DataPropFile dataPropFile, String fileNamePath, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
@@ -327,11 +328,11 @@ public class ExportProcessor extends BaseProcessor {
             throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
         }
 
-        googleSheetService.writeDataIntoSheet(arguments.getGoogleSheetId(), sheetTitle, sheetRows);
-        sheet = googleSheetService.getSheet(arguments.getGoogleSheetId(), sheetTitle);
-        googleSheetService.setWrappingStrategy(arguments.getGoogleSheetId(),sheet.getProperties().getSheetId());
-        googleSheetService.resizeAllColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
-        googleSheetService.protectFirstColumns(arguments.getGoogleSheetId(), sheet.getProperties().getSheetId());
+        googleSheetService.writeDataIntoSheet(googleSheetId, sheetTitle, sheetRows);
+        sheet = googleSheetService.getSheet(googleSheetId, sheetTitle);
+        googleSheetService.setWrappingStrategy(googleSheetId,sheet.getProperties().getSheetId());
+        googleSheetService.resizeAllColumns(googleSheetId, sheet.getProperties().getSheetId());
+        googleSheetService.protectFirstColumns(googleSheetId, sheet.getProperties().getSheetId());
         hideSheetFirstColumn(sheet.getProperties().getSheetId());
     }
 
@@ -407,7 +408,7 @@ public class ExportProcessor extends BaseProcessor {
                 .setDimension("COLUMNS")
                 .setStartIndex(0)
                 .setEndIndex(1);
-        googleSheetService.hideDimensionRange(arguments.getGoogleSheetId(), dimensionRange);
+        googleSheetService.hideDimensionRange(googleSheetId, dimensionRange);
     }
 
     /**

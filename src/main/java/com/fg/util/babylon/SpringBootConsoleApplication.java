@@ -20,10 +20,10 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class SpringBootConsoleApplication implements CommandLineRunner {
 
-    private TranslationService translationService;
+    private GoogleSheetService googleSheetService;
 
     public SpringBootConsoleApplication() {
-        this.translationService = new TranslationService(new GoogleSheetService());
+        googleSheetService = new GoogleSheetService();
     }
 
     public static void main(String[] args) {
@@ -39,7 +39,8 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         }
         Arguments arguments = parseArguments(args);
         try {
-            translationService.startTranslation(arguments);
+            TranslationService ts = new TranslationService(googleSheetService, arguments);
+            ts.startTranslation();
         } catch (Exception e) {
             log.error("BABYLON ERROR: ", e);
             System.exit(-1);

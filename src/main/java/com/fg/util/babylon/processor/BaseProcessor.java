@@ -3,6 +3,7 @@ package com.fg.util.babylon.processor;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.Configuration;
 import com.fg.util.babylon.entity.DataFile;
+import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.util.JsonUtils;
@@ -30,11 +31,22 @@ public abstract class BaseProcessor {
 
     protected GoogleSheetService googleSheetService;
 
-    public BaseProcessor(GoogleSheetService googleSheetService) {
+    /**
+     * FileName and relative path to the Json configuration file.
+     */
+    protected final String configFileName;
+
+    /**
+     * Id of the target google spreadsheet.
+     */
+    protected final String googleSheetId;
+
+    public BaseProcessor(GoogleSheetService googleSheetService, Arguments arguments) {
         this.googleSheetService = googleSheetService;
+        this.configFileName = arguments.getConfigFileName();
+        this.googleSheetId = arguments.getGoogleSheetId();
     }
 
-    Arguments arguments;
     Configuration configuration;
     PathMatchingResourcePatternResolver pathResolver = new PathMatchingResourcePatternResolver();
     /** Original untouched DataFile loaded from json file on disk while configuration reading phase. */
@@ -47,8 +59,7 @@ public abstract class BaseProcessor {
      */
     DataFile dataFile;
 
-    public void startTranslation(Arguments arguments) throws IOException, GeneralSecurityException, InterruptedException {
-        this.arguments = arguments;
+    public void startTranslation() throws IOException, GeneralSecurityException, InterruptedException {
         readAndCheckConfiguration();
         processTranslation();
     }
@@ -56,7 +67,7 @@ public abstract class BaseProcessor {
     protected abstract void processTranslation() throws IOException, GeneralSecurityException, InterruptedException;
 
     private void readAndCheckConfiguration() throws IOException {
-        File file = new File(arguments.getConfigFileName());
+        File file = new File(configFileName);
         if (!file.exists()) {
             throw new FileNotFoundException("Cannot find configuration file: " + file.getAbsolutePath());
         }
@@ -66,7 +77,7 @@ public abstract class BaseProcessor {
             originalDataFileOnDisk = new DataFile();
         }
         if (configuration.getMutations().isEmpty()) {
-            throw new IllegalArgumentException("No primary mutations defined in configuration file \"" + arguments.getConfigFileName() + "\"");
+            throw new IllegalArgumentException("No primary mutations defined in configuration file \"" + configFileName + "\"");
         }
     }
 

@@ -1,6 +1,7 @@
 package com.fg.util.babylon.service;
 
 import com.fg.util.babylon.entity.Arguments;
+import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.processor.ExportProcessor;
 import com.fg.util.babylon.processor.ImportProcessor;
 import lombok.extern.apachecommons.CommonsLog;
@@ -17,21 +18,22 @@ public class TranslationService {
 
     private final ExportProcessor exportProcessor;
     private final ImportProcessor importProcessor;
+    private final Action action;
 
-    public TranslationService(GoogleSheetService gss) {
-        exportProcessor = new ExportProcessor(gss);
-        importProcessor = new ImportProcessor(gss);
+    public TranslationService(GoogleSheetService gss, Arguments arguments) {
+        exportProcessor = new ExportProcessor(gss, arguments);
+        importProcessor = new ImportProcessor(gss, arguments);
+        this.action = arguments.getAction();
     }
 
-    public void startTranslation(Arguments arguments) throws IOException, GeneralSecurityException, InterruptedException {
-        log.info("Translation started with arguments: " + arguments.toString());
+    public void startTranslation() throws IOException, GeneralSecurityException, InterruptedException {
         long stTime = System.currentTimeMillis();
-        switch (arguments.getAction()) {
+        switch (action) {
             case EXPORT:
-                exportProcessor.startTranslation(arguments);
+                exportProcessor.startTranslation();
                 break;
             case IMPORT:
-                importProcessor.startTranslation(arguments);
+                importProcessor.startTranslation();
                 break;
         }
         log.info("Translation done in: " + (System.currentTimeMillis() - stTime) + "ms");
