@@ -2,9 +2,9 @@ package com.fg.util.babylon;
 
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.enums.Action;
+import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.service.TranslationService;
 import lombok.extern.apachecommons.CommonsLog;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -20,8 +20,11 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class SpringBootConsoleApplication implements CommandLineRunner {
 
-    @Autowired
     private TranslationService translationService;
+
+    public SpringBootConsoleApplication() {
+        this.translationService = new TranslationService(new GoogleSheetService());
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(SpringBootConsoleApplication.class, args);

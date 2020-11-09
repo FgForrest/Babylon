@@ -6,6 +6,7 @@ import com.fg.util.babylon.entity.DataFile;
 import com.fg.util.babylon.entity.DataPropFile;
 import com.fg.util.babylon.enums.PropertyStatus;
 import com.fg.util.babylon.properties.FileProperties;
+import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.util.JsonUtils;
 import com.fg.util.babylon.util.TestUtils;
 import lombok.extern.apachecommons.CommonsLog;
@@ -75,7 +76,8 @@ public class ExportProcessorTest extends CommonProcessorTest {
     @Test
     @Ignore
     public void pathTest() throws IOException {
-        ExportProcessor exportProcessor = new ExportProcessor();
+        GoogleSheetService gss = new GoogleSheetService();
+        ExportProcessor exportProcessor = new ExportProcessor(gss);
         log.info(System.getProperty("user.dir"));
         Resource[] resources = exportProcessor.pathResolver.getResources("file:src\\test\\resources\\META-INF\\goPayGate\\*.properties");
         assertEquals("Unexpected number of results", 2, resources.length);

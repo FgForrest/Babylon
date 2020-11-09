@@ -8,19 +8,15 @@ import com.fg.util.babylon.enums.PropertyType;
 import com.fg.util.babylon.exception.SheetExistsException;
 import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.properties.Property;
+import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.statistics.ExportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfExport;
 import com.fg.util.babylon.util.JsonUtils;
 import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,8 +30,6 @@ import java.util.stream.Collectors;
  * Processor for {@link Action#EXPORT} action.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-@Lazy
-@Component
 @CommonsLog
 public class ExportProcessor extends BaseProcessor {
 
@@ -44,6 +38,10 @@ public class ExportProcessor extends BaseProcessor {
 
     protected TranslationStatisticsOfExport statistics;
     protected List<String> changedPropertiesDuringExport = new LinkedList<>();
+
+    public ExportProcessor(GoogleSheetService googleSheetService) {
+        super(googleSheetService);
+    }
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
