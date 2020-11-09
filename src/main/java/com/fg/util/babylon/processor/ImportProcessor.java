@@ -1,9 +1,7 @@
 package com.fg.util.babylon.processor;
 
-import com.fg.util.babylon.entity.Arguments;
-import com.fg.util.babylon.entity.DataFile;
-import com.fg.util.babylon.entity.DataPropFile;
-import com.fg.util.babylon.entity.PropertiesMap;
+import com.fg.util.babylon.db.DataFileManager;
+import com.fg.util.babylon.entity.*;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.exception.EmptyDataFileException;
 import com.fg.util.babylon.exception.NoSheetsException;
@@ -38,13 +36,13 @@ public class ImportProcessor extends BaseProcessor {
 
     protected TranslationStatisticsOfImport statistics;
 
-    public ImportProcessor(GoogleSheetService googleSheetService, Arguments arguments) {
-        super(googleSheetService, arguments);
+    public ImportProcessor(GoogleSheetService googleSheetService, DataFileManager dataFileManager, Arguments arguments, TranslationConfiguration configuration) {
+        super(googleSheetService, dataFileManager, arguments, configuration);
     }
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException, InterruptedException {
-        log.info("Started translation IMPORT with config file: '" + configFileName + "', Google Sheet id: '" + googleSheetId +"'");
+        log.info("Started translation IMPORT with Google sheet id: '" + googleSheetId +"'");
         statistics = new TranslationStatisticsOfImport();
         statistics.setAction(Action.IMPORT);
         List<Sheet> sheets = googleSheetService.getAllSheetsWithData(googleSheetId);
@@ -67,7 +65,7 @@ public class ImportProcessor extends BaseProcessor {
      * @throws IOException some exception derived from {@link IOException}
      */
     private void saveDataFile() throws IOException {
-        DataFile dataFile = getOrCreateDataFile();
+        DataFile dataFile = dataFileManager.getOrCreateDataFile();
         if (!dataFile.getDataPropFiles().isEmpty()) {
             JsonUtils.objToJsonFile(new File(configuration.getDataFileName()), dataFile, true);
         } else {
@@ -163,7 +161,7 @@ public class ImportProcessor extends BaseProcessor {
      * @throws IOException some exception derived from {@link IOException}
      */
     private DataPropFile getPropFileById(Integer fileId) throws IOException {
-        DataPropFile propFile = getOrCreateDataFile().getPropFileById(fileId);
+        DataPropFile propFile = dataFileManager.getOrCreateDataFile().getPropFileById(fileId);
         if (propFile == null) {
             String msg = "No record found by id=\"" + fileId + "\" in \"" + configuration.getDataFileName() + "\"";
             throw new PropIdNotFoundException(msg);
@@ -193,7 +191,7 @@ public class ImportProcessor extends BaseProcessor {
      * Saves all translated secondary mutations properties into target properties files.
      */
     private void saveTranslations() throws IOException, InterruptedException {
-        Map<String, DataPropFile> dataPropFiles = getOrCreateDataFile().getDataPropFiles();
+        Map<String, DataPropFile> dataPropFiles = dataFileManager.getOrCreateDataFile().getDataPropFiles();
         for (Map.Entry<String, DataPropFile> entry : dataPropFiles.entrySet()) {
             String primaryPropFilePath = entry.getKey();
             DataPropFile dataPropFile = entry.getValue();
