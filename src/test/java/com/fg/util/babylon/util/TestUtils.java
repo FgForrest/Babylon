@@ -1,6 +1,6 @@
 package com.fg.util.babylon.util;
 
-import com.fg.util.babylon.entity.Configuration;
+import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.entity.DataFile;
 import com.fg.util.babylon.entity.DataPropFile;
 import com.fg.util.babylon.entity.PropertiesMap;
@@ -41,8 +41,8 @@ public class TestUtils {
         return dataFile;
     }
 
-    public static Configuration createTestConfiguration() {
-        Configuration configuration = new Configuration("translation-db.json");
+    public static TranslationConfiguration createTestConfiguration() {
+        TranslationConfiguration configuration = new TranslationConfiguration("translation-db.json");
         configuration.addFileToPath("src\\test\\resources\\META-INF\\lib_eshop_edee\\country.properties");
         configuration.addFileToPath("src\\test\\resources\\META-INF\\09_mail_form\\messages.properties");
         configuration.addFileToPath("src\\test\\resources\\META-INF\\goPayGate\\*.properties");

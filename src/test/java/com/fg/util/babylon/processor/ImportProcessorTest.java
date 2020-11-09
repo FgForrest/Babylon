@@ -50,7 +50,7 @@ public class ImportProcessorTest extends CommonProcessorTest {
                 "loadPropertiesFromFile",
                 "saveDataFile",
                 "savePropertiesToFile");
-        Configuration cfg = new Configuration();
+        TranslationConfiguration cfg = new TranslationConfiguration();
         cfg.setPath(Collections.singletonList(""));
         cfg.setMutations(mutations);
         cfg.setDataFileName("");
