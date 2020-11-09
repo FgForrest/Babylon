@@ -1,6 +1,8 @@
 package com.fg.util.babylon.endtoend.export
 
+import com.fg.util.babylon.db.DataFileManager
 import com.fg.util.babylon.entity.Arguments
+import com.fg.util.babylon.entity.TranslationConfiguration
 import com.fg.util.babylon.enums.Action
 import com.fg.util.babylon.processor.ExportProcessor
 import com.fg.util.babylon.service.GoogleSheetService
@@ -15,10 +17,14 @@ class ExportTest {
         trSettings.googleSheetId = "???"
         trSettings.configFileName = "???"
 
-        val ep = ExportProcessor(gss, trSettings)
+        val trConfig = TranslationConfiguration()
+        trConfig.dataFileName = "???"
+
+        val dfm = DataFileManager(trConfig.dataFileName)
+        val ep = ExportProcessor(gss, dfm, trSettings, trConfig)
 
         ep.startTranslation()
-        
+
 
     }
 

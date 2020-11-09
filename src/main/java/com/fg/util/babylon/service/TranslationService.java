@@ -1,6 +1,8 @@
 package com.fg.util.babylon.service;
 
+import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
+import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.processor.ExportProcessor;
 import com.fg.util.babylon.processor.ImportProcessor;
@@ -20,9 +22,9 @@ public class TranslationService {
     private final ImportProcessor importProcessor;
     private final Action action;
 
-    public TranslationService(GoogleSheetService gss, Arguments arguments) {
-        exportProcessor = new ExportProcessor(gss, arguments);
-        importProcessor = new ImportProcessor(gss, arguments);
+    public TranslationService(GoogleSheetService gss, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) {
+        exportProcessor = new ExportProcessor(gss, dfm, arguments, configuration);
+        importProcessor = new ImportProcessor(gss, dfm, arguments, configuration);
         this.action = arguments.getAction();
     }
 

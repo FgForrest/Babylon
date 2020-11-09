@@ -1,6 +1,7 @@
 package com.fg.util.babylon.processor;
 
 
+import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.*;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.enums.PropertyStatus;
@@ -39,13 +40,13 @@ public class ExportProcessor extends BaseProcessor {
     protected TranslationStatisticsOfExport statistics;
     protected List<String> changedPropertiesDuringExport = new LinkedList<>();
 
-    public ExportProcessor(GoogleSheetService googleSheetService, Arguments arguments) {
-        super(googleSheetService, arguments);
+    public ExportProcessor(GoogleSheetService googleSheetService, DataFileManager dataFileManager, Arguments arguments, TranslationConfiguration configuration) {
+        super(googleSheetService, dataFileManager, arguments, configuration);
     }
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException {
-        log.info("Started translation EXPORT with config file: '" + configFileName + "', Google Sheet id: '" + googleSheetId +"'");
+        log.info("Started translation EXPORT with Google sheet id: '" + googleSheetId +"'");
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
         // Using "for" loop to propagating of IOException
@@ -104,7 +105,7 @@ public class ExportProcessor extends BaseProcessor {
         }
         statistics.incTotalPropFilesProcessed();
         Map<String, FileProperties> mutationsProperties = loadSecondaryMutationsProperties(primaryPropFilePath);
-        final DataPropFile primaryDataPropFile = getOrCreateDataFile().getOrPutNewPropFileByFileName(primaryPropFilePath);
+        final DataPropFile primaryDataPropFile = dataFileManager.getOrCreateDataFile().getOrPutNewPropFileByFileName(primaryPropFilePath);
         changedPropertiesDuringExport.add(primaryPropFilePath);
         for (Map.Entry<String, Property> entry : primaryProperties.entrySet()) {
             String key = entry.getKey();
@@ -191,8 +192,8 @@ public class ExportProcessor extends BaseProcessor {
                  */
                 DataPropFile propFileByFileName = null;
                 // No json datafile exists on disk or no record for this file in Json DataFile on disk -> NEW
-                if (originalDataFileOnDisk != null) {
-                    propFileByFileName = originalDataFileOnDisk.getPropFileByFileName(primaryPropFilePath);
+                if (dataFileManager.getOriginalDataFile() != null) { // FIXME: this can never happen, remove branch
+                    propFileByFileName = dataFileManager.getOriginalDataFile().getPropFileByFileName(primaryPropFilePath);
                 }
                 if (propFileByFileName == null) {
                     mutationPropsMap.putPropertyStatus(key, PropertyStatus.NEW);
@@ -265,12 +266,12 @@ public class ExportProcessor extends BaseProcessor {
     }
 
     /**
-     * Uploads data {@link BaseProcessor#getOrCreateDataFile()} into google spreadsheet specified by {@link Arguments#getGoogleSheetId()}.
+     * Uploads data {@link DataFileManager#getOrCreateDataFile()} into google spreadsheet specified by {@link Arguments#getGoogleSheetId()}.
      * @throws GeneralSecurityException when authentication to Google sheets API problem is appeared.
      * @throws IOException some exception derived from {@link IOException}
     */
     private void uploadDataToGoogleSpreadsheet() throws GeneralSecurityException, IOException {
-        Map<String, DataPropFile> dataPropFiles = getOrCreateDataFile()
+        Map<String, DataPropFile> dataPropFiles = dataFileManager.getOrCreateDataFile()
                         .getDataPropFiles()
                         .entrySet()
                         .stream()
@@ -414,11 +415,12 @@ public class ExportProcessor extends BaseProcessor {
     /**
      * Saves created DataFile object without properties into file on disk. Only if DataFile not exists on disk!
      */
+    // FIXME: abstractions are wrong
     private void saveDataFileWithoutProperties() throws IOException {
         File file = new File(configuration.getDataFileName());
-        Map<String, DataPropFile> originalDataPropFiles = originalDataFileOnDisk.getDataPropFiles();
+        Map<String, DataPropFile> originalDataPropFiles = dataFileManager.getOriginalDataFile().getDataPropFiles();
 
-        DataFile overriddenDataFile = getOrCreateDataFile();
+        DataFile overriddenDataFile = dataFileManager.getOrCreateDataFile();
         overriddenDataFile.getDataPropFiles().forEach((i,j)->{
             if (!originalDataPropFiles.containsKey(i)){
                 j.setProperties(new PropertiesMap());
@@ -426,7 +428,7 @@ public class ExportProcessor extends BaseProcessor {
             }
         });
 
-        JsonUtils.objToJsonFile(file, originalDataFileOnDisk, true);
+        JsonUtils.objToJsonFile(file, dataFileManager.getOriginalDataFile(), true);
     }
 
 }

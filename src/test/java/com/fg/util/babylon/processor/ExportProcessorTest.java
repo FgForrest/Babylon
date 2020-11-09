@@ -1,5 +1,6 @@
 package com.fg.util.babylon.processor;
 
+import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.entity.DataFile;
@@ -83,7 +84,12 @@ public class ExportProcessorTest extends CommonProcessorTest {
         args.setConfigFileName("NO-FILE-NEEDED");
         args.setGoogleSheetId("NO-SHEET-ID-NEEDED");
 
-        ExportProcessor exportProcessor = new ExportProcessor(gss, args);
+        String dataFileName = "NO-DATA-FILE-NEEDED";
+        DataFileManager dfm = new DataFileManager(dataFileName);
+
+        TranslationConfiguration trConfig = new TranslationConfiguration(dataFileName);
+
+        ExportProcessor exportProcessor = new ExportProcessor(gss, dfm, args, trConfig);
         log.info(System.getProperty("user.dir"));
         Resource[] resources = exportProcessor.pathResolver.getResources("file:src\\test\\resources\\META-INF\\goPayGate\\*.properties");
         assertEquals("Unexpected number of results", 2, resources.length);
@@ -138,8 +144,8 @@ public class ExportProcessorTest extends CommonProcessorTest {
         DataFile dataFile = runFirstExport();
         assertNotNull("DataFile is null", dataFile);
         // Use this datafile for second export
-        exportProcessor.dataFile = dataFile;
-        exportProcessor.originalDataFileOnDisk = dataFile;
+        exportProcessor.dataFileManager.switchDataFileTo(dataFile);
+        exportProcessor.dataFileManager.switchOriginalDataFileTo(dataFile);
         // Change value of one primary property (simulates change in primary properties file)
         String changedFileName = "A.properties";
         String changedPropKey = "A.properties0";
