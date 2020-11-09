@@ -1,6 +1,6 @@
 package com.fg.util.babylon.service;
 
-import com.fg.util.babylon.entity.Configuration;
+import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.util.JsonUtils;
 import com.fg.util.babylon.util.TestUtils;
 import lombok.extern.apachecommons.CommonsLog;
@@ -19,16 +19,16 @@ import static org.junit.Assert.*;
 public class TranslationServiceTest {
 
     /**
-     * Checks of {@link Configuration} serialization from object to string and back.
+     * Checks of {@link TranslationConfiguration} serialization from object to string and back.
      * @throws IOException some exception derived from {@link IOException}
     */
     @Test
     public void checkConfigSerializationAndDeserialization() throws IOException {
-        Configuration configuration = TestUtils.createTestConfiguration();
+        TranslationConfiguration configuration = TestUtils.createTestConfiguration();
         String jsonString = JsonUtils.objToJsonString(configuration, true);
         assertFalse("Json String is null or empty", StringUtils.isEmpty(jsonString));
         log.info(jsonString);
-        Configuration configFromStr = JsonUtils.jsonObjFromString(jsonString, Configuration.class);
+        TranslationConfiguration configFromStr = JsonUtils.jsonObjFromString(jsonString, TranslationConfiguration.class);
         assertNotNull("Json object from string is null", configFromStr);
     }
 
@@ -39,7 +39,7 @@ public class TranslationServiceTest {
     @Test
     public void checkCreateConfigurationFile() throws IOException {
         File file = new File("test-config.json");
-        Configuration configuration = TestUtils.createTestConfiguration();
+        TranslationConfiguration configuration = TestUtils.createTestConfiguration();
         JsonUtils.objToJsonFile(file, configuration, true);
         assertFalse("primary data file is empty", configuration.getDataFileName().isEmpty());
         assertFalse("path is empty", configuration.getPath().isEmpty());

@@ -17,7 +17,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
-public class Configuration implements Serializable {
+public class TranslationConfiguration implements Serializable {
 
     private static final long serialVersionUID = -5822894615320804365L;
 

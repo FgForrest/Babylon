@@ -1,7 +1,7 @@
 package com.fg.util.babylon.processor;
 
 import com.fg.util.babylon.entity.Arguments;
-import com.fg.util.babylon.entity.Configuration;
+import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.entity.DataFile;
 import com.fg.util.babylon.entity.DataPropFile;
 import com.fg.util.babylon.enums.Action;
@@ -53,7 +53,7 @@ public class ExportProcessorTest extends CommonProcessorTest {
                 "saveDataFileWithoutProperties",
                 "uploadDataToGoogleSpreadsheet");
         exportProcessor.changedPropertiesDuringExport = new LinkedList<>();
-        Configuration cfg = new Configuration();
+        TranslationConfiguration cfg = new TranslationConfiguration();
         cfg.setPath(Collections.singletonList(""));
         cfg.setMutations(mutations);
         cfg.setDataFileName("");

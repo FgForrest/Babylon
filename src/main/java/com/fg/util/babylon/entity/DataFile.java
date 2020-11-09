@@ -11,7 +11,7 @@ import java.util.Set;
 
 /**
  * Class representing translation data file (changelog) in json file. This data file keeps information about processing
- * of language properties files by given {@link Configuration}.
+ * of language properties files by given {@link TranslationConfiguration}.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @Data

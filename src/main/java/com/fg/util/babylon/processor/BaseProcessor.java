@@ -1,9 +1,8 @@
 package com.fg.util.babylon.processor;
 
 import com.fg.util.babylon.entity.Arguments;
-import com.fg.util.babylon.entity.Configuration;
+import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.entity.DataFile;
-import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.util.JsonUtils;
@@ -47,7 +46,7 @@ public abstract class BaseProcessor {
         this.googleSheetId = arguments.getGoogleSheetId();
     }
 
-    Configuration configuration;
+    TranslationConfiguration configuration;
     PathMatchingResourcePatternResolver pathResolver = new PathMatchingResourcePatternResolver();
     /** Original untouched DataFile loaded from json file on disk while configuration reading phase. */
     DataFile originalDataFileOnDisk;
@@ -71,7 +70,7 @@ public abstract class BaseProcessor {
         if (!file.exists()) {
             throw new FileNotFoundException("Cannot find configuration file: " + file.getAbsolutePath());
         }
-        configuration = JsonUtils.jsonObjFromFile(file, Configuration.class);
+        configuration = JsonUtils.jsonObjFromFile(file, TranslationConfiguration.class);
         originalDataFileOnDisk = getExistingDataFileFromDisk();
         if (originalDataFileOnDisk == null){
             originalDataFileOnDisk = new DataFile();
@@ -100,7 +99,7 @@ public abstract class BaseProcessor {
 
     /**
      * Gets existing {@link DataFile} object (from Json file on disk) or create new {@link DataFile} object,
-     * according to file name specified by  {@link Configuration#getDataFileName()}
+     * according to file name specified by  {@link TranslationConfiguration#getDataFileName()}
      * @return {@link DataFile}
      * @throws IOException some exception derived from {@link IOException}
     */
@@ -141,7 +140,7 @@ public abstract class BaseProcessor {
     }
 
     /**
-     * Get data file name like {@link Configuration#getDataFileName()} + .json extension if not appended.
+     * Get data file name like {@link TranslationConfiguration#getDataFileName()} + .json extension if not appended.
      * @return correct file name.
      */
     private String getDataFileName() {
