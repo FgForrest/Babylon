@@ -4,6 +4,7 @@ import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.Configuration;
 import com.fg.util.babylon.entity.DataFile;
 import com.fg.util.babylon.entity.DataPropFile;
+import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.enums.PropertyStatus;
 import com.fg.util.babylon.properties.FileProperties;
 import com.fg.util.babylon.service.GoogleSheetService;
@@ -77,7 +78,12 @@ public class ExportProcessorTest extends CommonProcessorTest {
     @Ignore
     public void pathTest() throws IOException {
         GoogleSheetService gss = new GoogleSheetService();
-        ExportProcessor exportProcessor = new ExportProcessor(gss);
+        Arguments args = new Arguments();
+        args.setAction(Action.EXPORT);
+        args.setConfigFileName("NO-FILE-NEEDED");
+        args.setGoogleSheetId("NO-SHEET-ID-NEEDED");
+
+        ExportProcessor exportProcessor = new ExportProcessor(gss, args);
         log.info(System.getProperty("user.dir"));
         Resource[] resources = exportProcessor.pathResolver.getResources("file:src\\test\\resources\\META-INF\\goPayGate\\*.properties");
         assertEquals("Unexpected number of results", 2, resources.length);
@@ -140,7 +146,7 @@ public class ExportProcessorTest extends CommonProcessorTest {
         String changedValue = "changed value";
         filePropsMap.get(changedFileName).get(changedPropKey).setValue(changedValue);
         // Run second export
-        exportProcessor.startTranslation(new Arguments());
+        exportProcessor.startTranslation();
         dataFile = exportProcessor.getOrCreateDataFile();
         // Check if status of this one property is changed and at the same time status of all other properties must be UNCHANGED
         boolean valueIsChanged = dataFile.getPropFileByFileName(changedFileName).getPropertyValue(changedPropKey).equals(changedValue);
@@ -177,7 +183,7 @@ public class ExportProcessorTest extends CommonProcessorTest {
         // Use this datafile for second export
         exportProcessor.dataFile = dataFile;
         exportProcessor.originalDataFileOnDisk = dataFile;
-        exportProcessor.startTranslation(new Arguments());
+        exportProcessor.startTranslation();
         dataFile = exportProcessor.getOrCreateDataFile();
         int missingCnt = 0;
         for (DataPropFile dataPropFile : dataFile.getDataPropFiles().values()) {
@@ -205,7 +211,7 @@ public class ExportProcessorTest extends CommonProcessorTest {
         // Use this datafile for second export
         exportProcessor.dataFile = dataFile;
         exportProcessor.originalDataFileOnDisk = dataFile;
-        exportProcessor.startTranslation(new Arguments());
+        exportProcessor.startTranslation();
         dataFile = exportProcessor.getOrCreateDataFile();
         int missingCnt = 0;
         for (DataPropFile dataPropFile : dataFile.getDataPropFiles().values()) {
@@ -237,7 +243,7 @@ public class ExportProcessorTest extends CommonProcessorTest {
         String changedFileName = "A_en.properties";
         String changedPropKey = "A.properties0";
         filePropsMap.get(changedFileName).remove(changedPropKey);
-        exportProcessor.startTranslation(new Arguments());
+        exportProcessor.startTranslation();
         dataFile = exportProcessor.getOrCreateDataFile();
         DataPropFile propFile = dataFile.getPropFileByFileName("A.properties");
         PropertyStatus propStatus = propFile.getPropertyStatus(changedPropKey);
@@ -253,7 +259,7 @@ public class ExportProcessorTest extends CommonProcessorTest {
 
     private DataFile runFirstExport() throws Exception {
         mockExportProcessor();
-        exportProcessor.startTranslation(new Arguments());
+        exportProcessor.startTranslation();
         return exportProcessor.getOrCreateDataFile();
     }
 }

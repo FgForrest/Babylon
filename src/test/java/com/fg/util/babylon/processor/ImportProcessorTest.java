@@ -85,7 +85,7 @@ public class ImportProcessorTest extends CommonProcessorTest {
      */
     @Test
     public void checkFirstWholeImport() throws IOException, GeneralSecurityException, InterruptedException {
-        importProcessor.startTranslation(new Arguments());
+        importProcessor.startTranslation();
         DataFile dataFile = importProcessor.getOrCreateDataFile();
         assertNotNull("DataFile is null", dataFile);
         dataFile.getDataPropFiles().values().forEach(dataPropFile -> {
@@ -107,7 +107,7 @@ public class ImportProcessorTest extends CommonProcessorTest {
         // Add property existing only in "A_en.properties" file.
         FileProperties fileProperties = filePropsMap.get("A_en.properties");
         fileProperties.put("A.properties" + TEST_KEYS_CNT, new Property(PropertyType.VALUE, "value A_en.properties" + TEST_KEYS_CNT));
-        importProcessor.startTranslation(new Arguments());
+        importProcessor.startTranslation();
         importProcessor.getOrCreateDataFile();
         ImportFileStatistic fileStatistic = importProcessor.statistics.getFileStatistic("A_en.properties");
         assertNotNull("Statistics for file \"A_en.properties\" is null", fileStatistic);

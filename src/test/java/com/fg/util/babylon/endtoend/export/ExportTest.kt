@@ -9,14 +9,16 @@ class ExportTest {
 
     fun `when translation data file is empty (first time export) then all localized strings are exported for translation`() {
         val gss = GoogleSheetService()
-        val ep = ExportProcessor(gss)
 
         val trSettings = Arguments()
         trSettings.action = Action.EXPORT
         trSettings.googleSheetId = "???"
         trSettings.configFileName = "???"
 
-        ep.startTranslation(trSettings)
+        val ep = ExportProcessor(gss, trSettings)
+
+        ep.startTranslation()
+        
 
     }
 
