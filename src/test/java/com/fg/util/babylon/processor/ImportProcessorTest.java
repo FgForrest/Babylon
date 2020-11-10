@@ -2,8 +2,8 @@
 //
 //import com.fg.util.babylon.entity.*;
 //import com.fg.util.babylon.enums.PropertyType;
-//import com.fg.util.babylon.properties.FileProperties;
-//import com.fg.util.babylon.properties.Property;
+//import com.fg.util.babylon.propfiles.FileProperties;
+//import com.fg.util.babylon.propfiles.Property;
 //import com.fg.util.babylon.service.GoogleSheetService;
 //import com.fg.util.babylon.statistics.ImportFileStatistic;
 //import com.fg.util.babylon.util.JsonUtils;

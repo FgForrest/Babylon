@@ -1,4 +1,4 @@
-package com.fg.util.babylon.properties;
+package com.fg.util.babylon.propfiles;
 
 import com.fg.util.babylon.enums.PropertyType;
 import org.springframework.util.StringUtils;
