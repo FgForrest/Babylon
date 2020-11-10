@@ -38,10 +38,10 @@ public class TranslationService {
         long stTime = System.currentTimeMillis();
         switch (action) {
             case EXPORT:
-                exportProcessor.startTranslation();
+                exportProcessor.doExport();
                 break;
             case IMPORT:
-                importProcessor.startTranslation();
+                importProcessor.doImport();
                 break;
         }
         log.info("Translation done in: " + (System.currentTimeMillis() - stTime) + "ms");

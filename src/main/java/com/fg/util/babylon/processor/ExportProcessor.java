@@ -70,8 +70,7 @@ public class ExportProcessor extends BaseProcessor {
         return arguments.getGoogleSheetId();
     }
 
-    @Override
-    public void processTranslation() throws IOException, GeneralSecurityException {
+    public void doExport() throws IOException, GeneralSecurityException {
         log.info("Started translation EXPORT with Google sheet id: '" + getGoogleSheetId() +"'");
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
