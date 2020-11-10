@@ -37,6 +37,7 @@ public class ExportProcessor extends BaseProcessor {
     private final DataFileManager dataFileManager;
     private final AntPathResourceLoader resourceLoader;
     private final I18nFileManager i18nFileManager;
+    private final GoogleSheetService googleSheetService;
 
     /** Regex for filter out possible secondary mutations files */
     private static final String REMOVE_MUTATIONS_REGEX = ".*_[a-zA-Z]{2,3}\\.properties";
@@ -50,10 +51,11 @@ public class ExportProcessor extends BaseProcessor {
                            AntPathResourceLoader resourceLoader,
                            Arguments arguments,
                            TranslationConfiguration configuration) {
-        super(googleSheetService, arguments, configuration);
+        super(arguments, configuration);
         this.dataFileManager = dataFileManager;
         this.resourceLoader = resourceLoader;
         this.i18nFileManager = i18nFileManager;
+        this.googleSheetService = googleSheetService;
     }
 
     @Override

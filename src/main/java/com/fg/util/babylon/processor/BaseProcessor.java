@@ -24,8 +24,6 @@ public abstract class BaseProcessor {
     static final String COL_PRIMARY = "primary";
     static final String EMPTY_VAL = "";
 
-    protected GoogleSheetService googleSheetService;
-
     /**
      * Id of the target google spreadsheet.
      */
@@ -33,10 +31,8 @@ public abstract class BaseProcessor {
 
     protected TranslationConfiguration configuration;
 
-    public BaseProcessor(GoogleSheetService googleSheetService,
-                         Arguments arguments,
+    public BaseProcessor(Arguments arguments,
                          TranslationConfiguration configuration) {
-        this.googleSheetService = googleSheetService;
         this.googleSheetId = arguments.getGoogleSheetId();
 
         this.configuration = configuration;
