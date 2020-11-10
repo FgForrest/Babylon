@@ -1,5 +1,6 @@
 package com.fg.util.babylon.processor;
 
+import com.fg.util.babylon.SheetConstants;
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.*;
 import com.fg.util.babylon.enums.Action;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @CommonsLog
-public class ImportProcessor extends BaseProcessor {
+public class ImportProcessor {
 
     protected TranslationStatisticsOfImport statistics;
 
@@ -255,7 +256,7 @@ public class ImportProcessor extends BaseProcessor {
         // empty rows and comments from primary mutation file is also on correct rows.
         updatedFileProps.values().forEach(property -> {
             if (property.isPropValue() || property.isPropValueMultiLine()) {
-                property.setValue(EMPTY_VAL);
+                property.setValue(SheetConstants.EMPTY_VAL);
             }
         });
         FileProperties propsOnlyInMutation = new FileProperties();
@@ -298,7 +299,7 @@ public class ImportProcessor extends BaseProcessor {
         List<String> propsToRemove = updatedFileProps
                 .entrySet()
                 .stream()
-                .filter(k -> k.getValue().getValue().equals(EMPTY_VAL) && !mutationProperties.containsKey(k.getKey()))
+                .filter(k -> k.getValue().getValue().equals(SheetConstants.EMPTY_VAL) && !mutationProperties.containsKey(k.getKey()))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
         propsToRemove.forEach(updatedFileProps::remove);
