@@ -12,6 +12,7 @@ import com.fg.util.babylon.propfiles.Property;
 import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.statistics.ExportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfExport;
+import com.fg.util.babylon.todo.I18nUtils;
 import com.fg.util.babylon.util.JsonUtils;
 import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
@@ -167,7 +168,7 @@ public class ExportProcessor extends BaseProcessor {
     private Map<String, FileProperties> loadSecondaryMutationsProperties(String primaryPropertyFilePath) throws IOException {
         Map<String, FileProperties> map = new HashMap<>();
         for (String mutation : configuration.getMutations()) {
-            String secPropFileNamePath = getFileNameForMutation(primaryPropertyFilePath, mutation);
+            String secPropFileNamePath = I18nUtils.getFileNameForMutation(primaryPropertyFilePath, mutation);
             FileProperties properties = Optional.ofNullable(i18nFileManager.loadPropertiesFromFile(secPropFileNamePath)).orElse(new FileProperties());
             if (!properties.isEmpty()) {
                 statistics.incTotalPropFilesProcessed();
@@ -238,7 +239,7 @@ public class ExportProcessor extends BaseProcessor {
                     }
                 }
             }
-            String mutationPropFilePath = getFileNameForMutation(primaryPropFilePath, mutation);
+            String mutationPropFilePath = I18nUtils.getFileNameForMutation(primaryPropFilePath, mutation);
             countStatistics(key, mutationPropsMap, mutationPropFilePath);
         }
         /* Set final primary properties status by statuses of this key in all secondary properties.

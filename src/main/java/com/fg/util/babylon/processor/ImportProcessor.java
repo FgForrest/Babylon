@@ -12,6 +12,7 @@ import com.fg.util.babylon.propfiles.Property;
 import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfImport;
+import com.fg.util.babylon.todo.I18nUtils;
 import com.fg.util.babylon.util.JsonUtils;
 import com.google.api.services.sheets.v4.model.CellData;
 import com.google.api.services.sheets.v4.model.GridData;
@@ -233,7 +234,7 @@ public class ImportProcessor extends BaseProcessor {
     */
     private void saveMutationPropertiesToFile(String primaryPropFilePath, String mutation, DataPropFile dataPropFile) throws IOException, InterruptedException {
         PropertiesMap mutationProperties = dataPropFile.getMutationProperties(mutation);
-        String mutationPropFilePath = getFileNameForMutation(primaryPropFilePath, mutation);
+        String mutationPropFilePath = I18nUtils.getFileNameForMutation(primaryPropFilePath, mutation);
         if (mutationProperties == null || mutationProperties.isEmpty()) {
             String msg = "No properties found in source google sheet for import data into \"" + mutationPropFilePath + "\"";
             log.info(msg);
