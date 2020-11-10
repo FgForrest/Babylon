@@ -63,8 +63,7 @@ public class ImportProcessor extends BaseProcessor {
         return arguments.getGoogleSheetId();
     }
 
-    @Override
-    protected void processTranslation() throws IOException, GeneralSecurityException, InterruptedException {
+    public void doImport() throws IOException, GeneralSecurityException, InterruptedException {
         log.info("Started translation IMPORT with Google sheet id: '" + getGoogleSheetId() +"'");
         statistics = new TranslationStatisticsOfImport();
         statistics.setAction(Action.IMPORT);

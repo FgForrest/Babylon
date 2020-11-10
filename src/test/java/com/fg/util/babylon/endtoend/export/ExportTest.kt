@@ -27,7 +27,7 @@ class ExportTest {
         val i18nFM = I18nFileManager()
         val ep = ExportProcessor(gss, dfm, i18nFM, rl, trSettings, trConfig)
 
-        ep.startTranslation()
+        ep.doExport()
 
 
     }
