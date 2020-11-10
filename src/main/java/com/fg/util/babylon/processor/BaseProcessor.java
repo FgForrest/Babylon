@@ -21,12 +21,6 @@ public abstract class BaseProcessor {
     static final String COL_PRIMARY = "primary";
     static final String EMPTY_VAL = "";
 
-    protected TranslationConfiguration configuration;
-
-    public BaseProcessor(TranslationConfiguration configuration) {
-        this.configuration = configuration;
-    }
-
 
     public void startTranslation() throws IOException, GeneralSecurityException, InterruptedException {
         processTranslation();

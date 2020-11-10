@@ -41,17 +41,18 @@ public class ImportProcessor extends BaseProcessor {
     private final GoogleSheetService googleSheetService;
 
     private final Arguments arguments;
+    private final TranslationConfiguration configuration;
 
     public ImportProcessor(GoogleSheetService googleSheetService,
                            DataFileManager dataFileManager,
                            I18nFileManager i18nFileManager,
                            Arguments arguments,
                            TranslationConfiguration configuration) {
-        super(configuration);
         this.dataFileManager = dataFileManager;
         this.i18nFileManager =  i18nFileManager;
         this.googleSheetService = googleSheetService;
         this.arguments = arguments;
+        this.configuration = configuration;
     }
 
     /**
