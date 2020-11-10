@@ -40,25 +40,35 @@ public class ImportProcessor extends BaseProcessor {
     private final I18nFileManager i18nFileManager;
     private final GoogleSheetService googleSheetService;
 
+    private final Arguments arguments;
+
     public ImportProcessor(GoogleSheetService googleSheetService,
                            DataFileManager dataFileManager,
                            I18nFileManager i18nFileManager,
                            Arguments arguments,
                            TranslationConfiguration configuration) {
-        super(arguments, configuration);
+        super(configuration);
         this.dataFileManager = dataFileManager;
         this.i18nFileManager =  i18nFileManager;
         this.googleSheetService = googleSheetService;
+        this.arguments = arguments;
+    }
+
+    /**
+     * Id of the target google spreadsheet.
+     */
+    private String getGoogleSheetId() {
+        return arguments.getGoogleSheetId();
     }
 
     @Override
     protected void processTranslation() throws IOException, GeneralSecurityException, InterruptedException {
-        log.info("Started translation IMPORT with Google sheet id: '" + googleSheetId +"'");
+        log.info("Started translation IMPORT with Google sheet id: '" + getGoogleSheetId() +"'");
         statistics = new TranslationStatisticsOfImport();
         statistics.setAction(Action.IMPORT);
-        List<Sheet> sheets = googleSheetService.getAllSheetsWithData(googleSheetId);
+        List<Sheet> sheets = googleSheetService.getAllSheetsWithData(getGoogleSheetId());
         if (sheets == null || sheets.isEmpty()) {
-            throw new NoSheetsException("Source spreadsheet " + googleSheetId + " not contains any sheets.");
+            throw new NoSheetsException("Source spreadsheet " + getGoogleSheetId() + " not contains any sheets.");
         }
         // Processes data from google spreadsheet into internal BaseProcessor#dataFile object
         // accessible by BaseProcessor#getOrCreateDataFile() method.
