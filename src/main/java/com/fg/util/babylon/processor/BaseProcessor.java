@@ -1,9 +1,6 @@
 package com.fg.util.babylon.processor;
 
-import com.fg.util.babylon.entity.TranslationConfiguration;
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.util.StringUtils;
 
 import java.io.*;
 import java.security.GeneralSecurityException;
@@ -27,25 +24,5 @@ public abstract class BaseProcessor {
     }
 
     protected abstract void processTranslation() throws IOException, GeneralSecurityException, InterruptedException;
-
-    /**
-     * Get file name like primaryPropFilePath + ("_" + mutation if is not null or empty) + possible original extension of primaryPropFilePath.
-     * @param primaryPropFilePath path to the primary mutation file
-     * @param mutation mutation of the file what you want
-     * @return correct file name for mutation
-     */
-    String getFileNameForMutation(String primaryPropFilePath, String mutation) {
-        if (StringUtils.isEmpty(mutation)) {
-            return primaryPropFilePath;
-        }
-        String fileExtension = FilenameUtils.getExtension(primaryPropFilePath);
-        if (!StringUtils.isEmpty(fileExtension)) {
-            fileExtension = "." + fileExtension;
-        }
-        String fileMutation = "_" + mutation;
-        String mutationFileName = FilenameUtils.removeExtension(primaryPropFilePath);
-        mutationFileName += fileMutation + fileExtension;
-        return mutationFileName;
-    }
 
 }
