@@ -36,6 +36,7 @@ public class ImportProcessor extends BaseProcessor {
 
     protected TranslationStatisticsOfImport statistics;
 
+    private final DataFileManager dataFileManager;
     private final I18nFileManager i18nFileManager;
 
     public ImportProcessor(GoogleSheetService googleSheetService,
@@ -43,7 +44,8 @@ public class ImportProcessor extends BaseProcessor {
                            I18nFileManager i18nFileManager,
                            Arguments arguments,
                            TranslationConfiguration configuration) {
-        super(googleSheetService, dataFileManager, arguments, configuration);
+        super(googleSheetService, arguments, configuration);
+        this.dataFileManager = dataFileManager;
         this.i18nFileManager =  i18nFileManager;
     }
 

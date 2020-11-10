@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class ExportProcessor extends BaseProcessor {
 
+    private final DataFileManager dataFileManager;
     private final AntPathResourceLoader resourceLoader;
     private final I18nFileManager i18nFileManager;
 
@@ -49,7 +50,8 @@ public class ExportProcessor extends BaseProcessor {
                            AntPathResourceLoader resourceLoader,
                            Arguments arguments,
                            TranslationConfiguration configuration) {
-        super(googleSheetService, dataFileManager, arguments, configuration);
+        super(googleSheetService, arguments, configuration);
+        this.dataFileManager = dataFileManager;
         this.resourceLoader = resourceLoader;
         this.i18nFileManager = i18nFileManager;
     }

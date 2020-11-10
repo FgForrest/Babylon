@@ -25,7 +25,6 @@ public abstract class BaseProcessor {
     static final String EMPTY_VAL = "";
 
     protected GoogleSheetService googleSheetService;
-    protected DataFileManager dataFileManager;
 
     /**
      * Id of the target google spreadsheet.
@@ -35,11 +34,9 @@ public abstract class BaseProcessor {
     protected TranslationConfiguration configuration;
 
     public BaseProcessor(GoogleSheetService googleSheetService,
-                         DataFileManager dataFileManager,
                          Arguments arguments,
                          TranslationConfiguration configuration) {
         this.googleSheetService = googleSheetService;
-        this.dataFileManager = dataFileManager;
         this.googleSheetId = arguments.getGoogleSheetId();
 
         this.configuration = configuration;
