@@ -1,9 +1,6 @@
 package com.fg.util.babylon.processor;
 
-import com.fg.util.babylon.db.DataFileManager;
-import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.TranslationConfiguration;
-import com.fg.util.babylon.service.GoogleSheetService;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.util.StringUtils;
@@ -24,17 +21,9 @@ public abstract class BaseProcessor {
     static final String COL_PRIMARY = "primary";
     static final String EMPTY_VAL = "";
 
-    /**
-     * Id of the target google spreadsheet.
-     */
-    protected final String googleSheetId;
-
     protected TranslationConfiguration configuration;
 
-    public BaseProcessor(Arguments arguments,
-                         TranslationConfiguration configuration) {
-        this.googleSheetId = arguments.getGoogleSheetId();
-
+    public BaseProcessor(TranslationConfiguration configuration) {
         this.configuration = configuration;
     }
 
