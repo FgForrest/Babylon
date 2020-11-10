@@ -40,6 +40,7 @@ public class ExportProcessor extends BaseProcessor {
     private final GoogleSheetService googleSheetService;
 
     private final Arguments arguments;
+    private final TranslationConfiguration configuration;
 
     /** Regex for filter out possible secondary mutations files */
     private static final String REMOVE_MUTATIONS_REGEX = ".*_[a-zA-Z]{2,3}\\.properties";
@@ -53,12 +54,12 @@ public class ExportProcessor extends BaseProcessor {
                            AntPathResourceLoader resourceLoader,
                            Arguments arguments,
                            TranslationConfiguration configuration) {
-        super(configuration);
         this.dataFileManager = dataFileManager;
         this.resourceLoader = resourceLoader;
         this.i18nFileManager = i18nFileManager;
         this.googleSheetService = googleSheetService;
         this.arguments = arguments;
+        this.configuration = configuration;
     }
 
     /**
@@ -69,7 +70,7 @@ public class ExportProcessor extends BaseProcessor {
     }
 
     @Override
-    protected void processTranslation() throws IOException, GeneralSecurityException {
+    public void processTranslation() throws IOException, GeneralSecurityException {
         log.info("Started translation EXPORT with Google sheet id: '" + getGoogleSheetId() +"'");
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
