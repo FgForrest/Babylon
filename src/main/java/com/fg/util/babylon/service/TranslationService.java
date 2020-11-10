@@ -6,6 +6,7 @@ import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.processor.ExportProcessor;
+import com.fg.util.babylon.processor.I18nFileManager;
 import com.fg.util.babylon.processor.ImportProcessor;
 import com.fg.util.babylon.processor.spring.SpringResourceLoader;
 import lombok.extern.apachecommons.CommonsLog;
@@ -27,8 +28,9 @@ public class TranslationService {
 
     public TranslationService(GoogleSheetService gss, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) {
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
-        exportProcessor = new ExportProcessor(gss, dfm, springResLoader, arguments, configuration);
-        importProcessor = new ImportProcessor(gss, dfm, arguments, configuration);
+        I18nFileManager i18FileManager = new I18nFileManager();
+        exportProcessor = new ExportProcessor(gss, dfm, i18FileManager, springResLoader, arguments, configuration);
+        importProcessor = new ImportProcessor(gss, dfm, i18FileManager, arguments, configuration);
         this.action = arguments.getAction();
     }
 

@@ -36,8 +36,15 @@ public class ImportProcessor extends BaseProcessor {
 
     protected TranslationStatisticsOfImport statistics;
 
-    public ImportProcessor(GoogleSheetService googleSheetService, DataFileManager dataFileManager, Arguments arguments, TranslationConfiguration configuration) {
+    private final I18nFileManager i18nFileManager;
+
+    public ImportProcessor(GoogleSheetService googleSheetService,
+                           DataFileManager dataFileManager,
+                           I18nFileManager i18nFileManager,
+                           Arguments arguments,
+                           TranslationConfiguration configuration) {
         super(googleSheetService, dataFileManager, arguments, configuration);
+        this.i18nFileManager =  i18nFileManager;
     }
 
     @Override
@@ -225,9 +232,9 @@ public class ImportProcessor extends BaseProcessor {
         }
         final ImportFileStatistic fileStatistic = fs;
         // Load target properties file to get formatting and row numbers of all its properties.
-        FileProperties originalMutationFileProps = Optional.ofNullable(loadPropertiesFromFile(mutationPropFilePath)).orElse(new FileProperties());
+        FileProperties originalMutationFileProps = Optional.ofNullable(i18nFileManager.loadPropertiesFromFile(mutationPropFilePath)).orElse(new FileProperties());
         // Load also properties of primary mutation file to get format from it.
-        FileProperties updatedFileProps = loadPropertiesFromFile(primaryPropFilePath);
+        FileProperties updatedFileProps = i18nFileManager.loadPropertiesFromFile(primaryPropFilePath);
         // Clears all keys values in loaded primaryFileProps to create template for making of mutation properties file.
         // In this point we have clear format, this means each key and value on correct row,
         // empty rows and comments from primary mutation file is also on correct rows.

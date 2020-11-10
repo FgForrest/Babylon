@@ -3,14 +3,12 @@ package com.fg.util.babylon.processor;
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.TranslationConfiguration;
-import com.fg.util.babylon.propfiles.FileProperties;
 import com.fg.util.babylon.service.GoogleSheetService;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
 /**
@@ -27,7 +25,6 @@ public abstract class BaseProcessor {
     static final String EMPTY_VAL = "";
 
     protected GoogleSheetService googleSheetService;
-
     protected DataFileManager dataFileManager;
 
     /**
@@ -37,7 +34,10 @@ public abstract class BaseProcessor {
 
     protected TranslationConfiguration configuration;
 
-    public BaseProcessor(GoogleSheetService googleSheetService, DataFileManager dataFileManager, Arguments arguments, TranslationConfiguration configuration) {
+    public BaseProcessor(GoogleSheetService googleSheetService,
+                         DataFileManager dataFileManager,
+                         Arguments arguments,
+                         TranslationConfiguration configuration) {
         this.googleSheetService = googleSheetService;
         this.dataFileManager = dataFileManager;
         this.googleSheetId = arguments.getGoogleSheetId();
@@ -51,23 +51,6 @@ public abstract class BaseProcessor {
     }
 
     protected abstract void processTranslation() throws IOException, GeneralSecurityException, InterruptedException;
-
-    /**
-     * Loads properties from file.
-     * @param fileNamePath path to existing properties file
-     * @return Returns loaded file {@link FileProperties} or null if file not exists.
-     * @throws IOException some exception derived from {@link IOException}
-    */
-    FileProperties loadPropertiesFromFile(String fileNamePath) throws IOException {
-        if (!new File(fileNamePath).exists()) {
-            return null;
-        }
-        FileProperties fileProperties = new FileProperties();
-        try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(fileNamePath), StandardCharsets.UTF_8)) {
-            fileProperties.load(inputStreamReader);
-        }
-        return fileProperties;
-    }
 
     /**
      * Get file name like primaryPropFilePath + ("_" + mutation if is not null or empty) + possible original extension of primaryPropFilePath.

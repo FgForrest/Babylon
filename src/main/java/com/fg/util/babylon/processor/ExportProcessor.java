@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 public class ExportProcessor extends BaseProcessor {
 
     private final AntPathResourceLoader resourceLoader;
+    private final I18nFileManager i18nFileManager;
 
     /** Regex for filter out possible secondary mutations files */
     private static final String REMOVE_MUTATIONS_REGEX = ".*_[a-zA-Z]{2,3}\\.properties";
@@ -42,9 +43,15 @@ public class ExportProcessor extends BaseProcessor {
     protected TranslationStatisticsOfExport statistics;
     protected List<String> changedPropertiesDuringExport = new LinkedList<>();
 
-    public ExportProcessor(GoogleSheetService googleSheetService, DataFileManager dataFileManager, AntPathResourceLoader resourceLoader, Arguments arguments, TranslationConfiguration configuration) {
+    public ExportProcessor(GoogleSheetService googleSheetService,
+                           DataFileManager dataFileManager,
+                           I18nFileManager i18nFileManager,
+                           AntPathResourceLoader resourceLoader,
+                           Arguments arguments,
+                           TranslationConfiguration configuration) {
         super(googleSheetService, dataFileManager, arguments, configuration);
         this.resourceLoader = resourceLoader;
+        this.i18nFileManager = i18nFileManager;
     }
 
     @Override
@@ -102,7 +109,7 @@ public class ExportProcessor extends BaseProcessor {
     }
 
     private void processPropertiesOfFile(String primaryPropFilePath) throws IOException {
-        FileProperties primaryProperties = loadPropertiesFromFile(primaryPropFilePath);
+        FileProperties primaryProperties = i18nFileManager.loadPropertiesFromFile(primaryPropFilePath);
         if (primaryProperties == null) {
             throw new FileNotFoundException("Primary properties file: " + primaryPropFilePath + " not exists.");
         }
@@ -146,7 +153,7 @@ public class ExportProcessor extends BaseProcessor {
         Map<String, FileProperties> map = new HashMap<>();
         for (String mutation : configuration.getMutations()) {
             String secPropFileNamePath = getFileNameForMutation(primaryPropertyFilePath, mutation);
-            FileProperties properties = Optional.ofNullable(loadPropertiesFromFile(secPropFileNamePath)).orElse(new FileProperties());
+            FileProperties properties = Optional.ofNullable(i18nFileManager.loadPropertiesFromFile(secPropFileNamePath)).orElse(new FileProperties());
             if (!properties.isEmpty()) {
                 statistics.incTotalPropFilesProcessed();
             }
