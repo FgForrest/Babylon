@@ -34,14 +34,17 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class ExportProcessor extends BaseProcessor {
 
+    private final AntPathResourceLoader resourceLoader;
+
     /** Regex for filter out possible secondary mutations files */
     private static final String REMOVE_MUTATIONS_REGEX = ".*_[a-zA-Z]{2,3}\\.properties";
 
     protected TranslationStatisticsOfExport statistics;
     protected List<String> changedPropertiesDuringExport = new LinkedList<>();
 
-    public ExportProcessor(GoogleSheetService googleSheetService, DataFileManager dataFileManager, Arguments arguments, TranslationConfiguration configuration) {
+    public ExportProcessor(GoogleSheetService googleSheetService, DataFileManager dataFileManager, AntPathResourceLoader resourceLoader, Arguments arguments, TranslationConfiguration configuration) {
         super(googleSheetService, dataFileManager, arguments, configuration);
+        this.resourceLoader = resourceLoader;
     }
 
     @Override
@@ -84,7 +87,7 @@ public class ExportProcessor extends BaseProcessor {
      * @throws IOException some exception derived from {@link IOException}
     */
     private List<String> getPropertiesFilesPathsFromPath(String path) throws IOException {
-        Resource[] resources = pathResolver.getResources("file:" + path);
+        Resource[] resources = resourceLoader.getResources("file:" + path);
         List<String> list = new ArrayList<>();
         String currentDir = System.getProperty("user.dir");
         for (Resource resource : resources) {
