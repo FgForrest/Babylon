@@ -46,8 +46,6 @@ public abstract class BaseProcessor {
         this.configuration = configuration;
     }
 
-    PathMatchingResourcePatternResolver pathResolver = new PathMatchingResourcePatternResolver();
-
 
     public void startTranslation() throws IOException, GeneralSecurityException, InterruptedException {
         processTranslation();

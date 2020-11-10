@@ -4,9 +4,12 @@ import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
+import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.processor.ExportProcessor;
 import com.fg.util.babylon.processor.ImportProcessor;
+import com.fg.util.babylon.processor.spring.SpringResourceLoader;
 import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -23,7 +26,8 @@ public class TranslationService {
     private final Action action;
 
     public TranslationService(GoogleSheetService gss, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) {
-        exportProcessor = new ExportProcessor(gss, dfm, arguments, configuration);
+        AntPathResourceLoader springResLoader = new SpringResourceLoader();
+        exportProcessor = new ExportProcessor(gss, dfm, springResLoader, arguments, configuration);
         importProcessor = new ImportProcessor(gss, dfm, arguments, configuration);
         this.action = arguments.getAction();
     }

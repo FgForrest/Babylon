@@ -5,6 +5,7 @@ import com.fg.util.babylon.entity.Arguments
 import com.fg.util.babylon.entity.TranslationConfiguration
 import com.fg.util.babylon.enums.Action
 import com.fg.util.babylon.processor.ExportProcessor
+import com.fg.util.babylon.processor.spring.SpringResourceLoader
 import com.fg.util.babylon.service.GoogleSheetService
 
 class ExportTest {
@@ -21,7 +22,8 @@ class ExportTest {
         trConfig.dataFileName = "???"
 
         val dfm = DataFileManager(trConfig.dataFileName)
-        val ep = ExportProcessor(gss, dfm, trSettings, trConfig)
+        val rl = SpringResourceLoader()
+        val ep = ExportProcessor(gss, dfm, rl, trSettings, trConfig)
 
         ep.startTranslation()
 
