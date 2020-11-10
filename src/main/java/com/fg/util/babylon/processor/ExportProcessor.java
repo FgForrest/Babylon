@@ -1,6 +1,7 @@
 package com.fg.util.babylon.processor;
 
 
+import com.fg.util.babylon.SheetConstants;
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.*;
 import com.fg.util.babylon.enums.Action;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @CommonsLog
-public class ExportProcessor extends BaseProcessor {
+public class ExportProcessor {
 
     private final DataFileManager dataFileManager;
     private final AntPathResourceLoader resourceLoader;
@@ -195,7 +196,7 @@ public class ExportProcessor extends BaseProcessor {
             // Get all properties for secondary mutation.
             final FileProperties properties = Optional.ofNullable(filesMutationProps.get(mutation)).orElse(new FileProperties());
             // Get value of property from existing mutation properties file or set empty value if property not found.
-            Property propValue = Optional.ofNullable(properties.get(key)).orElse(new Property(PropertyType.VALUE, EMPTY_VAL));
+            Property propValue = Optional.ofNullable(properties.get(key)).orElse(new Property(PropertyType.VALUE, SheetConstants.EMPTY_VAL));
             mutationPropsMap = getMutationPropertiesMap(primaryDataPropFile, mutation);
             // Default status of mutation property is UNCHANGED.
             mutationPropsMap.putPropertyStatus(key, PropertyStatus.UNCHANGED);
@@ -205,9 +206,9 @@ public class ExportProcessor extends BaseProcessor {
             // If property doesn't exists in file of secondary mutation or file for secondary mutation doesn't exists...
             if (properties.get(key) == null) {
                 // set its value to empty string and status to MISSING.
-                mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.MISSING);
+                mutationPropsMap.put(key, SheetConstants.EMPTY_VAL, PropertyStatus.MISSING);
             } else if(primaryPropStatus == PropertyStatus.CHANGED) {
-                mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.CHANGED);
+                mutationPropsMap.put(key, SheetConstants.EMPTY_VAL, PropertyStatus.CHANGED);
             } else {
                 /* Otherwise compare key value from actual DataFile from data.json file on disk.
                    This covers scenarios:
@@ -233,7 +234,7 @@ public class ExportProcessor extends BaseProcessor {
                         // all secondary mutations must be translated again.
                         String primaryPropVal = primaryDataPropFile.getPropertyValue(key);
                         if (!propVal.equals(primaryPropVal)) {
-                            mutationPropsMap.put(key, EMPTY_VAL, PropertyStatus.CHANGED);
+                            mutationPropsMap.put(key, SheetConstants.EMPTY_VAL, PropertyStatus.CHANGED);
                         }
                     }
                 }
@@ -380,7 +381,7 @@ public class ExportProcessor extends BaseProcessor {
 
     private List<List<Object>> createSheetHeader() {
         List<List<Object>> sheetHeader = new LinkedList<>();
-        List<Object> headerValues = new LinkedList<>(Arrays.asList(COL_KEY, COL_PRIMARY));
+        List<Object> headerValues = new LinkedList<>(Arrays.asList(SheetConstants.COL_KEY, SheetConstants.COL_PRIMARY));
         headerValues.addAll(configuration.getMutations());
         sheetHeader.add(headerValues);
         return sheetHeader;
