@@ -1,5 +1,6 @@
 package com.fg.util.babylon.properties;
 
+import com.fg.util.babylon.propfiles.FileProperties;
 import com.fg.util.babylon.util.TestUtils;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;

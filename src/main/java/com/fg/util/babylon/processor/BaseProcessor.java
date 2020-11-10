@@ -3,11 +3,10 @@ package com.fg.util.babylon.processor;
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.TranslationConfiguration;
-import com.fg.util.babylon.properties.FileProperties;
+import com.fg.util.babylon.propfiles.FileProperties;
 import com.fg.util.babylon.service.GoogleSheetService;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
