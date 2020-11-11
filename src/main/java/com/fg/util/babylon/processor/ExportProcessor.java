@@ -97,8 +97,9 @@ public class ExportProcessor {
         allPaths.forEach(log::info);
         statistics.incPrimaryPropFilesProcessed(allPaths.size()); //FIXME: should be called after the file has really been processed
         // Process all properties of all files.
-        for (String msgFilePath : allPaths) {
-            processPrimaryMessages(msgFilePath);
+        for (String pathToMsgFile : allPaths) {
+            MessageFileContent primaryMessageFileContent = dataFileManager.getOrCreateDataFile().getOrPutNewPropFileByFileName(pathToMsgFile);
+            processPrimaryMessages(pathToMsgFile, primaryMessageFileContent);
         }
     }
 
@@ -123,15 +124,14 @@ public class ExportProcessor {
         return list;
     }
 
-    private void processPrimaryMessages(String pathToMsgFile) throws IOException {
+    private void processPrimaryMessages(String pathToMsgFile, MessageFileContent primaryMessageFileContent) throws IOException {
         PropertyFileActiveRecord primaryMessages = i18nFileManager.loadPropertiesFromFile(pathToMsgFile);
         if (primaryMessages == null) {
-            throw new FileNotFoundException("Primary properties file: " + pathToMsgFile + " does not exist.");
+            throw new FileNotFoundException("Primary language message file: " + pathToMsgFile + " does not exist.");
         }
         statistics.incTotalPropFilesProcessed(); //FIXME: should be called after the file has really been processed
 
-        Map<String, PropertyFileActiveRecord> translationProperties = loadTranslationProperties(pathToMsgFile);
-        final MessageFileContent primaryMessageFileContent = dataFileManager.getOrCreateDataFile().getOrPutNewPropFileByFileName(pathToMsgFile);
+        Map<String, PropertyFileActiveRecord> translations = loadTranslationProperties(pathToMsgFile);
         changedPropertiesDuringExport.add(pathToMsgFile);
         for (Map.Entry<String, Property> entry : primaryMessages.entrySet()) {
             String msgKey = entry.getKey();
@@ -158,7 +158,7 @@ public class ExportProcessor {
 
         for (Map.Entry<String, Property> entry : primaryMessages.entrySet()) {
             // Checks that the key exists in secondary mutation files (or that there are no secondary mutations)
-            processSecondaryMutations(entry.getKey(), pathToMsgFile, translationProperties, primaryMessageFileContent);
+            processSecondaryMutations(entry.getKey(), pathToMsgFile, translations, primaryMessageFileContent);
         }
     }
 
