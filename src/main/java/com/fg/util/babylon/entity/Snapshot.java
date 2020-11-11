@@ -10,68 +10,68 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Class representing translation data file (changelog) in json file. This data file keeps information about processing
+ * Class representing translation data file (snapshot) in json file. This data file keeps information about processing
  * of language properties files by given {@link TranslationConfiguration}.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @Data
-public class DataFile implements Serializable {
+public class Snapshot implements Serializable {
 
     private static final long serialVersionUID = 4891061639828627492L;
 
     /**
      * Properties files data like {@link Map&lt;String, DataPropFile&gt;}<br>
      * key - contains name and relative path to primary language properties file<br>
-     * value - contains {@link DataPropFile}
+     * value - contains {@link MessageFile}
      */
-    private Map<String, DataPropFile> dataPropFiles = new LinkedHashMap<>();
+    private Map<String, MessageFile> dataPropFiles = new LinkedHashMap<>();
 
     /**
      * Properties files data like {@link Map&lt;String, DataPropFile&gt;} by unique id<br>
      * key - contains unique id of name and relative path to primary language properties file<br>
-     * value - contains {@link DataPropFile}
+     * value - contains {@link MessageFile}
      */
     @JsonIgnore
-    private Map<Integer, DataPropFile> dataPropFilesById = new LinkedHashMap<>();
+    private Map<Integer, MessageFile> dataPropFilesById = new LinkedHashMap<>();
 
-    public DataPropFile putPropFile(String fileName, DataPropFile dataPropFile) {
-        DataPropFile propFile = dataPropFiles.put(fileName, dataPropFile);
+    public MessageFile putPropFile(String fileName, MessageFile messageFile) {
+        MessageFile propFile = dataPropFiles.put(fileName, messageFile);
         // Create unique id of filename and store same dataPropFile instance under this hash code as key into map.
         // Id is also stored into DataPropFile#id field.
         Integer fileNameId = getNextUniqueId();
-        dataPropFile.setId(fileNameId);
-        putDataPropFileById(fileNameId, dataPropFile);
+        messageFile.setId(fileNameId);
+        putDataPropFileById(fileNameId, messageFile);
         return propFile;
     }
 
-    public DataPropFile putDataPropFileById(Integer fileNameId, DataPropFile dataPropFile) {
-        return dataPropFilesById.put(fileNameId, dataPropFile);
+    public MessageFile putDataPropFileById(Integer fileNameId, MessageFile messageFile) {
+        return dataPropFilesById.put(fileNameId, messageFile);
     }
 
     /**
-     * Get {@link DataPropFile} by relative file name and path to the source/destination properties file.
+     * Get {@link MessageFile} by relative file name and path to the source/destination properties file.
      * @param fileName relative path to properties file.
-     * @return existing {@link DataPropFile} for specified fileName or create, add and return new {@link DataPropFile} object for fileName.
+     * @return existing {@link MessageFile} for specified fileName or create, add and return new {@link MessageFile} object for fileName.
      */
-    public DataPropFile getOrPutNewPropFileByFileName(String fileName) {
-        DataPropFile dataPropFile = dataPropFiles.get(fileName);
-        if (dataPropFile == null) {
-            dataPropFile = new DataPropFile();
-            putPropFile(fileName, dataPropFile);
+    public MessageFile getOrPutNewPropFileByFileName(String fileName) {
+        MessageFile messageFile = dataPropFiles.get(fileName);
+        if (messageFile == null) {
+            messageFile = new MessageFile();
+            putPropFile(fileName, messageFile);
         }
-        return dataPropFile;
+        return messageFile;
     }
 
-    public DataPropFile getPropFileByFileName(String fileName) {
+    public MessageFile getPropFileByFileName(String fileName) {
         return dataPropFiles.get(fileName);
     }
 
     /**
-     * Get {@link DataPropFile} by id of the path.
+     * Get {@link MessageFile} by id of the path.
      * @param id unique id of the relative file name and path to source/destination properties file.
-     * @return get {@link DataPropFile} if exists
+     * @return get {@link MessageFile} if exists
      */
-    public DataPropFile getPropFileById(Integer id) {
+    public MessageFile getPropFileById(Integer id) {
         return dataPropFilesById.get(id);
     }
 

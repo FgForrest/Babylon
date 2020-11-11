@@ -1,8 +1,8 @@
 package com.fg.util.babylon.util;
 
 import com.fg.util.babylon.entity.TranslationConfiguration;
-import com.fg.util.babylon.entity.DataFile;
-import com.fg.util.babylon.entity.DataPropFile;
+import com.fg.util.babylon.entity.Snapshot;
+import com.fg.util.babylon.entity.MessageFile;
 import com.fg.util.babylon.entity.PropertiesMap;
 import com.fg.util.babylon.enums.PropertyStatus;
 
@@ -25,20 +25,20 @@ public class TestUtils {
         return dir;
     }
 
-    public static DataFile createTestDataFile() {
-        DataFile dataFile = new DataFile();
-        DataPropFile propFile = new DataPropFile();
+    public static Snapshot createTestDataFile() {
+        Snapshot snapshot = new Snapshot();
+        MessageFile propFile = new MessageFile();
         propFile.putProperty("key", "value", PropertyStatus.NEW);
         propFile.putProperty("key2", "value2");
         PropertiesMap mutationProperties = new PropertiesMap();
         mutationProperties.put("key2", "dfdsg");
         propFile.putMutationProperties("en", mutationProperties);
-        dataFile.putPropFile("my.properties", propFile);
-        propFile = new DataPropFile();
+        snapshot.putPropFile("my.properties", propFile);
+        propFile = new MessageFile();
         propFile.putProperty("key3", "value3");
         propFile.putProperty("key4", "value4");
-        dataFile.putPropFile("my2.properties", propFile);
-        return dataFile;
+        snapshot.putPropFile("my2.properties", propFile);
+        return snapshot;
     }
 
     public static TranslationConfiguration createTestConfiguration() {

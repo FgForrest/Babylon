@@ -23,7 +23,7 @@ public class JsonUtils {
     static {
         // There must be added default filters (which serializing all properties) for all filters defined in annotations @JsonFilter above all Json entities.
         SimpleFilterProvider filterProvider = new SimpleFilterProvider();
-        filterProvider.addFilter("DataPropFileFilter", SimpleBeanPropertyFilter.serializeAll());
+        filterProvider.addFilter("MessageFileFilter", SimpleBeanPropertyFilter.serializeAll());
         OBJECT_MAPPER.setFilterProvider(filterProvider);
     }
 

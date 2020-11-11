@@ -11,13 +11,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Class representing Json specification of one properties fileName with list of properties (keys and values) in {@link DataFile}.
+ * Class representing Json specification of one properties fileName with list of properties (keys and values) in {@link Snapshot}.
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @Data
 @NoArgsConstructor
-@JsonFilter("DataPropFileFilter")
-public class DataPropFile implements Serializable {
+@JsonFilter("MessageFileFilter")
+public class MessageFile implements Serializable {
 
     private static final long serialVersionUID = 2426359297082283380L;
 
