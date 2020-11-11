@@ -1,6 +1,6 @@
 package com.fg.util.babylon.db;
 
-import com.fg.util.babylon.entity.DataFile;
+import com.fg.util.babylon.entity.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.util.JsonUtils;
 import lombok.extern.apachecommons.CommonsLog;
@@ -23,11 +23,11 @@ public class DataFileManager {
      * Working DataFile object that changing during the export process. Initial state is given from existing json DataFile.
      * If DataFile not exists then new object DataFile is created.
      */
-    private DataFile dataFile; //FIXME nullable annotation
+    private Snapshot snapshot; //FIXME nullable annotation
 
     //FIXME: OMG why is this needed?
     /** Original untouched DataFile loaded from json file on disk while configuration reading phase. */
-    private DataFile originalDataFileOnDisk;
+    private Snapshot originalSnapshotOnDisk;
 
     public DataFileManager(String dataFileName) throws IOException {
         this.dataFileName = dataFileName;
@@ -38,39 +38,39 @@ public class DataFileManager {
      * This method loads the original DataFile and should be called as the first thing.
      */
     private void loadOriginalDataFile() throws IOException {
-        originalDataFileOnDisk = getExistingDataFileFromDisk(dataFileName);
-        if (originalDataFileOnDisk == null) {
-            originalDataFileOnDisk = new DataFile();
+        originalSnapshotOnDisk = getExistingDataFileFromDisk(dataFileName);
+        if (originalSnapshotOnDisk == null) {
+            originalSnapshotOnDisk = new Snapshot();
         }
     }
 
     /**
-     * Gets original {@link DataFile} object (before modification). God knows why this is needed. FIXME
+     * Gets original {@link Snapshot} object (before modification). God knows why this is needed. FIXME
      */
-    public DataFile getOriginalDataFile() {
-        return originalDataFileOnDisk;
+    public Snapshot getOriginalDataFile() {
+        return originalSnapshotOnDisk;
     }
 
     /**
-     * Gets existing {@link DataFile} object (from Json file on disk) or create new {@link DataFile} object,
+     * Gets existing {@link Snapshot} object (from Json file on disk) or create new {@link Snapshot} object,
      * according to file name specified by  {@link TranslationConfiguration#getDataFileName()}
-     * @return {@link DataFile}
+     * @return {@link Snapshot}
      * @throws IOException some exception derived from {@link IOException}
      */
-    public DataFile getOrCreateDataFile() throws IOException {
-        if (dataFile == null) {
-            dataFile = getExistingDataFileFromDisk(dataFileName);
-            if (dataFile == null) {
-                dataFile = new DataFile();
+    public Snapshot getOrCreateDataFile() throws IOException {
+        if (snapshot == null) {
+            snapshot = getExistingDataFileFromDisk(dataFileName);
+            if (snapshot == null) {
+                snapshot = new Snapshot();
             }
         }
-        return dataFile;
+        return snapshot;
     }
 
-    private DataFile getExistingDataFileFromDisk(String dataFileName) throws IOException {
+    private Snapshot getExistingDataFileFromDisk(String dataFileName) throws IOException {
         File file = new File(getDataFileName(dataFileName));
         if (file.exists() && file.length() != 0) {
-            DataFile df = JsonUtils.jsonObjFromFile(file, DataFile.class);
+            Snapshot df = JsonUtils.jsonObjFromFile(file, Snapshot.class);
             loadDataPropFilesIds(df);
             return df;
         } else {
@@ -79,11 +79,11 @@ public class DataFileManager {
     }
 
     /**
-     * This map {@link DataFile#getDataPropFilesById()} is excluded from Json serialization, so after deserialization of
-     * {@link DataFile} from file is necessary to load this map from loaded {@link DataFile#getDataPropFiles()}.
+     * This map {@link Snapshot#getDataPropFilesById()} is excluded from Json serialization, so after deserialization of
+     * {@link Snapshot} from file is necessary to load this map from loaded {@link Snapshot#getDataPropFiles()}.
      * @param df DataFile object with map to load in.
      */
-    private void loadDataPropFilesIds(DataFile df) {
+    private void loadDataPropFilesIds(Snapshot df) {
         df.getDataPropFiles().forEach((key, value) -> {
             if (value.getId() != null) {
                 df.putDataPropFileById(value.getId(), value);
@@ -108,18 +108,18 @@ public class DataFileManager {
 
     /**
      * Used only for testing. This should be done in a way that doesn't break encapsulation, but for now we have to live with this.
-     * @param dataFile data file to use instead of the managed data file
+     * @param snapshot data file to use instead of the managed data file
      */
-    public void switchDataFileTo(DataFile dataFile) {
-        this.dataFile = dataFile;
+    public void switchDataFileTo(Snapshot snapshot) {
+        this.snapshot = snapshot;
     }
 
     /**
      * Used only for testing. This should be done in a way that doesn't break encapsulation, but for now we have to live with this.
-     * @param dataFile data file to use instead of the original data file (why would that ever needed to be changed is beyond me).
+     * @param snapshot data file to use instead of the original data file (why would that ever needed to be changed is beyond me).
      */
-    public void switchOriginalDataFileTo(DataFile dataFile) {
-        this.originalDataFileOnDisk = dataFile;
+    public void switchOriginalDataFileTo(Snapshot snapshot) {
+        this.originalSnapshotOnDisk = snapshot;
     }
 
 }

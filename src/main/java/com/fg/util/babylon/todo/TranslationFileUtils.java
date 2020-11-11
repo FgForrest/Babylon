@@ -7,7 +7,7 @@ import org.springframework.util.StringUtils;
  * Utility methods that deal with i18n files in some way.
  * Methods here should be moved else eventually and this class deleted.
  */
-public class I18nUtils {
+public class TranslationFileUtils {
 
     /**
      * Get file name like primaryPropFilePath + ("_" + mutation if is not null or empty) + possible original extension of primaryPropFilePath.
@@ -15,7 +15,7 @@ public class I18nUtils {
      * @param mutation mutation of the file what you want
      * @return correct file name for mutation
      */
-    public static String getFileNameForMutation(String primaryPropFilePath, String mutation) {
+    public static String getFileNameForTranslation(String primaryPropFilePath, String mutation) {
         if (StringUtils.isEmpty(mutation)) {
             return primaryPropFilePath;
         }

@@ -13,7 +13,7 @@ import com.fg.util.babylon.propfiles.Property;
 import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfImport;
-import com.fg.util.babylon.todo.I18nUtils;
+import com.fg.util.babylon.todo.TranslationFileUtils;
 import com.fg.util.babylon.util.JsonUtils;
 import com.google.api.services.sheets.v4.model.CellData;
 import com.google.api.services.sheets.v4.model.GridData;
@@ -88,9 +88,9 @@ public class ImportProcessor {
      * @throws IOException some exception derived from {@link IOException}
      */
     private void saveDataFile() throws IOException {
-        DataFile dataFile = dataFileManager.getOrCreateDataFile();
-        if (!dataFile.getDataPropFiles().isEmpty()) {
-            JsonUtils.objToJsonFile(new File(configuration.getDataFileName()), dataFile, true);
+        Snapshot snapshot = dataFileManager.getOrCreateDataFile();
+        if (!snapshot.getDataPropFiles().isEmpty()) {
+            JsonUtils.objToJsonFile(new File(configuration.getDataFileName()), snapshot, true);
         } else {
             throw new EmptyDataFileException("Cannot save empty DataFile object to file \"" + configuration.getDataFileName() + "\"");
         }
@@ -168,23 +168,23 @@ public class ImportProcessor {
     }
 
     private void addPrimaryMutation(Integer fileId, String propKey, String propValue) throws IOException {
-        DataPropFile propFile = getPropFileById(fileId);
+        MessageFile propFile = getPropFileById(fileId);
         propFile.putProperty(propKey, propValue);
     }
 
     private void addSecondaryMutation(String mutation, Integer fileId, String propKey, String propValue) throws IOException {
-        DataPropFile propFile = getPropFileById(fileId);
+        MessageFile propFile = getPropFileById(fileId);
         propFile.putMutationProperty(mutation, propKey, propValue);
     }
 
     /**
-     * Gets {@link DataPropFile} object for one properties file by your unique id in json DataFile.
+     * Gets {@link MessageFile} object for one properties file by your unique id in json DataFile.
      * @param fileId unique file ID
-     * @return Found {@link DataPropFile} object or null if not found.
+     * @return Found {@link MessageFile} object or null if not found.
      * @throws IOException some exception derived from {@link IOException}
      */
-    private DataPropFile getPropFileById(Integer fileId) throws IOException {
-        DataPropFile propFile = dataFileManager.getOrCreateDataFile().getPropFileById(fileId);
+    private MessageFile getPropFileById(Integer fileId) throws IOException {
+        MessageFile propFile = dataFileManager.getOrCreateDataFile().getPropFileById(fileId);
         if (propFile == null) {
             String msg = "No record found by id=\"" + fileId + "\" in \"" + configuration.getDataFileName() + "\"";
             throw new PropIdNotFoundException(msg);
@@ -214,13 +214,13 @@ public class ImportProcessor {
      * Saves all translated secondary mutations properties into target properties files.
      */
     private void saveTranslations() throws IOException, InterruptedException {
-        Map<String, DataPropFile> dataPropFiles = dataFileManager.getOrCreateDataFile().getDataPropFiles();
-        for (Map.Entry<String, DataPropFile> entry : dataPropFiles.entrySet()) {
+        Map<String, MessageFile> dataPropFiles = dataFileManager.getOrCreateDataFile().getDataPropFiles();
+        for (Map.Entry<String, MessageFile> entry : dataPropFiles.entrySet()) {
             String primaryPropFilePath = entry.getKey();
-            DataPropFile dataPropFile = entry.getValue();
+            MessageFile messageFile = entry.getValue();
             // Save all translated properties into all mutation files defined by configuration.
             for (String mutation : configuration.getMutations()) {
-                saveMutationPropertiesToFile(primaryPropFilePath, mutation, dataPropFile);
+                saveMutationPropertiesToFile(primaryPropFilePath, mutation, messageFile);
             }
         }
     }
@@ -229,12 +229,12 @@ public class ImportProcessor {
      * Save all translated properties into target mutation file. Uses {@link PropertyFileActiveRecord} to ensure to that
      * file is stored in same format and keys is placed on same row numbers.
      * @param mutation mutation to save
-     * @param dataPropFile {@link DataPropFile} object with data for target properties file
+     * @param messageFile {@link MessageFile} object with data for target properties file
      * @throws IOException some exception derived from {@link IOException}
     */
-    private void saveMutationPropertiesToFile(String primaryPropFilePath, String mutation, DataPropFile dataPropFile) throws IOException, InterruptedException {
-        PropertiesMap mutationProperties = dataPropFile.getMutationProperties(mutation);
-        String mutationPropFilePath = I18nUtils.getFileNameForMutation(primaryPropFilePath, mutation);
+    private void saveMutationPropertiesToFile(String primaryPropFilePath, String mutation, MessageFile messageFile) throws IOException, InterruptedException {
+        PropertiesMap mutationProperties = messageFile.getMutationProperties(mutation);
+        String mutationPropFilePath = TranslationFileUtils.getFileNameForTranslation(primaryPropFilePath, mutation);
         if (mutationProperties == null || mutationProperties.isEmpty()) {
             String msg = "No properties found in source google sheet for import data into \"" + mutationPropFilePath + "\"";
             log.info(msg);
