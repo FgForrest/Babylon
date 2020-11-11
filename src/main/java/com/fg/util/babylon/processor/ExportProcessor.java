@@ -87,7 +87,7 @@ public class ExportProcessor {
      * @param path path to one or more primary properties files.
      * @throws IOException some exception derived from {@link IOException}
     */
-    private void processPath(String path, List<String> changedPropertiesDuringExport) throws IOException {
+    private void processPath(String path, List<String> changedProperties) throws IOException {
         List<String> allPaths = expandPath(path);
 
         final String TRANSLATION_FILES_REGEX = ".*_[a-zA-Z]{2,3}\\.properties";
@@ -100,7 +100,7 @@ public class ExportProcessor {
         // Process all properties of all files.
         for (String pathToMsgFile : allPaths) {
             MessageFileContent primaryMessageFileContent = dataFileManager.getOrCreateDataFile().getOrPutNewPropFileByFileName(pathToMsgFile);
-            processPrimaryMessages(pathToMsgFile, primaryMessageFileContent, changedPropertiesDuringExport);
+            processPrimaryMessages(pathToMsgFile, primaryMessageFileContent, changedProperties);
         }
     }
 
@@ -132,7 +132,6 @@ public class ExportProcessor {
         }
         statistics.incTotalPropFilesProcessed(); //FIXME: should be called after the file has really been processed
 
-        Map<String, PropertyFileActiveRecord> translations = loadTranslationProperties(pathToMsgFile);
         changedProperties.add(pathToMsgFile);
         for (Map.Entry<String, Property> entry : primaryMessages.entrySet()) {
             String msgKey = entry.getKey();
@@ -157,6 +156,7 @@ public class ExportProcessor {
         });
         deprecatedProperties.forEach(i-> primaryMessageFileContent.getProperties().remove(i));
 
+        Map<String, PropertyFileActiveRecord> translations = loadTranslationProperties(pathToMsgFile);
         for (Map.Entry<String, Property> entry : primaryMessages.entrySet()) {
             // Checks that the key exists in secondary mutation files (or that there are no secondary mutations)
             processSecondaryMutations(entry.getKey(), pathToMsgFile, translations, primaryMessageFileContent);
@@ -299,6 +299,7 @@ public class ExportProcessor {
      * @throws IOException some exception derived from {@link IOException}
     */
     private void uploadDataToGoogleSpreadsheet(List<String> changedPropertiesDuringExport) throws GeneralSecurityException, IOException {
+        // FIXME: It would be more efficient to iterate over the identifiers of the List and look them up in the Map
         Map<String, MessageFileContent> dataPropFiles = dataFileManager.getOrCreateDataFile()
                         .getDataPropFiles()
                         .entrySet()
