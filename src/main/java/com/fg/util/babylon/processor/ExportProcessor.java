@@ -97,8 +97,8 @@ public class ExportProcessor {
         allPaths.forEach(log::info);
         statistics.incPrimaryPropFilesProcessed(allPaths.size()); //FIXME: should be called after the file has really been processed
         // Process all properties of all files.
-        for (String propFilePath : allPaths) {
-            processPropertiesOfFile(propFilePath);
+        for (String msgFilePath : allPaths) {
+            processPrimaryMessages(msgFilePath);
         }
     }
 
@@ -123,41 +123,42 @@ public class ExportProcessor {
         return list;
     }
 
-    private void processPropertiesOfFile(String primaryPropFilePath) throws IOException {
-        PropertyFileActiveRecord primaryProperties = i18nFileManager.loadPropertiesFromFile(primaryPropFilePath);
-        if (primaryProperties == null) {
-            throw new FileNotFoundException("Primary properties file: " + primaryPropFilePath + " does not exist.");
+    private void processPrimaryMessages(String pathToMsgFile) throws IOException {
+        PropertyFileActiveRecord primaryMessages = i18nFileManager.loadPropertiesFromFile(pathToMsgFile);
+        if (primaryMessages == null) {
+            throw new FileNotFoundException("Primary properties file: " + pathToMsgFile + " does not exist.");
         }
         statistics.incTotalPropFilesProcessed(); //FIXME: should be called after the file has really been processed
 
-        Map<String, PropertyFileActiveRecord> translationProperties = loadTranslationProperties(primaryPropFilePath);
-        final MessageFile primaryMessageFile = dataFileManager.getOrCreateDataFile().getOrPutNewPropFileByFileName(primaryPropFilePath);
-        changedPropertiesDuringExport.add(primaryPropFilePath);
-        for (Map.Entry<String, Property> entry : primaryProperties.entrySet()) {
-            String key = entry.getKey();
-            Property value = entry.getValue();
+        Map<String, PropertyFileActiveRecord> translationProperties = loadTranslationProperties(pathToMsgFile);
+        final MessageFileContent primaryMessageFileContent = dataFileManager.getOrCreateDataFile().getOrPutNewPropFileByFileName(pathToMsgFile);
+        changedPropertiesDuringExport.add(pathToMsgFile);
+        for (Map.Entry<String, Property> entry : primaryMessages.entrySet()) {
+            String msgKey = entry.getKey();
+            Property message = entry.getValue();
             // Skip processing of comments and empty lines, process only simple or multiline key=value values.
-            if (!value.isPropValue() && !value.isPropValueMultiLine()) {
+            if (!message.isPropValue() && !message.isPropValueMultiLine()) {
                 continue;
             }
             // Compares value to that key value within a given file with the value stored in the DataPropFile object read from Json data file.
             // - Keys which not found in Json data file is marked as NEW.
             // - Keys which value is different from value in Json data file is marked as CHANGED.
-            primaryMessageFile.putProperty(key, value.getValue());
+//            TODO tady pokracovat na co je kurva tohle
+            primaryMessageFileContent.putProperty(msgKey, message.getValue());
         }
         List<String> deprecatedProperties = new LinkedList<>();
-        primaryMessageFile.getProperties().forEach((i, j)->{
+        primaryMessageFileContent.getProperties().forEach((i, j)->{
 
-            Property property = primaryProperties.get(i);
+            Property property = primaryMessages.get(i);
             if (property == null){
                 deprecatedProperties.add(i);
             }
         });
-        deprecatedProperties.forEach(i-> primaryMessageFile.getProperties().remove(i));
+        deprecatedProperties.forEach(i-> primaryMessageFileContent.getProperties().remove(i));
 
-        for (Map.Entry<String, Property> entry : primaryProperties.entrySet()) {
+        for (Map.Entry<String, Property> entry : primaryMessages.entrySet()) {
             // Checks that the key exists in secondary mutation files (or that there are no secondary mutations)
-            processSecondaryMutations(entry.getKey(), primaryPropFilePath, translationProperties, primaryMessageFile);
+            processSecondaryMutations(entry.getKey(), pathToMsgFile, translationProperties, primaryMessageFileContent);
         }
     }
 
@@ -183,13 +184,13 @@ public class ExportProcessor {
      * @param key primary property key
      * @param primaryPropFilePath path to the primary mutation file
      * @param filesMutationProps map with all properties from secondary mutation files
-     * @param primaryMessageFile data of primary property file
+     * @param primaryMessageFileContent data of primary property file
      */
     private void processSecondaryMutations(String key,
                                            String primaryPropFilePath,
                                            Map<String, PropertyFileActiveRecord> filesMutationProps,
-                                           MessageFile primaryMessageFile) {
-        PropertyStatus primaryPropStatus = primaryMessageFile.getPropertyStatus(key);
+                                           MessageFileContent primaryMessageFileContent) {
+        PropertyStatus primaryPropStatus = primaryMessageFileContent.getPropertyStatus(key);
         PropertiesMap mutationPropsMap;
         for (String mutation : configuration.getMutations()) {
             log.debug("Processing key \"" + key + "\" for mutation \"" + mutation + "\" of \"" + primaryPropFilePath + "\"");
@@ -197,7 +198,7 @@ public class ExportProcessor {
             final PropertyFileActiveRecord properties = Optional.ofNullable(filesMutationProps.get(mutation)).orElse(new PropertyFileActiveRecord());
             // Get value of property from existing mutation properties file or set empty value if property not found.
             Property propValue = Optional.ofNullable(properties.get(key)).orElse(new Property(PropertyType.VALUE, SheetConstants.EMPTY_VAL));
-            mutationPropsMap = getMutationPropertiesMap(primaryMessageFile, mutation);
+            mutationPropsMap = getMutationPropertiesMap(primaryMessageFileContent, mutation);
             // Default status of mutation property is UNCHANGED.
             mutationPropsMap.putPropertyStatus(key, PropertyStatus.UNCHANGED);
             // Set default value from properties file
@@ -216,7 +217,7 @@ public class ExportProcessor {
                    - changes of property value in primary mutation file -> status = CHANGED, propValue = ""
                    (secured in DataPropFile#putProperty(String key, String value) method)
                  */
-                MessageFile propFileByFileName = null;
+                MessageFileContent propFileByFileName = null;
                 // No json datafile exists on disk or no record for this file in Json DataFile on disk -> NEW
                 if (dataFileManager.getOriginalDataFile() != null) { // FIXME: this can never happen, remove branch
                     propFileByFileName = dataFileManager.getOriginalDataFile().getPropFileByFileName(primaryPropFilePath);
@@ -232,7 +233,7 @@ public class ExportProcessor {
                     } else {
                         // Value in primary properties file is changed (against stored value in json DataFile) ->
                         // all secondary mutations must be translated again.
-                        String primaryPropVal = primaryMessageFile.getPropertyValue(key);
+                        String primaryPropVal = primaryMessageFileContent.getPropertyValue(key);
                         if (!propVal.equals(primaryPropVal)) {
                             mutationPropsMap.put(key, SheetConstants.EMPTY_VAL, PropertyStatus.CHANGED);
                         }
@@ -246,20 +247,20 @@ public class ExportProcessor {
           - if all secondary properties for this key have status UNCHANGED then set primary property status to UNCHANGED
           - if at least one secondary properties status is not UNCHANGED then set primary property status to CHANGED
          */
-        boolean allUnchanged = primaryMessageFile.getMutationProperties().values().stream().allMatch(propertiesMap ->
+        boolean allUnchanged = primaryMessageFileContent.getMutationProperties().values().stream().allMatch(propertiesMap ->
                 propertiesMap.getPropertiesStatus().entrySet().stream()
                         .filter(entry -> entry.getKey().equals(key))
                         .allMatch(entry -> entry.getValue() == PropertyStatus.UNCHANGED)
         );
-        primaryMessageFile.putPropertyStatus(key, allUnchanged ? PropertyStatus.UNCHANGED : PropertyStatus.CHANGED);
+        primaryMessageFileContent.putPropertyStatus(key, allUnchanged ? PropertyStatus.UNCHANGED : PropertyStatus.CHANGED);
     }
 
-    private PropertiesMap getMutationPropertiesMap(MessageFile primaryMessageFile, String mutation) {
+    private PropertiesMap getMutationPropertiesMap(MessageFileContent primaryMessageFileContent, String mutation) {
         PropertiesMap mutationPropsMap;
-        mutationPropsMap = primaryMessageFile.getMutationProperties(mutation);
+        mutationPropsMap = primaryMessageFileContent.getMutationProperties(mutation);
         if (mutationPropsMap == null) {
             mutationPropsMap = new PropertiesMap();
-            primaryMessageFile.putMutationProperties(mutation, mutationPropsMap);
+            primaryMessageFileContent.putMutationProperties(mutation, mutationPropsMap);
         }
         return mutationPropsMap;
     }
@@ -297,7 +298,7 @@ public class ExportProcessor {
      * @throws IOException some exception derived from {@link IOException}
     */
     private void uploadDataToGoogleSpreadsheet() throws GeneralSecurityException, IOException {
-        Map<String, MessageFile> dataPropFiles = dataFileManager.getOrCreateDataFile()
+        Map<String, MessageFileContent> dataPropFiles = dataFileManager.getOrCreateDataFile()
                         .getDataPropFiles()
                         .entrySet()
                         .stream()
@@ -306,11 +307,11 @@ public class ExportProcessor {
         AtomicInteger processedCount = new AtomicInteger(0);
         // Gets all existing sheets in this time.
         List<Sheet> prevAllSheets = googleSheetService.getAllSheets(getGoogleSheetId());
-        for (Map.Entry<String, MessageFile> entry : dataPropFiles.entrySet()) {
+        for (Map.Entry<String, MessageFileContent> entry : dataPropFiles.entrySet()) {
             String fileNamePath = entry.getKey();
-            MessageFile messageFile = entry.getValue();
+            MessageFileContent messageFileContent = entry.getValue();
 
-            uploadDataToGoogleSheet(messageFile, fileNamePath, processedCount);
+            uploadDataToGoogleSheet(messageFileContent, fileNamePath, processedCount);
         }
         // Delete all previously existing sheets (usually default "Sheet 1" of new empty spreadsheet) if
         // current sheets count is greater then previous.
@@ -332,11 +333,11 @@ public class ExportProcessor {
         return googleSheetService.addSheet(getGoogleSheetId(), sheetParams);
     }
 
-    private void uploadDataToGoogleSheet(MessageFile messageFile, String fileNamePath, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
+    private void uploadDataToGoogleSheet(MessageFileContent messageFileContent, String fileNamePath, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
         // Add header into sheet
         List<List<Object>> sheetRows = new LinkedList<>(createSheetHeader());
         // Add data into sheet
-        List<List<Object>> sheetData = createSheetData(messageFile);
+        List<List<Object>> sheetData = createSheetData(messageFileContent);
 
         // If no data to upload return
         if (sheetData.isEmpty()) {
@@ -347,7 +348,7 @@ public class ExportProcessor {
         pauseProcessIfGoogleLimitExceed(sheetData.size(),processedCount);
 
         // Title of target google sheet is created from "properties fileName only" + "#" + "fileName id".
-        String sheetTitle = FilenameUtils.getBaseName(fileNamePath) + "#" + messageFile.getId();
+        String sheetTitle = FilenameUtils.getBaseName(fileNamePath) + "#" + messageFileContent.getId();
         log.info("Uploading data of \"" + fileNamePath + "\" into google sheet \"" + sheetTitle + "\"...");
         sheetRows.addAll(sheetData);
         Sheet sheet = createGoogleSheet(sheetRows, sheetTitle);
@@ -387,11 +388,11 @@ public class ExportProcessor {
         return sheetHeader;
     }
 
-    private List<List<Object>> createSheetData(MessageFile messageFile) {
+    private List<List<Object>> createSheetData(MessageFileContent messageFileContent) {
         List<List<Object>> sheetData = new LinkedList<>();
-        for (Map.Entry<String, String> entry : messageFile.getProperties().entrySet()) {
+        for (Map.Entry<String, String> entry : messageFileContent.getProperties().entrySet()) {
             // Add row only if status != UNCHANGED
-            PropertyStatus propertyStatus = messageFile.getPropertyStatus(entry.getKey());
+            PropertyStatus propertyStatus = messageFileContent.getPropertyStatus(entry.getKey());
             if (propertyStatus == PropertyStatus.UNCHANGED) {
                 continue;
             }
@@ -405,10 +406,10 @@ public class ExportProcessor {
             List<Object> rowValues = new LinkedList<>(Arrays.asList(entry.getKey(), entryValue));
             // Add all secondary mutations values
             for (String mutation : configuration.getMutations()) {
-                PropertiesMap mutationsPropsMap = messageFile.getMutationProperties(mutation);
+                PropertiesMap mutationsPropsMap = messageFileContent.getMutationProperties(mutation);
                 if (mutationsPropsMap == null) {
                     mutationsPropsMap = new PropertiesMap();
-                    messageFile.putMutationProperties(mutation, mutationsPropsMap);
+                    messageFileContent.putMutationProperties(mutation, mutationsPropsMap);
                 }
                 String mutationValue = mutationsPropsMap.get(entry.getKey());
                 // Replace doubled quotes in case of variable in property
@@ -444,7 +445,7 @@ public class ExportProcessor {
     // FIXME: abstractions are wrong
     private void saveDataFileWithoutProperties() throws IOException {
         File file = new File(configuration.getDataFileName());
-        Map<String, MessageFile> originalDataPropFiles = dataFileManager.getOriginalDataFile().getDataPropFiles();
+        Map<String, MessageFileContent> originalDataPropFiles = dataFileManager.getOriginalDataFile().getDataPropFiles();
 
         Snapshot overriddenSnapshot = dataFileManager.getOrCreateDataFile();
         overriddenSnapshot.getDataPropFiles().forEach((i, j)->{
