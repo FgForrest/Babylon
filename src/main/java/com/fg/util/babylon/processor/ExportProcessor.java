@@ -45,7 +45,6 @@ public class ExportProcessor {
     private final TranslationConfiguration configuration;
 
     protected TranslationStatisticsOfExport statistics;
-    protected List<String> changedPropertiesDuringExport = new LinkedList<>();
 
     public ExportProcessor(GoogleSheetService googleSheetService,
                            DataFileManager dataFileManager,
@@ -72,11 +71,13 @@ public class ExportProcessor {
         log.info("Started translation EXPORT with Google sheet id: '" + getGoogleSheetId() +"'");
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
+
+        List<String> changedProperties = new LinkedList<>();
         // Using "for" loop to propagating of IOException
         for (String path : configuration.getPath()) {
-            processPath(path);
+            processPath(path, changedProperties);
         }
-        uploadDataToGoogleSpreadsheet();
+        uploadDataToGoogleSpreadsheet(changedProperties);
         saveDataFileWithoutProperties();
         log.info(statistics);
     }
@@ -86,7 +87,7 @@ public class ExportProcessor {
      * @param path path to one or more primary properties files.
      * @throws IOException some exception derived from {@link IOException}
     */
-    private void processPath(String path) throws IOException {
+    private void processPath(String path, List<String> changedPropertiesDuringExport) throws IOException {
         List<String> allPaths = expandPath(path);
 
         final String TRANSLATION_FILES_REGEX = ".*_[a-zA-Z]{2,3}\\.properties";
@@ -99,7 +100,7 @@ public class ExportProcessor {
         // Process all properties of all files.
         for (String pathToMsgFile : allPaths) {
             MessageFileContent primaryMessageFileContent = dataFileManager.getOrCreateDataFile().getOrPutNewPropFileByFileName(pathToMsgFile);
-            processPrimaryMessages(pathToMsgFile, primaryMessageFileContent);
+            processPrimaryMessages(pathToMsgFile, primaryMessageFileContent, changedPropertiesDuringExport);
         }
     }
 
@@ -124,7 +125,7 @@ public class ExportProcessor {
         return list;
     }
 
-    private void processPrimaryMessages(String pathToMsgFile, MessageFileContent primaryMessageFileContent) throws IOException {
+    private void processPrimaryMessages(String pathToMsgFile, MessageFileContent primaryMessageFileContent, List<String> changedProperties) throws IOException {
         PropertyFileActiveRecord primaryMessages = i18nFileManager.loadPropertiesFromFile(pathToMsgFile);
         if (primaryMessages == null) {
             throw new FileNotFoundException("Primary language message file: " + pathToMsgFile + " does not exist.");
@@ -132,7 +133,7 @@ public class ExportProcessor {
         statistics.incTotalPropFilesProcessed(); //FIXME: should be called after the file has really been processed
 
         Map<String, PropertyFileActiveRecord> translations = loadTranslationProperties(pathToMsgFile);
-        changedPropertiesDuringExport.add(pathToMsgFile);
+        changedProperties.add(pathToMsgFile);
         for (Map.Entry<String, Property> entry : primaryMessages.entrySet()) {
             String msgKey = entry.getKey();
             Property message = entry.getValue();
@@ -297,12 +298,12 @@ public class ExportProcessor {
      * @throws GeneralSecurityException when authentication to Google sheets API problem is appeared.
      * @throws IOException some exception derived from {@link IOException}
     */
-    private void uploadDataToGoogleSpreadsheet() throws GeneralSecurityException, IOException {
+    private void uploadDataToGoogleSpreadsheet(List<String> changedPropertiesDuringExport) throws GeneralSecurityException, IOException {
         Map<String, MessageFileContent> dataPropFiles = dataFileManager.getOrCreateDataFile()
                         .getDataPropFiles()
                         .entrySet()
                         .stream()
-                        .filter(i->changedPropertiesDuringExport.contains(i.getKey()))
+                        .filter(i -> changedPropertiesDuringExport.contains(i.getKey()))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         AtomicInteger processedCount = new AtomicInteger(0);
         // Gets all existing sheets in this time.
