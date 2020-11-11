@@ -21,10 +21,10 @@ public class Snapshot implements Serializable {
 
     /**
      * Properties files data like {@link Map&lt;String, DataPropFile&gt;}<br>
-     * key - contains name and relative path to primary language properties file<br>
+     * key - relative path to message file of the primary language<br>, eg <code>lib_eshop_edee\\src\\main\\resources\\META-INF\\lib_eshop_edee\\i18n\\common.properties</code>
      * value - contains {@link MessageFileContent}
      */
-    private Map<String, MessageFileContent> dataPropFiles = new LinkedHashMap<>();
+    private Map<String, MessageFileContent> dataPropFiles = new LinkedHashMap<>(); //FIXME rename to messageBundle
 
     /**
      * Properties files data like {@link Map&lt;String, DataPropFile&gt;} by unique id<br>

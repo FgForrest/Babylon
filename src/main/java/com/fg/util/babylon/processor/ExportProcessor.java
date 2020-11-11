@@ -20,6 +20,7 @@ import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.core.io.Resource;
+import sun.plugin2.message.Message;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -72,12 +73,12 @@ public class ExportProcessor {
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
 
-        List<String> changedProperties = new LinkedList<>();
+        List<String> changedMessageFilePaths = new LinkedList<>();
         // Using "for" loop to propagating of IOException
         for (String path : configuration.getPath()) {
-            processPath(path, changedProperties);
+            processPath(path, changedMessageFilePaths);
         }
-        uploadDataToGoogleSpreadsheet(changedProperties);
+        uploadDataToGoogleSpreadsheet(changedMessageFilePaths);
         saveDataFileWithoutProperties();
         log.info(statistics);
     }
@@ -87,7 +88,7 @@ public class ExportProcessor {
      * @param path path to one or more primary properties files.
      * @throws IOException some exception derived from {@link IOException}
     */
-    private void processPath(String path, List<String> changedProperties) throws IOException {
+    private void processPath(String path, List<String> changedMessageFilePaths) throws IOException {
         List<String> allPaths = expandPath(path);
 
         final String TRANSLATION_FILES_REGEX = ".*_[a-zA-Z]{2,3}\\.properties";
@@ -100,7 +101,7 @@ public class ExportProcessor {
         // Process all properties of all files.
         for (String pathToMsgFile : allPaths) {
             MessageFileContent primaryMessageFileContent = dataFileManager.getOrCreateDataFile().getOrPutNewPropFileByFileName(pathToMsgFile);
-            processPrimaryMessages(pathToMsgFile, primaryMessageFileContent, changedProperties);
+            processPrimaryMessages(pathToMsgFile, primaryMessageFileContent, changedMessageFilePaths);
         }
     }
 
@@ -125,14 +126,14 @@ public class ExportProcessor {
         return list;
     }
 
-    private void processPrimaryMessages(String pathToMsgFile, MessageFileContent primaryMessageFileContent, List<String> changedProperties) throws IOException {
+    private void processPrimaryMessages(String pathToMsgFile, MessageFileContent primaryMessageFileContent, List<String> changedMessageFilePaths) throws IOException {
         PropertyFileActiveRecord primaryMessages = i18nFileManager.loadPropertiesFromFile(pathToMsgFile);
         if (primaryMessages == null) {
             throw new FileNotFoundException("Primary language message file: " + pathToMsgFile + " does not exist.");
         }
         statistics.incTotalPropFilesProcessed(); //FIXME: should be called after the file has really been processed
 
-        changedProperties.add(pathToMsgFile);
+        changedMessageFilePaths.add(pathToMsgFile);
         for (Map.Entry<String, Property> entry : primaryMessages.entrySet()) {
             String msgKey = entry.getKey();
             Property message = entry.getValue();
@@ -143,7 +144,6 @@ public class ExportProcessor {
             // Compares value to that key value within a given file with the value stored in the DataPropFile object read from Json data file.
             // - Keys which not found in Json data file is marked as NEW.
             // - Keys which value is different from value in Json data file is marked as CHANGED.
-//            TODO tady pokracovat na co je kurva tohle
             primaryMessageFileContent.putProperty(msgKey, message.getValue());
         }
         List<String> deprecatedProperties = new LinkedList<>();
@@ -298,18 +298,20 @@ public class ExportProcessor {
      * @throws GeneralSecurityException when authentication to Google sheets API problem is appeared.
      * @throws IOException some exception derived from {@link IOException}
     */
-    private void uploadDataToGoogleSpreadsheet(List<String> changedPropertiesDuringExport) throws GeneralSecurityException, IOException {
+    private void uploadDataToGoogleSpreadsheet(List<String> changedMessageFilePaths) throws GeneralSecurityException, IOException {
+        Map<String, MessageFileContent> messageBundle = dataFileManager.getOrCreateDataFile().getDataPropFiles();
         // FIXME: It would be more efficient to iterate over the identifiers of the List and look them up in the Map
-        Map<String, MessageFileContent> dataPropFiles = dataFileManager.getOrCreateDataFile()
-                        .getDataPropFiles()
-                        .entrySet()
-                        .stream()
-                        .filter(i -> changedPropertiesDuringExport.contains(i.getKey()))
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, MessageFileContent> changedMessages = messageBundle
+                .entrySet()
+                .stream()
+                .filter(i -> changedMessageFilePaths.contains(i.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // FIXME: why atomic?
         AtomicInteger processedCount = new AtomicInteger(0);
-        // Gets all existing sheets in this time.
+        // Gets all sheets existing at this moment.
         List<Sheet> prevAllSheets = googleSheetService.getAllSheets(getGoogleSheetId());
-        for (Map.Entry<String, MessageFileContent> entry : dataPropFiles.entrySet()) {
+        for (Map.Entry<String, MessageFileContent> entry : changedMessages.entrySet()) {
             String fileNamePath = entry.getKey();
             MessageFileContent messageFileContent = entry.getValue();
 
