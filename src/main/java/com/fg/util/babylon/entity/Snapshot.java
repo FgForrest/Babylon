@@ -22,56 +22,56 @@ public class Snapshot implements Serializable {
     /**
      * Properties files data like {@link Map&lt;String, DataPropFile&gt;}<br>
      * key - contains name and relative path to primary language properties file<br>
-     * value - contains {@link MessageFile}
+     * value - contains {@link MessageFileContent}
      */
-    private Map<String, MessageFile> dataPropFiles = new LinkedHashMap<>();
+    private Map<String, MessageFileContent> dataPropFiles = new LinkedHashMap<>();
 
     /**
      * Properties files data like {@link Map&lt;String, DataPropFile&gt;} by unique id<br>
      * key - contains unique id of name and relative path to primary language properties file<br>
-     * value - contains {@link MessageFile}
+     * value - contains {@link MessageFileContent}
      */
     @JsonIgnore
-    private Map<Integer, MessageFile> dataPropFilesById = new LinkedHashMap<>();
+    private Map<Integer, MessageFileContent> dataPropFilesById = new LinkedHashMap<>();
 
-    public MessageFile putPropFile(String fileName, MessageFile messageFile) {
-        MessageFile propFile = dataPropFiles.put(fileName, messageFile);
+    public MessageFileContent putPropFile(String fileName, MessageFileContent messageFileContent) {
+        MessageFileContent propFile = dataPropFiles.put(fileName, messageFileContent);
         // Create unique id of filename and store same dataPropFile instance under this hash code as key into map.
         // Id is also stored into DataPropFile#id field.
         Integer fileNameId = getNextUniqueId();
-        messageFile.setId(fileNameId);
-        putDataPropFileById(fileNameId, messageFile);
+        messageFileContent.setId(fileNameId);
+        putDataPropFileById(fileNameId, messageFileContent);
         return propFile;
     }
 
-    public MessageFile putDataPropFileById(Integer fileNameId, MessageFile messageFile) {
-        return dataPropFilesById.put(fileNameId, messageFile);
+    public MessageFileContent putDataPropFileById(Integer fileNameId, MessageFileContent messageFileContent) {
+        return dataPropFilesById.put(fileNameId, messageFileContent);
     }
 
     /**
-     * Get {@link MessageFile} by relative file name and path to the source/destination properties file.
+     * Get {@link MessageFileContent} by relative file name and path to the source/destination properties file.
      * @param fileName relative path to properties file.
-     * @return existing {@link MessageFile} for specified fileName or create, add and return new {@link MessageFile} object for fileName.
+     * @return existing {@link MessageFileContent} for specified fileName or create, add and return new {@link MessageFileContent} object for fileName.
      */
-    public MessageFile getOrPutNewPropFileByFileName(String fileName) {
-        MessageFile messageFile = dataPropFiles.get(fileName);
-        if (messageFile == null) {
-            messageFile = new MessageFile();
-            putPropFile(fileName, messageFile);
+    public MessageFileContent getOrPutNewPropFileByFileName(String fileName) {
+        MessageFileContent messageFileContent = dataPropFiles.get(fileName);
+        if (messageFileContent == null) {
+            messageFileContent = new MessageFileContent();
+            putPropFile(fileName, messageFileContent);
         }
-        return messageFile;
+        return messageFileContent;
     }
 
-    public MessageFile getPropFileByFileName(String fileName) {
+    public MessageFileContent getPropFileByFileName(String fileName) {
         return dataPropFiles.get(fileName);
     }
 
     /**
-     * Get {@link MessageFile} by id of the path.
+     * Get {@link MessageFileContent} by id of the path.
      * @param id unique id of the relative file name and path to source/destination properties file.
-     * @return get {@link MessageFile} if exists
+     * @return get {@link MessageFileContent} if exists
      */
-    public MessageFile getPropFileById(Integer id) {
+    public MessageFileContent getPropFileById(Integer id) {
         return dataPropFilesById.get(id);
     }
 
