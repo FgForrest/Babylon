@@ -8,7 +8,7 @@ import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.enums.PropertyStatus;
 import com.fg.util.babylon.enums.PropertyType;
 import com.fg.util.babylon.exception.SheetExistsException;
-import com.fg.util.babylon.propfiles.FileProperties;
+import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
 import com.fg.util.babylon.propfiles.Property;
 import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.statistics.ExportFileStatistic;
@@ -125,12 +125,12 @@ public class ExportProcessor {
     }
 
     private void processPropertiesOfFile(String primaryPropFilePath) throws IOException {
-        FileProperties primaryProperties = i18nFileManager.loadPropertiesFromFile(primaryPropFilePath);
+        PropertyFileActiveRecord primaryProperties = i18nFileManager.loadPropertiesFromFile(primaryPropFilePath);
         if (primaryProperties == null) {
             throw new FileNotFoundException("Primary properties file: " + primaryPropFilePath + " not exists.");
         }
         statistics.incTotalPropFilesProcessed();
-        Map<String, FileProperties> mutationsProperties = loadSecondaryMutationsProperties(primaryPropFilePath);
+        Map<String, PropertyFileActiveRecord> mutationsProperties = loadSecondaryMutationsProperties(primaryPropFilePath);
         final DataPropFile primaryDataPropFile = dataFileManager.getOrCreateDataFile().getOrPutNewPropFileByFileName(primaryPropFilePath);
         changedPropertiesDuringExport.add(primaryPropFilePath);
         for (Map.Entry<String, Property> entry : primaryProperties.entrySet()) {
@@ -165,11 +165,11 @@ public class ExportProcessor {
      * Method loads all properties from mutation files for given primary language file.
      * @return returns map where key is mutation and value is properties loaded from mutation file.
      */
-    private Map<String, FileProperties> loadSecondaryMutationsProperties(String primaryPropertyFilePath) throws IOException {
-        Map<String, FileProperties> map = new HashMap<>();
+    private Map<String, PropertyFileActiveRecord> loadSecondaryMutationsProperties(String primaryPropertyFilePath) throws IOException {
+        Map<String, PropertyFileActiveRecord> map = new HashMap<>();
         for (String mutation : configuration.getMutations()) {
             String secPropFileNamePath = I18nUtils.getFileNameForMutation(primaryPropertyFilePath, mutation);
-            FileProperties properties = Optional.ofNullable(i18nFileManager.loadPropertiesFromFile(secPropFileNamePath)).orElse(new FileProperties());
+            PropertyFileActiveRecord properties = Optional.ofNullable(i18nFileManager.loadPropertiesFromFile(secPropFileNamePath)).orElse(new PropertyFileActiveRecord());
             if (!properties.isEmpty()) {
                 statistics.incTotalPropFilesProcessed();
             }
@@ -187,14 +187,14 @@ public class ExportProcessor {
      */
     private void processSecondaryMutations(String key,
                                            String primaryPropFilePath,
-                                           Map<String, FileProperties> filesMutationProps,
+                                           Map<String, PropertyFileActiveRecord> filesMutationProps,
                                            DataPropFile primaryDataPropFile) {
         PropertyStatus primaryPropStatus = primaryDataPropFile.getPropertyStatus(key);
         PropertiesMap mutationPropsMap;
         for (String mutation : configuration.getMutations()) {
             log.debug("Processing key \"" + key + "\" for mutation \"" + mutation + "\" of \"" + primaryPropFilePath + "\"");
             // Get all properties for secondary mutation.
-            final FileProperties properties = Optional.ofNullable(filesMutationProps.get(mutation)).orElse(new FileProperties());
+            final PropertyFileActiveRecord properties = Optional.ofNullable(filesMutationProps.get(mutation)).orElse(new PropertyFileActiveRecord());
             // Get value of property from existing mutation properties file or set empty value if property not found.
             Property propValue = Optional.ofNullable(properties.get(key)).orElse(new Property(PropertyType.VALUE, SheetConstants.EMPTY_VAL));
             mutationPropsMap = getMutationPropertiesMap(primaryDataPropFile, mutation);

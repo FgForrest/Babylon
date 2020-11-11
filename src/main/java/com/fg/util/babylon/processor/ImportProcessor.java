@@ -8,7 +8,7 @@ import com.fg.util.babylon.exception.EmptyDataFileException;
 import com.fg.util.babylon.exception.NoSheetsException;
 import com.fg.util.babylon.exception.ParsePropIdException;
 import com.fg.util.babylon.exception.PropIdNotFoundException;
-import com.fg.util.babylon.propfiles.FileProperties;
+import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
 import com.fg.util.babylon.propfiles.Property;
 import com.fg.util.babylon.service.GoogleSheetService;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
@@ -226,7 +226,7 @@ public class ImportProcessor {
     }
 
     /**
-     * Save all translated properties into target mutation file. Uses {@link FileProperties} to ensure to that
+     * Save all translated properties into target mutation file. Uses {@link PropertyFileActiveRecord} to ensure to that
      * file is stored in same format and keys is placed on same row numbers.
      * @param mutation mutation to save
      * @param dataPropFile {@link DataPropFile} object with data for target properties file
@@ -248,9 +248,9 @@ public class ImportProcessor {
         }
         final ImportFileStatistic fileStatistic = fs;
         // Load target properties file to get formatting and row numbers of all its properties.
-        FileProperties originalMutationFileProps = Optional.ofNullable(i18nFileManager.loadPropertiesFromFile(mutationPropFilePath)).orElse(new FileProperties());
+        PropertyFileActiveRecord originalMutationFileProps = Optional.ofNullable(i18nFileManager.loadPropertiesFromFile(mutationPropFilePath)).orElse(new PropertyFileActiveRecord());
         // Load also properties of primary mutation file to get format from it.
-        FileProperties updatedFileProps = i18nFileManager.loadPropertiesFromFile(primaryPropFilePath);
+        PropertyFileActiveRecord updatedFileProps = i18nFileManager.loadPropertiesFromFile(primaryPropFilePath);
         // Clears all keys values in loaded primaryFileProps to create template for making of mutation properties file.
         // In this point we have clear format, this means each key and value on correct row,
         // empty rows and comments from primary mutation file is also on correct rows.
@@ -259,7 +259,7 @@ public class ImportProcessor {
                 property.setValue(SheetConstants.EMPTY_VAL);
             }
         });
-        FileProperties propsOnlyInMutation = new FileProperties();
+        PropertyFileActiveRecord propsOnlyInMutation = new PropertyFileActiveRecord();
         // Sets values of all keys from mutation properties file into updatedFileProps. Properties which exists only
         // in secondary mutation file is added to another map and append at end of mutation property file.
         originalMutationFileProps.forEach((key, sourceProp) -> {
@@ -308,10 +308,10 @@ public class ImportProcessor {
         savePropertiesToFile(updatedFileProps, mutationPropFilePath);
     }
 
-    private void savePropertiesToFile(FileProperties fileProperties, String pathFileName) throws IOException, InterruptedException {
+    private void savePropertiesToFile(PropertyFileActiveRecord propertyFileActiveRecord, String pathFileName) throws IOException, InterruptedException {
 
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(pathFileName), StandardCharsets.UTF_8);
-        fileProperties.save(outputStreamWriter);
+        propertyFileActiveRecord.save(outputStreamWriter);
 
         gitAddFile(pathFileName);
 

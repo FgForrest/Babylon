@@ -16,7 +16,7 @@ import java.util.Map;
  * Keeps information about row number for each row which represents values: key and value, empty lines or comments
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-public class FileProperties extends LinkedHashMap<String, Property> {
+public class PropertyFileActiveRecord extends LinkedHashMap<String, Property> {
 
     /**
      * Loads properties from file by specified reader.

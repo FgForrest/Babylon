@@ -1,7 +1,7 @@
 package com.fg.util.babylon.processor;
 
 import com.fg.util.babylon.enums.PropertyType;
-import com.fg.util.babylon.propfiles.FileProperties;
+import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
 import com.fg.util.babylon.propfiles.Property;
 
 import java.util.*;
@@ -17,7 +17,7 @@ class CommonProcessorTest {
 
     List<String> mutations = new LinkedList<>(Collections.singletonList("en"));
     List<String> testPropFilesPaths = new LinkedList<>(Arrays.asList("A.properties", "A_en.properties", "B.properties", "B_en.properties"));
-    LinkedHashMap<String, FileProperties> filePropsMap = new LinkedHashMap<>();
+    LinkedHashMap<String, PropertyFileActiveRecord> filePropsMap = new LinkedHashMap<>();
 
     /**
      * Generates default properties test data.
@@ -35,11 +35,11 @@ class CommonProcessorTest {
         propFilesPaths.forEach(fileName -> {
             // Key is by primary prop file fileName
             String key = fileName.replaceAll("_[a-zA-Z]{2}", "");
-            FileProperties fileProperties = new FileProperties();
+            PropertyFileActiveRecord propertyFileActiveRecord = new PropertyFileActiveRecord();
             for (int i=0 ; i < TEST_KEYS_CNT ; i++) {
-                fileProperties.put((key + i), new Property(PropertyType.VALUE, "value " + fileName + i));
+                propertyFileActiveRecord.put((key + i), new Property(PropertyType.VALUE, "value " + fileName + i));
             }
-            filePropsMap.put(fileName, fileProperties);
+            filePropsMap.put(fileName, propertyFileActiveRecord);
         });
     }
 
