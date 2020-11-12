@@ -1,5 +1,6 @@
 package com.fg.util.babylon.processor;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -25,6 +26,7 @@ public interface AntPathResourceLoader {
      *
      * @return the corresponding Resource objects
      */
-    public Resource[] getResources(String antStylePath) throws IOException;
+    @NotNull
+    Resource[] getResources(String antStylePath) throws IOException;
 
 }
