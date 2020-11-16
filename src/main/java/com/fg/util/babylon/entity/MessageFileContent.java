@@ -29,8 +29,9 @@ public class MessageFileContent implements Serializable {
 
     /**
      * Properties like {@link PropertiesMap}
+     * FIXME: put back private access modifier?
      */
-    private PropertiesMap properties = new PropertiesMap();
+    public PropertiesMap properties = new PropertiesMap();
 
     /**
      * Secondary mutations properties data like {@link Map&lt;String, PropertiesMap&gt;}. Property isn't serialized to Json file.<br>
