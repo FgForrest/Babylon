@@ -1,15 +1,24 @@
 package com.fg.util.babylon.export
 
+import com.fg.util.babylon.processor.AntPathResourceLoader
+import com.fg.util.babylon.util.PathUtils
+
 class Exporter(private val messageLoader: MessageLoader,
-               private val messageFileProcessor: MessageFileProcessor) {
+               private val messageFileProcessor: MessageFileProcessor,
+               private val resourceLoader: AntPathResourceLoader) {
 
     fun walk(patternPaths: List<String>,
              translateTo: List<Language>) {
-        
+        val allPaths = patternPaths.flatMap { path ->
+            PathUtils().expandPath(path, resourceLoader)
+        }
+        val sheetRows = allPaths.map { msgFilePath ->
+            processMessageFile(msgFilePath, translateTo)
+        }
     }
 
-    fun processMessageFile(msgFile: String,
-                           translateTo: List<Language>): SheetRows { //FIXME: abstraction for sheet? includes name/id?
+    private fun processMessageFile(msgFile: String,
+                                   translateTo: List<Language>): SheetRows { //FIXME: abstraction for sheet? includes name/id?
         val primaryMsgs = messageLoader.loadPrimaryMessages(msgFile)
         val translations = messageLoader.loadTranslations(msgFile, translateTo)
 
@@ -37,63 +46,33 @@ class Exporter(private val messageLoader: MessageLoader,
      *
      * @return content of translation sheets as a list of rows
      */
-    fun export(translationLangs: List<Language>,
-               primaryMsgBundle: MessageBundle,
-               translationMsgBundles: Map<Language, MessageBundle>,
-               keysOfMsgsChangedPrimaryMsgs: Map<MsgFilePath, List<MessageKey>>): Map<MsgFilePath, SheetRows> {
-
-        /** when a new translation language is specified, it does not have a message bundle yet */
-        val missingTranslationBundleLangs = translationLangs - translationMsgBundles.keys
-
-        /** empty bundles for new translation languages */
-        val emptyTranslationBundles = missingTranslationBundleLangs.associateWith { emptyMessageBundle() }
-
-        /** translation bundles for all [translationLangs] */
-        val allTranslationBundles = translationMsgBundles + emptyTranslationBundles
-
-
-        /**
-         * for each translation language - message keys where translation to any of the languages is missing,
-         * associated by the files containing them
-         */
-        val missingKeys = determineMissingTranslatedMsgs(primaryMsgBundle, allTranslationBundles)
-
-        /** for each message file - message keys where translation in some of the translation language is missing */
-        val keysOfMissingTranslations = aggregateMissingKeysOfEachFile(missingKeys)
-
-
-        return createTranslationSheets(primaryMsgBundle, allTranslationBundles, translationLangs, keysOfMissingTranslations, keysOfMsgsChangedPrimaryMsgs)
-    }
-
-    /**
-     * map of message keys that are missing in translated messages TODO
-     */
-    private fun determineMissingTranslatedMsgs(primaryMsgBundle: MessageBundle,
-                                               translationMsgBundles: Map<Language, MessageBundle>): Map<Language, Map<MsgFilePath, Set<MessageKey>>> {
-        val keysInEveryTranslationBundle = translationMsgBundles.values
-
-
-        return translationMsgBundles.mapValues { (language, msgBundle) ->
-            msgBundle.mapValues { (msgFilePath, messages) ->
-                /** keys of non-empty messages in this translation file */
-                val nonEmptyTrnMsgKeys = messages.filterValues { msg -> msg != null }.keys
-
-                /**
-                 *  difference between the set of primary keys and the set of already translated keys of this mutation
-                 *  makes the set of keys whose messages need to be translated for this language
-                 */
-                val thisLanguageMissingKeys = primaryMsgBundle[msgFilePath].orEmpty().keys - nonEmptyTrnMsgKeys
-                thisLanguageMissingKeys
-            }
-        }
-    }
-
-    private fun aggregateMissingKeysOfEachFile(missingKeys: Map<Language, Map<MsgFilePath, Set<MessageKey>>>): Map<MsgFilePath, List<MessageKey>> =
-            missingKeys.values.flatMap { pathToMsgKeys ->
-                pathToMsgKeys.asSequence().flatMap { (path, msgKeys) ->
-                    msgKeys.map { msgKey -> path to msgKey }
-                }
-            }.distinct().groupBy({ it.first }, { it.second })
+//    fun export(translationLangs: List<Language>,
+//               primaryMsgBundle: MessageBundle,
+//               translationMsgBundles: Map<Language, MessageBundle>,
+//               keysOfMsgsChangedPrimaryMsgs: Map<MsgFilePath, List<MessageKey>>): Map<MsgFilePath, SheetRows> {
+//
+//        /** when a new translation language is specified, it does not have a message bundle yet */
+//        val missingTranslationBundleLangs = translationLangs - translationMsgBundles.keys
+//
+//        /** empty bundles for new translation languages */
+//        val emptyTranslationBundles = missingTranslationBundleLangs.associateWith { emptyMessageBundle() }
+//
+//        /** translation bundles for all [translationLangs] */
+//        val allTranslationBundles = translationMsgBundles + emptyTranslationBundles
+//
+//
+//        /**
+//         * for each translation language - message keys where translation to any of the languages is missing,
+//         * associated by the files containing them
+//         */
+//        val missingKeys = determineMissingTranslatedMsgs(primaryMsgBundle, allTranslationBundles)
+//
+//        /** for each message file - message keys where translation in some of the translation language is missing */
+//        val keysOfMissingTranslations = aggregateMissingKeysOfEachFile(missingKeys)
+//
+//
+//        return createTranslationSheets(primaryMsgBundle, allTranslationBundles, translationLangs, keysOfMissingTranslations, keysOfMsgsChangedPrimaryMsgs)
+//    }
 
 
     /**
@@ -115,26 +94,21 @@ class Exporter(private val messageLoader: MessageLoader,
      *
      * @return list of rows
      */
-    private fun createTranslationSheets(primaryBundle: MessageBundle,
-                                        translationBundles: Map<Language, MessageBundle>,
-                                        translationLangs: List<Language>,
-                                        missingTranslations: Map<MsgFilePath, List<MessageKey>>,
-                                        changedPrimaryMsgs: Map<MsgFilePath, List<MessageKey>>): Map<MsgFilePath, SheetRows> {
-        val allFiles = missingTranslations.keys + changedPrimaryMsgs.keys
-        return allFiles.map { msgFile ->
-            val thisFileMissingTransKeys = missingTranslations[msgFile].orEmpty()
-            val thisFileChangedMsgKeys = changedPrimaryMsgs[msgFile].orEmpty()
-            val sheet = createTranslationSheet(primaryBundle, translationBundles, translationLangs, msgFile, thisFileMissingTransKeys, thisFileChangedMsgKeys)
-            msgFile to sheet
-        }.toMap()
-    }
+//    private fun createTranslationSheets(primaryBundle: MessageBundle,
+//                                        translationBundles: Map<Language, MessageBundle>,
+//                                        translationLangs: List<Language>,
+//                                        missingTranslations: Map<MsgFilePath, List<MessageKey>>,
+//                                        changedPrimaryMsgs: Map<MsgFilePath, List<MessageKey>>): Map<MsgFilePath, SheetRows> {
+//        val allFiles = missingTranslations.keys + changedPrimaryMsgs.keys
+//        return allFiles.map { msgFile ->
+//            val thisFileMissingTransKeys = missingTranslations[msgFile].orEmpty()
+//            val thisFileChangedMsgKeys = changedPrimaryMsgs[msgFile].orEmpty()
+//            val sheet = createTranslationSheet(primaryBundle, translationBundles, translationLangs, msgFile, thisFileMissingTransKeys, thisFileChangedMsgKeys)
+//            msgFile to sheet
+//        }.toMap()
+//    }
 
 }
-
-fun emptyMessageBundle(): MessageBundle = emptyMap()
-
-@Deprecated("remove")
-typealias MessageBundle = Map<MsgFilePath, Messages>
 
 typealias Messages = Map<MessageKey, Message>
 
