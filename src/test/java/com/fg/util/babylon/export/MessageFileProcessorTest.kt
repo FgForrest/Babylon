@@ -1,8 +1,6 @@
-package com.fg.util.babylon
+package com.fg.util.babylon.export
 
-import com.fg.util.babylon.export.Language
-import com.fg.util.babylon.export.MessageFileProcessor
-import com.fg.util.babylon.export.Messages
+import com.fg.util.babylon.FakeTranslationSnapshot
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 
