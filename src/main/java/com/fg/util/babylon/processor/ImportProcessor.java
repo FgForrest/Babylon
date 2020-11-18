@@ -63,8 +63,6 @@ public class ImportProcessor {
         if (sheets == null || sheets.isEmpty()) {
             throw new NoSheetsException("Source spreadsheet " + googleSheetId + " not contains any sheets.");
         }
-        // Processes data from google spreadsheet into internal BaseProcessor#dataFile object
-        // accessible by BaseProcessor#getOrCreateDataFile() method.
         // Using "for" loop to propagating of IOException.
         for (Sheet sheet : sheets) {
             processSheet(sheet);
@@ -88,18 +86,22 @@ public class ImportProcessor {
     }
 
     private void processSheet(Sheet sheet) throws IOException {
-        log.info("Processing sheet \"" + sheet.getProperties().getTitle() + "\"...");
+        String sheetTitle = sheet.getProperties().getTitle();
+        log.info("Processing sheet \"" + sheetTitle + "\"...");
+        Integer fileId = parseFileIdFromSheetTitle(sheetTitle);
+        MessageFileContent propFile = getPropFileById(fileId);
+
         List<GridData> sheetData = sheet.getData();
         if (sheetData == null || sheetData.isEmpty()) {
-            log.warn("Sheet " + sheet.getProperties().getTitle() + " not contains any data in grid.");
+            log.warn("Sheet " + sheetTitle + " not contains any data in grid.");
             return;
         }
         for (GridData gridData : sheetData) {
-            processGridDataOfSheet(sheet.getProperties().getTitle(), gridData);
+            processGridDataOfSheet(sheetTitle, gridData, propFile);
         }
     }
 
-    private void processGridDataOfSheet(String sheetTitle, GridData gridData) throws IOException {
+    private void processGridDataOfSheet(String sheetTitle, GridData gridData, MessageFileContent propFile) throws IOException {
         List<RowData> rowsData = gridData.getRowData();
         if (rowsData == null) {
             log.warn("Sheet \"" + sheetTitle + " \" is empty");
@@ -109,7 +111,7 @@ public class ImportProcessor {
         Map<Integer,String> header = createHeader(rowsData.get(0));
         for (RowData rowData : rowsData.subList(1, rowsData.size())) {
             if (rowData.getValues().stream().anyMatch(i-> i.getFormattedValue() != null && !Objects.equals(i.getFormattedValue(), "null"))){
-                processRowData(sheetTitle, header, rowData);
+                processRowData(sheetTitle, header, rowData, propFile);
             }
         }
     }
@@ -131,10 +133,9 @@ public class ImportProcessor {
      * @param rowData data of the one row
      * @throws IOException some exception derived from {@link IOException}
      */
-    private void processRowData(String sheetTitle, Map<Integer,String> header, RowData rowData) throws IOException {
+    private void processRowData(String sheetTitle, Map<Integer,String> header, RowData rowData, MessageFileContent propFile) throws IOException {
         int col = 0;
         List<CellData> values = rowData.getValues();
-        Integer fileId = parseFileIdFromSheetTitle(sheetTitle);
         String propKey = "";
         for (CellData cellData : values) {
             String colTitle = header.get(col);
@@ -149,23 +150,14 @@ public class ImportProcessor {
                 propKey = propValue;
             } else if (col == 1) {
                 // Second column contains text value of primary mutation.
-                addPrimaryMutation(fileId, propKey, propValue);
+                propFile.putProperty(propKey, propValue);
             } else {
                 // Next columns contains text values of secondary mutations. Column title contains name of the mutation.
-                addSecondaryMutation(colTitle, fileId, propKey, propValue);
+                String mutation = colTitle;
+                propFile.putMutationProperty(mutation, propKey, propValue);
             }
             col++;
         }
-    }
-
-    private void addPrimaryMutation(Integer fileId, String propKey, String propValue) throws IOException {
-        MessageFileContent propFile = getPropFileById(fileId);
-        propFile.putProperty(propKey, propValue);
-    }
-
-    private void addSecondaryMutation(String mutation, Integer fileId, String propKey, String propValue) throws IOException {
-        MessageFileContent propFile = getPropFileById(fileId);
-        propFile.putMutationProperty(mutation, propKey, propValue);
     }
 
     /**
