@@ -1,7 +1,8 @@
-package com.fg.util.babylon
+package com.fg.util.babylon.export
 
 import com.fg.util.babylon.processor.AntPathResourceLoader
 
+@Deprecated("was intended for MessageBundle abstraction")
 class BundleCollector(private val resourceLoader: AntPathResourceLoader) {
 
     /**

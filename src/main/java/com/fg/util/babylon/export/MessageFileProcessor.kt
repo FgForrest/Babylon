@@ -1,4 +1,4 @@
-package com.fg.util.babylon
+package com.fg.util.babylon.export
 
 class MessageFileProcessor(private val snapshotContract: TranslationSnapshotContract) {
 
