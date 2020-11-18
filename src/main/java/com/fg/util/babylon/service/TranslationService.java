@@ -10,7 +10,6 @@ import com.fg.util.babylon.processor.I18nFileManager;
 import com.fg.util.babylon.processor.ImportProcessor;
 import com.fg.util.babylon.processor.spring.SpringResourceLoader;
 import lombok.extern.apachecommons.CommonsLog;
-import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -29,8 +28,8 @@ public class TranslationService {
     public TranslationService(GoogleSheetService gss, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) {
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
         I18nFileManager i18FileManager = new I18nFileManager();
-        exportProcessor = new ExportProcessor(gss, dfm, i18FileManager, springResLoader, arguments, configuration);
-        importProcessor = new ImportProcessor(gss, dfm, i18FileManager, arguments, configuration);
+        exportProcessor = new ExportProcessor(gss, dfm, i18FileManager, springResLoader, arguments.getGoogleSheetId(), configuration);
+        importProcessor = new ImportProcessor(gss, dfm, i18FileManager, arguments.getGoogleSheetId(), configuration);
         this.action = arguments.getAction();
     }
 
