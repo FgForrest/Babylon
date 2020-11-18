@@ -20,8 +20,6 @@ import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.core.io.Resource;
-import sun.plugin2.message.Message;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,7 +41,7 @@ public class ExportProcessor {
     private final I18nFileManager i18nFileManager;
     private final GoogleSheetService googleSheetService;
 
-    private final Arguments arguments;
+    private final String googleSheetId;
     private final TranslationConfiguration configuration;
 
     protected TranslationStatisticsOfExport statistics;
@@ -52,25 +50,18 @@ public class ExportProcessor {
                            DataFileManager dataFileManager,
                            I18nFileManager i18nFileManager,
                            AntPathResourceLoader resourceLoader,
-                           Arguments arguments,
+                           String googleSheetId,
                            TranslationConfiguration configuration) {
         this.dataFileManager = dataFileManager;
         this.resourceLoader = resourceLoader;
         this.i18nFileManager = i18nFileManager;
         this.googleSheetService = googleSheetService;
-        this.arguments = arguments;
+        this.googleSheetId = googleSheetId;
         this.configuration = configuration;
     }
 
-    /**
-     * Id of the target google spreadsheet.
-     */
-    private String getGoogleSheetId() {
-        return arguments.getGoogleSheetId();
-    }
-
     public void doExport() throws IOException, GeneralSecurityException {
-        log.info("Started translation EXPORT with Google sheet id: '" + getGoogleSheetId() +"'");
+        log.info("Started translation EXPORT with Google sheet id: '" + googleSheetId +"'");
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
 
@@ -290,7 +281,7 @@ public class ExportProcessor {
         // FIXME: why atomic?
         AtomicInteger processedCount = new AtomicInteger(0);
         // Gets all sheets existing at this moment.
-        List<Sheet> prevAllSheets = googleSheetService.getAllSheets(getGoogleSheetId());
+        List<Sheet> prevAllSheets = googleSheetService.getAllSheets(googleSheetId);
         for (Map.Entry<String, MessageFileContent> entry : changedMessages.entrySet()) {
             String fileNamePath = entry.getKey();
             MessageFileContent messageFileContent = entry.getValue();
@@ -299,9 +290,9 @@ public class ExportProcessor {
         }
         // Delete all previously existing sheets (usually default "Sheet 1" of new empty spreadsheet) if
         // current sheets count is greater then previous.
-        List<Sheet> currAllSheets = googleSheetService.getAllSheets(getGoogleSheetId());
+        List<Sheet> currAllSheets = googleSheetService.getAllSheets(googleSheetId);
         if (currAllSheets.size() > prevAllSheets.size()) {
-            googleSheetService.deleteSheets(getGoogleSheetId(), prevAllSheets);
+            googleSheetService.deleteSheets(googleSheetId, prevAllSheets);
         }
     }
 
@@ -314,7 +305,7 @@ public class ExportProcessor {
             sheetParams.setFrozenRowCount(1);
             sheetParams.setFrozenColumnCount(2);
         }
-        return googleSheetService.addSheet(getGoogleSheetId(), sheetParams);
+        return googleSheetService.addSheet(googleSheetId, sheetParams);
     }
 
     private void uploadDataToGoogleSheet(MessageFileContent messageFileContent, String fileNamePath, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
@@ -340,11 +331,11 @@ public class ExportProcessor {
             throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
         }
 
-        googleSheetService.writeDataIntoSheet(getGoogleSheetId(), sheetTitle, sheetRows);
-        sheet = googleSheetService.getSheet(getGoogleSheetId(), sheetTitle);
-        googleSheetService.setWrappingStrategy(getGoogleSheetId(),sheet.getProperties().getSheetId());
-        googleSheetService.resizeAllColumns(getGoogleSheetId(), sheet.getProperties().getSheetId());
-        googleSheetService.protectFirstColumns(getGoogleSheetId(), sheet.getProperties().getSheetId());
+        googleSheetService.writeDataIntoSheet(googleSheetId, sheetTitle, sheetRows);
+        sheet = googleSheetService.getSheet(googleSheetId, sheetTitle);
+        googleSheetService.setWrappingStrategy(googleSheetId,sheet.getProperties().getSheetId());
+        googleSheetService.resizeAllColumns(googleSheetId, sheet.getProperties().getSheetId());
+        googleSheetService.protectFirstColumns(googleSheetId, sheet.getProperties().getSheetId());
         hideSheetFirstColumn(sheet.getProperties().getSheetId());
     }
 
@@ -420,7 +411,7 @@ public class ExportProcessor {
                 .setDimension("COLUMNS")
                 .setStartIndex(0)
                 .setEndIndex(1);
-        googleSheetService.hideDimensionRange(getGoogleSheetId(), dimensionRange);
+        googleSheetService.hideDimensionRange(googleSheetId, dimensionRange);
     }
 
     /**
