@@ -1,25 +1,20 @@
 package com.fg.util.babylon.export
 
-class Exporter(private val messageFileProcessor: MessageFileProcessor) {
+class Exporter(private val messageLoader: MessageLoader,
+               private val messageFileProcessor: MessageFileProcessor) {
 
     fun walk(patternPaths: List<String>,
              translateTo: List<Language>) {
+        
     }
 
-    fun processMessageFile(msgFile: MsgFilePath,
+    fun processMessageFile(msgFile: String,
                            translateTo: List<Language>): SheetRows { //FIXME: abstraction for sheet? includes name/id?
-        val primaryMsgs = mapOf<MessageKey, Message>() //FIXME
-        val translations = mapOf<Language, Messages>() //FIXME
+        val primaryMsgs = messageLoader.loadPrimaryMessages(msgFile)
+        val translations = messageLoader.loadTranslations(msgFile, translateTo)
+
         val sheetRows = messageFileProcessor.prepareTranslationSheet(msgFile, primaryMsgs, translations, translateTo)
         return sheetRows
-    }
-
-    private fun collectPrimaryMessags(): Messages {
-
-    }
-
-    private fun collectTranslations(): Map<Language, Messages> {
-
     }
 
     // TODO: what about ordering?
