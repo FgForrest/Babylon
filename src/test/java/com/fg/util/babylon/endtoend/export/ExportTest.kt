@@ -25,9 +25,8 @@ class ExportTest {
         val dfm = DataFileManager(trConfig.dataFileName)
         val rl = SpringResourceLoader()
         val i18nFM = I18nFileManager()
-        val ep = ExportProcessor(gss, dfm, i18nFM, rl, trSettings, trConfig)
-
-        ep.doExport()
+//        val ep = ExportProcessor(gss, dfm, i18nFM, rl, trSettings, trConfig)
+//        ep.doExport()
 
 
     }
