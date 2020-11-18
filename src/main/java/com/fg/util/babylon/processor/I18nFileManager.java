@@ -19,7 +19,7 @@ public class I18nFileManager {
      * @return Returns loaded file {@link PropertyFileActiveRecord} or null if file not exists.
      * @throws IOException some exception derived from {@link IOException}
      */
-    PropertyFileActiveRecord loadPropertiesFromFile(String fileNamePath) throws IOException {
+    public PropertyFileActiveRecord loadPropertiesFromFile(String fileNamePath) throws IOException {
         if (!new File(fileNamePath).exists()) {
             return null;
         }
