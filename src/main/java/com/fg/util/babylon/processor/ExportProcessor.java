@@ -15,6 +15,7 @@ import com.fg.util.babylon.statistics.ExportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfExport;
 import com.fg.util.babylon.todo.TranslationFileUtils;
 import com.fg.util.babylon.util.JsonUtils;
+import com.fg.util.babylon.util.PathUtils;
 import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
@@ -89,7 +90,7 @@ public class ExportProcessor {
      * @throws IOException some exception derived from {@link IOException}
     */
     private void processPath(String path, List<String> changedMessageFilePaths) throws IOException {
-        List<String> allPaths = expandPath(path);
+        List<String> allPaths = new PathUtils().expandPath(path, resourceLoader);
 
         final String TRANSLATION_FILES_REGEX = ".*_[a-zA-Z]{2,3}\\.properties";
         // Filter out possible mutations properties files, because we only need primary language property files
@@ -103,27 +104,6 @@ public class ExportProcessor {
             MessageFileContent primaryMessageFileContent = dataFileManager.getOrCreateDataFile().getOrPutNewPropFileByFileName(pathToMsgFile);
             processPrimaryMessages(pathToMsgFile, primaryMessageFileContent, changedMessageFilePaths);
         }
-    }
-
-    /**
-     * Gets all relative paths of files for given path by org.springframework.core.io.support.PathMatchingResourcePatternResolver.
-     * @param path Path can contains masked expressions for by org.springframework.core.io.support.PathMatchingResourcePatternResolver.
-     * @return List of relative paths to files
-     * @throws IOException some exception derived from {@link IOException}
-    */
-    private List<String> expandPath(String path) throws IOException {
-        Resource[] resources = resourceLoader.getResources("file:" + path);
-        List<String> list = new ArrayList<>();
-        String currentDir = System.getProperty("user.dir");
-        for (Resource resource : resources) {
-            String relativePath = resource.getFile().getPath();
-            // If is it absolute path then parse relative path to current directory.
-            if (relativePath.startsWith(currentDir)) {
-                relativePath = relativePath.substring(currentDir.length() + 1);
-            }
-            list.add(relativePath);
-        }
-        return list;
     }
 
     private void processPrimaryMessages(String pathToMsgFile, MessageFileContent primaryMessageFileContent, List<String> changedMessageFilePaths) throws IOException {
