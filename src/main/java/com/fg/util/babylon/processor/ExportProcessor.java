@@ -419,18 +419,18 @@ public class ExportProcessor {
      */
     // FIXME: abstractions are wrong
     private void saveDataFileWithoutProperties() throws IOException {
-        File file = new File(configuration.getDataFileName());
         Map<String, MessageFileContent> originalDataPropFiles = dataFileManager.getOriginalDataFile().getDataPropFiles();
 
         Snapshot overriddenSnapshot = dataFileManager.getOrCreateDataFile();
-        overriddenSnapshot.getDataPropFiles().forEach((i, j)->{
-            if (!originalDataPropFiles.containsKey(i)){
-                j.setProperties(new PropertiesMap());
-                originalDataPropFiles.put(i,j);
+        overriddenSnapshot.getDataPropFiles().forEach((filePath, msgFileContent) -> {
+            if (!originalDataPropFiles.containsKey(filePath)) {
+                msgFileContent.setProperties(new PropertiesMap());
+                originalDataPropFiles.put(filePath, msgFileContent);
             }
         });
 
-        JsonUtils.objToJsonFile(file, dataFileManager.getOriginalDataFile(), true);
+        File snapshotFileName = new File(configuration.getDataFileName());
+        JsonUtils.objToJsonFile(snapshotFileName, dataFileManager.getOriginalDataFile(), true);
     }
 
 }
