@@ -71,7 +71,7 @@ public class ExportProcessor {
             processPath(path, changedMessageFilePaths);
         }
         uploadDataToGoogleSpreadsheet(changedMessageFilePaths);
-        saveDataFileWithoutProperties();
+        saveSnapshotWithoutProperties();
         log.info(statistics);
     }
 
@@ -415,20 +415,28 @@ public class ExportProcessor {
     }
 
     /**
-     * Saves created DataFile object without properties into file on disk. Only if DataFile not exists on disk!
+     * Saves created Snapshot object without properties into file on disk. Only if DataFile not exists on disk!
+     * FIXME: tohle prida do snapshotu cesty k novym message souborum, stavajici to ponecha
+     * FIXME: kdyz budu mit seznam novych souboru, nemusim tohle delat
      */
-    // FIXME: abstractions are wrong
-    private void saveDataFileWithoutProperties() throws IOException {
+    private void saveSnapshotWithoutProperties() throws IOException {
         Map<String, MessageFileContent> originalDataPropFiles = dataFileManager.getOriginalDataFile().getDataPropFiles();
 
         Snapshot overriddenSnapshot = dataFileManager.getOrCreateDataFile();
-        overriddenSnapshot.getDataPropFiles().forEach((filePath, msgFileContent) -> {
-            if (!originalDataPropFiles.containsKey(filePath)) {
-                msgFileContent.setProperties(new PropertiesMap());
-                originalDataPropFiles.put(filePath, msgFileContent);
-            }
-        });
+        List<String> newExportedFiles = overriddenSnapshot.getDataPropFiles()
+                .keySet()
+                .stream()
+                .filter(exportedFilePath -> !originalDataPropFiles.containsKey(exportedFilePath))
+                .collect(Collectors.toList());
+        updateSnapshotWithNewFilePaths(newExportedFiles);
+    }
 
+    private void updateSnapshotWithNewFilePaths(Iterable<String> newMsgFiles) throws IOException {
+        Snapshot untouchedSnapshot = dataFileManager.getOriginalDataFile();
+        MessageFileContent emptyContent = new MessageFileContent();
+        newMsgFiles.forEach(newMsgFile ->
+                untouchedSnapshot.putPropFile(newMsgFile, emptyContent)
+        );
         File snapshotFileName = new File(configuration.getDataFileName());
         JsonUtils.objToJsonFile(snapshotFileName, dataFileManager.getOriginalDataFile(), true);
     }
