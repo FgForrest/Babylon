@@ -1,7 +1,28 @@
 package com.fg.util.babylon.export
 
-class MessageFileProcessor(private val snapshotContract: TranslationSnapshotContract) {
+/**
+ * Creates translation sheet content for a single message file.
+ *
+ * @param snapshotReadContract snapshot of current translation state
+ */
+class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshotReadContract) {
 
+    /**
+     * For a single message file path, given primary messages of this message file, languages to translate the messages
+     * to and for each language, translations of the primary messages, produces a "translation sheet".
+     *
+     * Each row of the sheet contains the message key and the message in primary language.
+     * In case a translated message is present in some translations but missing for other languages,
+     * the existing translated messages are contained in the order of [translationLangs]
+     * with null values for the languages where translation is missing.
+     *
+     * @param msgFile path to message file being processed
+     * @param primaryMsgs primary language messages
+     * @param translations translations of messages for each of [translationLangs], might be empty for some languages
+     * @param translationLangs list of languages the messages should be translated to
+     *
+     * @return content of the translation sheet as a list of rows
+     */
     fun prepareTranslationSheet(msgFile: MsgFilePath,
                                 primaryMsgs: Messages,
                                 translations: Map<Language, Messages>,
@@ -16,12 +37,12 @@ class MessageFileProcessor(private val snapshotContract: TranslationSnapshotCont
     private fun determineNewPrimaryMessages(msgFile: MsgFilePath,
                                             primaryMsgs: Map<MessageKey, Message>): Set<MessageKey> =
             // if message file is not present in snapshot, it is a new message file and all its messages are new
-            if (!snapshotContract.includesMsgFile(msgFile)) {
+            if (!snapshotReadContract.includesMsgFile(msgFile)) {
                 primaryMsgs.keys
             } else {
                 primaryMsgs.keys.filter { msgKey ->
                     // if message is not present in snapshot, it is a new message
-                    !snapshotContract.containsMessage(msgKey, msgFile)
+                    !snapshotReadContract.containsMessage(msgKey, msgFile)
                 }.toSet()
             }
 
@@ -31,7 +52,7 @@ class MessageFileProcessor(private val snapshotContract: TranslationSnapshotCont
     private fun determineChangedPrimaryMsgs(msgFile: String,
                                             existingPrimaryMsgs: Messages): Set<MessageKey> =
             existingPrimaryMsgs.filter { (msgKey, currentMsg) ->
-                snapshotContract.getLastMessageValue(msgKey, msgFile) != currentMsg
+                snapshotReadContract.getLastMessageValue(msgKey, msgFile) != currentMsg
             }.keys
 
     /**

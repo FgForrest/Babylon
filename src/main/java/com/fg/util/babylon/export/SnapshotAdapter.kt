@@ -4,40 +4,19 @@ import com.fg.util.babylon.entity.PropertiesMap
 import com.fg.util.babylon.entity.Snapshot
 import java.util.NoSuchElementException
 
-/**
- * Set of operations that is required from the translation snapshot.
- */
-interface TranslationSnapshotContract {
-
-    /**
-     * Check if message file [msgFile] is part of translation snapshot.
-     */
-    fun includesMsgFile(msgFile: MsgFilePath): Boolean
-
-    /**
-     * Check if translation snapshot contains message [msgKey] for file [msgFile].
-     *
-     * @throws NoSuchElementException in case snapshot doesn't include [msgFile] at all
-     */
-    fun containsMessage(msgKey: MessageKey, msgFile: MsgFilePath): Boolean
-
-    /**
-     * Return the message value of the message key [msgKey] as captured in the snapshot.
-     *
-     * @throws NoSuchElementException if snapshot of file [msgFile] does not contain message with key[msgKey]
-     * of if the snapshot doesn't include [msgFile] at all
-     */
-    fun getLastMessageValue(msgKey: MessageKey, msgFile: MsgFilePath): Message
-
-}
 
 /**
  * Delegates to [Snapshot] without exposing its details.
  */
-class SnapshotAdapter(private val snapshot: Snapshot) : TranslationSnapshotContract {
+class SnapshotAdapter(private val snapshot: Snapshot) : TranslationSnapshotReadContract, TranslationSnapshotWriteContract {
 
     override fun includesMsgFile(msgFile: String): Boolean =
             snapshot.getPropFileByFileName(msgFile) != null
+
+    override fun registerMsgFile(msgFilePath: MsgFilePath): Int {
+        val messageFileContent = snapshot.getOrPutNewPropFileByFileName(msgFilePath)!!
+        return messageFileContent.id!!
+    }
 
     override fun containsMessage(msgKey: MessageKey, msgFile: MsgFilePath): Boolean =
             containsMessageInProps(msgKey, getTranslationProperties(msgFile))
