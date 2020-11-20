@@ -16,6 +16,7 @@ import com.fg.util.babylon.statistics.TranslationStatisticsOfExport;
 import com.fg.util.babylon.todo.TranslationFileUtils;
 import com.fg.util.babylon.util.JsonUtils;
 import com.fg.util.babylon.util.PathUtils;
+import com.fg.util.babylon.util.SheetUtils;
 import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
@@ -323,7 +324,7 @@ public class ExportProcessor {
         pauseProcessIfGoogleLimitExceed(sheetData.size(),processedCount);
 
         // Title of target google sheet is created from "properties fileName only" + "#" + "fileName id".
-        String sheetTitle = FilenameUtils.getBaseName(fileNamePath) + "#" + messageFileContent.getId();
+        String sheetTitle = new SheetUtils().getSheetName(fileNamePath, messageFileContent);
         log.info("Uploading data of \"" + fileNamePath + "\" into google sheet \"" + sheetTitle + "\"...");
         sheetRows.addAll(sheetData);
         Sheet sheet = createGoogleSheet(sheetRows, sheetTitle);
