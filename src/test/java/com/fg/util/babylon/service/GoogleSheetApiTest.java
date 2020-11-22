@@ -19,21 +19,21 @@ import java.util.List;
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = GoogleSheetService.class)
+@ContextConfiguration(classes = GoogleSheetApi.class)
 @CommonsLog
 @Ignore("Only for dev testing, because it's meaningful only with real google spreadsheet and valid credentials.json to access to it.")
-public class GoogleSheetServiceTest {
+public class GoogleSheetApiTest {
 
     private static final String GOOGLE_SHEET_ID = "1HONBwFFaXT0-MR-3TkckqhbYKaCbnYpTJ_GZBbWbAyg";
     private static final String SHEET_NAME = "List 1";
 
     @Autowired
-    protected GoogleSheetService googleSheetService;
+    protected GoogleSheetApi googleSheetApi;
 
     @Test
     public void checkAddSheet() throws GeneralSecurityException, IOException {
         SheetParams sheetParams = new SheetParams(SHEET_NAME, 5, 1000);
-        Sheet sheet = googleSheetService.addSheet(GOOGLE_SHEET_ID, sheetParams);
+        Sheet sheet = googleSheetApi.addSheet(GOOGLE_SHEET_ID, sheetParams);
         if (sheet == null) {
             log.info("New sheet \"" + SHEET_NAME + "\" added");
         } else {
@@ -44,7 +44,7 @@ public class GoogleSheetServiceTest {
     @Test
     public void checkSetSheetRowAndColCount() throws IOException, GeneralSecurityException {
         SheetParams sheetParams = new SheetParams(SHEET_NAME, 10, 10);
-        googleSheetService.setSheetRowAndColCount(GOOGLE_SHEET_ID, sheetParams);
+        googleSheetApi.setSheetRowAndColCount(GOOGLE_SHEET_ID, sheetParams);
     }
 
     @Test
@@ -56,15 +56,15 @@ public class GoogleSheetServiceTest {
                 Arrays.asList("valB1", "headB2", "headB3"),
                 Arrays.asList("valC1", "headC2", "headC3")
         );
-        googleSheetService.writeDataIntoSheet(GOOGLE_SHEET_ID, SHEET_NAME, values);
+        googleSheetApi.writeDataIntoSheet(GOOGLE_SHEET_ID, SHEET_NAME, values);
     }
 
     @Test
     public void checkDeleteAllSheets() throws GeneralSecurityException, IOException {
-        List<Sheet> allSheets = googleSheetService.getAllSheets(GOOGLE_SHEET_ID);
+        List<Sheet> allSheets = googleSheetApi.getAllSheets(GOOGLE_SHEET_ID);
         String uniqueSheetTitle = "Sheet " + System.currentTimeMillis();
         SheetParams sheetParams = new SheetParams(uniqueSheetTitle, 5, 1000);
-        googleSheetService.addSheet(GOOGLE_SHEET_ID, sheetParams);
-        googleSheetService.deleteSheets(GOOGLE_SHEET_ID, allSheets);
+        googleSheetApi.addSheet(GOOGLE_SHEET_ID, sheetParams);
+        googleSheetApi.deleteSheets(GOOGLE_SHEET_ID, allSheets);
     }
 }

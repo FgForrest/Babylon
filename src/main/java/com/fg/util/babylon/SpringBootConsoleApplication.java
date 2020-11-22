@@ -5,7 +5,7 @@ import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
-import com.fg.util.babylon.service.GoogleSheetService;
+import com.fg.util.babylon.service.GoogleSheetApi;
 import com.fg.util.babylon.service.TranslationService;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.boot.CommandLineRunner;
@@ -23,11 +23,11 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class SpringBootConsoleApplication implements CommandLineRunner {
 
-    private GoogleSheetService googleSheetService;
+    private GoogleSheetApi googleSheetApi;
     private TranslationConfigurationReader configurationReader;
 
     public SpringBootConsoleApplication() {
-        googleSheetService = new GoogleSheetService();
+        googleSheetApi = new GoogleSheetApi();
         configurationReader = new TranslationConfigurationReader();
     }
 
@@ -47,7 +47,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
             log.info("Loading config file: '" + arguments.getConfigFileName() + "'");
             TranslationConfiguration configuration = configurationReader.readAndCheckConfiguration(arguments.getConfigFileName());
             DataFileManager dataFileManager = new DataFileManager(configuration.getDataFileName());
-            TranslationService ts = new TranslationService(googleSheetService, dataFileManager, arguments, configuration);
+            TranslationService ts = new TranslationService(googleSheetApi, dataFileManager, arguments, configuration);
             ts.startTranslation();
         } catch (Exception e) {
             log.error("BABYLON ERROR: ", e);
