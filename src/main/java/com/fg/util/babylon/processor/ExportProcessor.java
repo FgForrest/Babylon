@@ -297,18 +297,6 @@ public class ExportProcessor {
         }
     }
 
-    private Sheet createGoogleSheet(List<List<Object>> sheetRows, String sheetTitle) throws GeneralSecurityException, IOException {
-        Integer columnCount = sheetRows.get(0).size();
-        Integer rowCount = sheetRows.size();
-        SheetParams sheetParams = new SheetParams(sheetTitle, columnCount, rowCount);
-        // Freezes first row (header) to prevent scrolling of this row with rest of data.
-        if (rowCount > 1) {
-            sheetParams.setFrozenRowCount(1);
-            sheetParams.setFrozenColumnCount(2);
-        }
-        return googleSheetService.addSheet(googleSheetId, sheetParams);
-    }
-
     private void uploadDataToGoogleSheet(MessageFileContent messageFileContent, String fileNamePath, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
         // Add header into sheet
         List<List<Object>> sheetRows = new LinkedList<>(createSheetHeader());
@@ -338,6 +326,18 @@ public class ExportProcessor {
         googleSheetService.resizeAllColumns(googleSheetId, sheet.getProperties().getSheetId());
         googleSheetService.protectFirstColumns(googleSheetId, sheet.getProperties().getSheetId());
         hideSheetFirstColumn(sheet.getProperties().getSheetId());
+    }
+
+    private Sheet createGoogleSheet(List<List<Object>> sheetRows, String sheetTitle) throws GeneralSecurityException, IOException {
+        Integer columnCount = sheetRows.get(0).size();
+        Integer rowCount = sheetRows.size();
+        SheetParams sheetParams = new SheetParams(sheetTitle, columnCount, rowCount);
+        // Freezes first row (header) to prevent scrolling of this row with rest of data.
+        if (rowCount > 1) {
+            sheetParams.setFrozenRowCount(1);
+            sheetParams.setFrozenColumnCount(2);
+        }
+        return googleSheetService.addSheet(googleSheetId, sheetParams);
     }
 
     private void pauseProcessIfGoogleLimitExceed(int size, AtomicInteger processedCount) {

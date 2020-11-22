@@ -25,7 +25,7 @@ public class MessageFileContent implements Serializable {
      * Unique id of relative path to source/destination properties file. This code is used like the short unique identifier
      * of the path in google sheet.
      */
-    private Integer id;
+    /* private */ public Integer id; //FIXME
 
     /**
      * Properties like {@link PropertiesMap}
