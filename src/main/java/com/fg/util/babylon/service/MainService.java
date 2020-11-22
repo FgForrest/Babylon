@@ -20,14 +20,14 @@ import java.security.GeneralSecurityException;
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @CommonsLog
-public class TranslationService {
+public class MainService {
 
     private final ExportProcessor exportProcessor;
     private final ImportProcessor importProcessor;
     private final Action action;
     private final TranslationConfiguration configuration;
 
-    public TranslationService(GoogleSheetApi gsApi, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) {
+    public MainService(GoogleSheetApi gsApi, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) {
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
         I18nFileManager i18FileManager = new I18nFileManager();
         TranslationSheetService tss = new TranslationSheetService(gsApi, arguments.getGoogleSheetId());
