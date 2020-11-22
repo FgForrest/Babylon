@@ -10,7 +10,7 @@ import com.fg.util.babylon.exception.ParsePropIdException;
 import com.fg.util.babylon.exception.PropIdNotFoundException;
 import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
 import com.fg.util.babylon.propfiles.Property;
-import com.fg.util.babylon.service.GoogleSheetService;
+import com.fg.util.babylon.service.GoogleSheetApi;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfImport;
 import com.fg.util.babylon.todo.TranslationFileUtils;
@@ -38,19 +38,19 @@ public class ImportProcessor {
 
     private final DataFileManager dataFileManager;
     private final I18nFileManager i18nFileManager;
-    private final GoogleSheetService googleSheetService;
+    private final GoogleSheetApi googleSheetApi;
 
     private final String googleSheetId;
     private final TranslationConfiguration configuration;
 
-    public ImportProcessor(GoogleSheetService googleSheetService,
+    public ImportProcessor(GoogleSheetApi googleSheetApi,
                            DataFileManager dataFileManager,
                            I18nFileManager i18nFileManager,
                            String googleSheetId,
                            TranslationConfiguration configuration) {
         this.dataFileManager = dataFileManager;
         this.i18nFileManager =  i18nFileManager;
-        this.googleSheetService = googleSheetService;
+        this.googleSheetApi = googleSheetApi;
         this.googleSheetId = googleSheetId;
         this.configuration = configuration;
     }
@@ -59,7 +59,7 @@ public class ImportProcessor {
         log.info("Started translation IMPORT with Google sheet id: '" + googleSheetId +"'");
         TranslationStatisticsOfImport statistics = new TranslationStatisticsOfImport();
         statistics.setAction(Action.IMPORT);
-        List<Sheet> sheets = googleSheetService.getAllSheetsWithData(googleSheetId);
+        List<Sheet> sheets = googleSheetApi.getAllSheetsWithData(googleSheetId);
         if (sheets == null || sheets.isEmpty()) {
             throw new NoSheetsException("Source spreadsheet " + googleSheetId + " not contains any sheets.");
         }

@@ -10,7 +10,7 @@ import com.fg.util.babylon.enums.PropertyType;
 import com.fg.util.babylon.exception.SheetExistsException;
 import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
 import com.fg.util.babylon.propfiles.Property;
-import com.fg.util.babylon.service.GoogleSheetService;
+import com.fg.util.babylon.service.GoogleSheetApi;
 import com.fg.util.babylon.statistics.ExportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfExport;
 import com.fg.util.babylon.todo.TranslationFileUtils;
@@ -20,7 +20,6 @@ import com.fg.util.babylon.util.SheetUtils;
 import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,14 +39,14 @@ public class ExportProcessor {
     private final DataFileManager dataFileManager;
     private final AntPathResourceLoader resourceLoader;
     private final I18nFileManager i18nFileManager;
-    private final GoogleSheetService googleSheetService;
+    private final GoogleSheetApi googleSheetApi;
 
     private final String googleSheetId;
     private final TranslationConfiguration configuration;
 
     protected TranslationStatisticsOfExport statistics;
 
-    public ExportProcessor(GoogleSheetService googleSheetService,
+    public ExportProcessor(GoogleSheetApi googleSheetApi,
                            DataFileManager dataFileManager,
                            I18nFileManager i18nFileManager,
                            AntPathResourceLoader resourceLoader,
@@ -56,7 +55,7 @@ public class ExportProcessor {
         this.dataFileManager = dataFileManager;
         this.resourceLoader = resourceLoader;
         this.i18nFileManager = i18nFileManager;
-        this.googleSheetService = googleSheetService;
+        this.googleSheetApi = googleSheetApi;
         this.googleSheetId = googleSheetId;
         this.configuration = configuration;
     }
@@ -282,7 +281,7 @@ public class ExportProcessor {
         // FIXME: why atomic?
         AtomicInteger processedCount = new AtomicInteger(0);
         // Gets all sheets existing at this moment.
-        List<Sheet> prevAllSheets = googleSheetService.getAllSheets(googleSheetId);
+        List<Sheet> prevAllSheets = googleSheetApi.getAllSheets(googleSheetId);
         for (Map.Entry<String, MessageFileContent> entry : changedMessages.entrySet()) {
             String fileNamePath = entry.getKey();
             MessageFileContent messageFileContent = entry.getValue();
@@ -291,9 +290,9 @@ public class ExportProcessor {
         }
         // Delete all previously existing sheets (usually default "Sheet 1" of new empty spreadsheet) if
         // current sheets count is greater then previous.
-        List<Sheet> currAllSheets = googleSheetService.getAllSheets(googleSheetId);
+        List<Sheet> currAllSheets = googleSheetApi.getAllSheets(googleSheetId);
         if (currAllSheets.size() > prevAllSheets.size()) {
-            googleSheetService.deleteSheets(googleSheetId, prevAllSheets);
+            googleSheetApi.deleteSheets(googleSheetId, prevAllSheets);
         }
     }
 
@@ -320,11 +319,11 @@ public class ExportProcessor {
             throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
         }
 
-        googleSheetService.writeDataIntoSheet(googleSheetId, sheetTitle, sheetRows);
-        sheet = googleSheetService.getSheet(googleSheetId, sheetTitle);
-        googleSheetService.setWrappingStrategy(googleSheetId,sheet.getProperties().getSheetId());
-        googleSheetService.resizeAllColumns(googleSheetId, sheet.getProperties().getSheetId());
-        googleSheetService.protectFirstColumns(googleSheetId, sheet.getProperties().getSheetId());
+        googleSheetApi.writeDataIntoSheet(googleSheetId, sheetTitle, sheetRows);
+        sheet = googleSheetApi.getSheet(googleSheetId, sheetTitle);
+        googleSheetApi.setWrappingStrategy(googleSheetId,sheet.getProperties().getSheetId());
+        googleSheetApi.resizeAllColumns(googleSheetId, sheet.getProperties().getSheetId());
+        googleSheetApi.protectFirstColumns(googleSheetId, sheet.getProperties().getSheetId());
         hideSheetFirstColumn(sheet.getProperties().getSheetId());
     }
 
@@ -337,7 +336,7 @@ public class ExportProcessor {
             sheetParams.setFrozenRowCount(1);
             sheetParams.setFrozenColumnCount(2);
         }
-        return googleSheetService.addSheet(googleSheetId, sheetParams);
+        return googleSheetApi.addSheet(googleSheetId, sheetParams);
     }
 
     private void pauseProcessIfGoogleLimitExceed(int size, AtomicInteger processedCount) {
@@ -412,7 +411,7 @@ public class ExportProcessor {
                 .setDimension("COLUMNS")
                 .setStartIndex(0)
                 .setEndIndex(1);
-        googleSheetService.hideDimensionRange(googleSheetId, dimensionRange);
+        googleSheetApi.hideDimensionRange(googleSheetId, dimensionRange);
     }
 
     /**

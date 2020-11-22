@@ -29,7 +29,7 @@ import static java.util.Collections.singletonList;
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @CommonsLog
-public class GoogleSheetService {
+public class GoogleSheetApi {
 
     private static final String APPLICATION_NAME = "Google Sheets API for Babylon";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();

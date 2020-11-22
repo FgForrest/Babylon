@@ -25,7 +25,7 @@ public class TranslationService {
     private final ImportProcessor importProcessor;
     private final Action action;
 
-    public TranslationService(GoogleSheetService gss, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) {
+    public TranslationService(GoogleSheetApi gss, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) {
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
         I18nFileManager i18FileManager = new I18nFileManager();
         exportProcessor = new ExportProcessor(gss, dfm, i18FileManager, springResLoader, arguments.getGoogleSheetId(), configuration);
