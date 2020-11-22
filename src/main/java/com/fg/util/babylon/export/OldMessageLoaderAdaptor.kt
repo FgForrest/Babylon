@@ -4,14 +4,6 @@ import com.fg.util.babylon.processor.I18nFileManager
 import com.fg.util.babylon.propfiles.Property
 import com.fg.util.babylon.todo.TranslationFileUtils
 
-interface MessageLoader {
-
-    fun loadPrimaryMessages(filePath: String): Messages
-
-    fun loadTranslations(filePath: String, languages: List<Language>): Map<Language, Messages>
-
-}
-
 class OldMessageLoaderAdaptor(private val i18nFileManager: I18nFileManager) : MessageLoader {
 
     override fun loadPrimaryMessages(filePath: String): Messages {
