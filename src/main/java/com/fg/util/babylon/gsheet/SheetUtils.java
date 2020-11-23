@@ -11,6 +11,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Deals with sheets, but outside of Google Sheets API. Only prepares data. Soon to be deprecated.
+ */
 public class SheetUtils {
 
     public String getSheetName(String msgFilePath, Integer msgFileId) {
