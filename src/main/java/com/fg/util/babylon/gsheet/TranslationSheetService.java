@@ -90,7 +90,7 @@ public class TranslationSheetService {
         }
     }
 
-    private void uploadDataToGoogleSheet(List<List<String>> sheetRows, String sheetTitle, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
+    public void uploadDataToGoogleSheet(List<List<String>> sheetRows, String sheetTitle, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
         pauseProcessIfGoogleLimitExceed(sheetRows.size(), processedCount);
 
         Sheet sheet = createGoogleSheet(sheetRows, sheetTitle);
