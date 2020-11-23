@@ -4,12 +4,11 @@ import com.fg.util.babylon.SheetConstants;
 import com.fg.util.babylon.entity.MessageFileContent;
 import com.fg.util.babylon.entity.PropertiesMap;
 import com.fg.util.babylon.enums.PropertyStatus;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Deals with sheets, but outside of Google Sheets API. Only prepares data. Soon to be deprecated.
@@ -25,7 +24,8 @@ public class SheetUtils {
     }
 
     public List<String> createSheetHeader(List<String> translationLangs) {
-        List<String> headerValues = Arrays.asList(SheetConstants.COL_KEY, SheetConstants.COL_PRIMARY);
+        List<String> headerValues = new ArrayList<>();
+        headerValues.addAll(Arrays.asList(SheetConstants.COL_KEY, SheetConstants.COL_PRIMARY));
         headerValues.addAll(translationLangs);
         return headerValues;
     }

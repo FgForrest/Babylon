@@ -2,8 +2,10 @@ package com.fg.util.babylon.service;
 
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
+import com.fg.util.babylon.entity.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
+import com.fg.util.babylon.export.*;
 import com.fg.util.babylon.gsheet.TranslationSheetService;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.processor.ExportProcessor;
@@ -27,7 +29,9 @@ public class MainService {
     private final Action action;
     private final TranslationConfiguration configuration;
 
-    public MainService(GoogleSheetApi gsApi, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) {
+    private final NewExporter newExporter;
+
+    public MainService(GoogleSheetApi gsApi, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) throws IOException {
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
         I18nFileManager i18FileManager = new I18nFileManager();
         TranslationSheetService tss = new TranslationSheetService(gsApi, arguments.getGoogleSheetId());
@@ -35,13 +39,21 @@ public class MainService {
         importProcessor = new ImportProcessor(gsApi, dfm, i18FileManager, arguments.getGoogleSheetId(), configuration);
         this.configuration = configuration;
         this.action = arguments.getAction();
+
+        MessageLoader ml = new OldMessageLoaderAdaptor(i18FileManager);
+        Snapshot snapshot = dfm.getOrCreateDataFile();
+        SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
+        MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
+        Exporter exporter = new Exporter(ml, mfp, springResLoader, snapshotAdapter, snapshotAdapter);
+        newExporter = new NewExporter(exporter, tss);
     }
 
     public void startTranslation() throws IOException, GeneralSecurityException, InterruptedException {
         long stTime = System.currentTimeMillis();
         switch (action) {
             case EXPORT:
-                exportProcessor.doExport(configuration.getMutations());
+                newExporter.go(configuration.getPath(), configuration.getMutations());
+//                exportProcessor.doExport(configuration.getMutations());
                 break;
             case IMPORT:
                 importProcessor.doImport();
