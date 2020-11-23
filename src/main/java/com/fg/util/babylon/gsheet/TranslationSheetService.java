@@ -45,11 +45,10 @@ public class TranslationSheetService {
                 .filter(i -> changedMessageFilePaths.contains(i.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        doUploadDataToGoogleSpreadsheet(changedMessages, changedMessageFilePaths, translationLangs);
+        doUploadDataToGoogleSpreadsheet(changedMessages, translationLangs);
     }
 
-    private void doUploadDataToGoogleSpreadsheet(Map<String, MessageFileContent> changedMessages, List<String> changedMessageFilePaths, List<String> translationLangs) throws GeneralSecurityException, IOException {
-        // FIXME: why atomic?
+    private void doUploadDataToGoogleSpreadsheet(Map<String, MessageFileContent> changedMessages, List<String> translationLangs) throws GeneralSecurityException, IOException {
         AtomicInteger processedCount = new AtomicInteger(0);
         // Gets all sheets existing at this moment.
         List<Sheet> prevAllSheets = googleSheetApi.getAllSheets(googleSheetId);
@@ -57,7 +56,7 @@ public class TranslationSheetService {
             String fileNamePath = entry.getKey();
             MessageFileContent messageFileContent = entry.getValue();
 
-            uploadDataToGoogleSheet(messageFileContent, fileNamePath, processedCount, translationLangs);
+            prepareAndUploadDataToGoogleSheet(messageFileContent, fileNamePath, translationLangs, processedCount);
         }
         // Delete all previously existing sheets (usually default "Sheet 1" of new empty spreadsheet) if
         // current sheets count is greater then previous.
@@ -67,28 +66,33 @@ public class TranslationSheetService {
         }
     }
 
-    private void uploadDataToGoogleSheet(MessageFileContent messageFileContent, String fileNamePath, AtomicInteger processedCount, List<String> translationLangs) throws IOException, GeneralSecurityException {
+    private void prepareAndUploadDataToGoogleSheet(MessageFileContent messageFileContent, String fileNamePath, List<String> translationLangs, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
         SheetUtils sheetUtils = new SheetUtils();
 
         // Add data into sheet
         List<List<String>> sheetData = sheetUtils.createSheetData(messageFileContent, translationLangs);
 
-        // If no data to upload return
-        if (sheetData.isEmpty()) {
-            log.info("No changed data for primary properties file and its mutation files: " + fileNamePath);
-            return;
-        }
+        List<String> sheetHeader = sheetUtils.createSheetHeader(translationLangs);
 
         List<List<String>> sheetRows = new ArrayList<>();
-        List<String> sheetHeader = sheetUtils.createSheetHeader(translationLangs);
         sheetRows.add(sheetHeader);
-
-        pauseProcessIfGoogleLimitExceed(sheetData.size(), processedCount);
+        sheetRows.addAll(sheetData);
 
         // Title of target google sheet is created from "properties fileName only" + "#" + "fileName id".
         String sheetTitle = new SheetUtils().getSheetName(fileNamePath, messageFileContent);
-        log.info("Uploading data of \"" + fileNamePath + "\" into google sheet \"" + sheetTitle + "\"...");
-        sheetRows.addAll(sheetData);
+
+        // If no data to upload return
+        if (!sheetData.isEmpty()) {
+            log.info("Uploading data of \"" + fileNamePath + "\" into google sheet \"" + sheetTitle + "\"...");
+            uploadDataToGoogleSheet(sheetRows, sheetTitle, processedCount);
+        } else {
+            log.info("No changed data for primary properties file and its mutation files: " + fileNamePath);
+        }
+    }
+
+    private void uploadDataToGoogleSheet(List<List<String>> sheetRows, String sheetTitle, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
+        pauseProcessIfGoogleLimitExceed(sheetRows.size(), processedCount);
+
         Sheet sheet = createGoogleSheet(sheetRows, sheetTitle);
         if (sheet != null) {
             throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
@@ -129,8 +133,6 @@ public class TranslationSheetService {
             }
         }
     }
-
-
 
     /**
      * Hiding of first column which contains properties keys, because it's not important for workers in translation agency.
