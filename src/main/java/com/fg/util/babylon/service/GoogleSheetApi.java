@@ -180,9 +180,11 @@ public class GoogleSheetApi {
      * @throws IOException some exception derived from {@link IOException}
      * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      */
-    public void writeDataIntoSheet(final String spreadsheetId, final String range, final List<List<Object>> values) throws IOException, GeneralSecurityException {
+    public void writeDataIntoSheet(final String spreadsheetId, final String range, final List<? extends List<? extends Object>> values) throws IOException, GeneralSecurityException {
+        // casting to List<List<Object>> is safe here, the Sheets API could have accepted List<? extends List<? extends Object>> in setValues()
+        List<List<Object>> castValues = (List)values;
         ValueRange body = new ValueRange()
-                .setValues(values);
+                .setValues(castValues);
         UpdateValuesResponse result = getSheetService().spreadsheets().values().update(spreadsheetId, range, body)
                         .setValueInputOption("RAW")
                         .execute();

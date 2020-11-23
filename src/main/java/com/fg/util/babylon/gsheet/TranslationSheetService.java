@@ -1,23 +1,18 @@
 package com.fg.util.babylon.gsheet;
 
-import com.fg.util.babylon.SheetConstants;
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.MessageFileContent;
-import com.fg.util.babylon.entity.PropertiesMap;
 import com.fg.util.babylon.entity.SheetParams;
-import com.fg.util.babylon.enums.PropertyStatus;
 import com.fg.util.babylon.exception.SheetExistsException;
 import com.fg.util.babylon.service.GoogleSheetApi;
-import com.fg.util.babylon.util.SheetUtils;
 import com.google.api.services.sheets.v4.model.DimensionRange;
 import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,16 +68,20 @@ public class TranslationSheetService {
     }
 
     private void uploadDataToGoogleSheet(MessageFileContent messageFileContent, String fileNamePath, AtomicInteger processedCount, List<String> translationLangs) throws IOException, GeneralSecurityException {
-        // Add header into sheet
-        List<List<Object>> sheetRows = new LinkedList<>(createSheetHeader(translationLangs));
+        SheetUtils sheetUtils = new SheetUtils();
+
         // Add data into sheet
-        List<List<Object>> sheetData = createSheetData(messageFileContent, translationLangs);
+        List<List<String>> sheetData = sheetUtils.createSheetData(messageFileContent, translationLangs);
 
         // If no data to upload return
         if (sheetData.isEmpty()) {
             log.info("No changed data for primary properties file and its mutation files: " + fileNamePath);
             return;
         }
+
+        List<List<String>> sheetRows = new ArrayList<>();
+        List<String> sheetHeader = sheetUtils.createSheetHeader(translationLangs);
+        sheetRows.add(sheetHeader);
 
         pauseProcessIfGoogleLimitExceed(sheetData.size(), processedCount);
 
@@ -103,7 +102,7 @@ public class TranslationSheetService {
         hideSheetFirstColumn(sheet.getProperties().getSheetId());
     }
 
-    private Sheet createGoogleSheet(List<List<Object>> sheetRows, String sheetTitle) throws GeneralSecurityException, IOException {
+    private Sheet createGoogleSheet(List<List<String>> sheetRows, String sheetTitle) throws GeneralSecurityException, IOException {
         Integer columnCount = sheetRows.get(0).size();
         Integer rowCount = sheetRows.size();
         SheetParams sheetParams = new SheetParams(sheetTitle, columnCount, rowCount);
@@ -131,49 +130,7 @@ public class TranslationSheetService {
         }
     }
 
-    private List<List<Object>> createSheetHeader(List<String> translationLangs) {
-        List<List<Object>> sheetHeader = new LinkedList<>();
-        List<Object> headerValues = new LinkedList<>(Arrays.asList(SheetConstants.COL_KEY, SheetConstants.COL_PRIMARY));
-        headerValues.addAll(translationLangs);
-        sheetHeader.add(headerValues);
-        return sheetHeader;
-    }
 
-    private List<List<Object>> createSheetData(MessageFileContent messageFileContent, List<String> translationLangs) {
-        List<List<Object>> sheetData = new LinkedList<>();
-        for (Map.Entry<String, String> entry : messageFileContent.getProperties().entrySet()) {
-            // Add row only if status != UNCHANGED
-            PropertyStatus propertyStatus = messageFileContent.getPropertyStatus(entry.getKey());
-            if (propertyStatus == PropertyStatus.UNCHANGED) {
-                continue;
-            }
-            // Replace doubled quotes in case of variable in property
-            String entryValue = entry.getValue();
-            if (entryValue.matches(".*\\{.}.*")) {
-                entryValue = entryValue.replace("''", "'");
-            }
-
-            // Add key name and primary mutation value
-            List<Object> rowValues = new LinkedList<>(Arrays.asList(entry.getKey(), entryValue));
-            // Add all secondary mutations values
-            for (String mutation : translationLangs) {
-                PropertiesMap mutationsPropsMap = messageFileContent.getMutationProperties(mutation);
-                if (mutationsPropsMap == null) {
-                    mutationsPropsMap = new PropertiesMap();
-                    messageFileContent.putMutationProperties(mutation, mutationsPropsMap);
-                }
-                String mutationValue = mutationsPropsMap.get(entry.getKey());
-                // Replace doubled quotes in case of variable in property
-                if (mutationValue != null && mutationValue.matches(".*\\{.}.*")) {
-                    mutationValue = mutationValue.replace("''", "'");
-                }
-
-                rowValues.add(mutationValue);
-            }
-            sheetData.add(rowValues);
-        }
-        return sheetData;
-    }
 
     /**
      * Hiding of first column which contains properties keys, because it's not important for workers in translation agency.
