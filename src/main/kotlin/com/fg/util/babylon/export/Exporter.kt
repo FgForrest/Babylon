@@ -52,18 +52,26 @@ class Exporter(private val messageLoader: MessageLoader,
     private fun newTranslationSheet(sheetRows: SheetRows, sheetId: Int, msgFilePath: String, translateTo: List<Language>): TranslationSheet {
         val header = createSheetHeader(msgFilePath, translateTo)
         val sheetName = SheetUtils().getSheetName(msgFilePath, sheetId)
-        return TranslationSheet(sheetName, header, sheetRows)
+        val allRows = listOf(header) + sheetRows
+        return TranslationSheet(sheetName, allRows)
     }
 
-    private fun createSheetHeader(msgFilePath: String, targetLangs: List<Language>): List<String> =
+    private fun createSheetHeader(msgFilePath: String, targetLangs: List<Language>): SheetRow =
             listOf("key", "primary") + targetLangs
 
     data class ExportResult(val pathsOfNewMsgFiles: Iterable<String>,
                             val sheets: List<TranslationSheet>)
 
     data class TranslationSheet(val sheetName: String,
-                                val header: List<String>,
-                                val rows: SheetRows)
+                                val rows: SheetRows) {
+
+        val dataRows: SheetRows
+            get() = rows.subList(1, rows.size)
+
+        val header: SheetRows
+            get() = rows.subList(0, 1)
+
+    }
 
 }
 
