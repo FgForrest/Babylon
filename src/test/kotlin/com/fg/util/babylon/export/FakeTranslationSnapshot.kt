@@ -1,6 +1,5 @@
-package com.fg.util.babylon
+package com.fg.util.babylon.export
 
-import com.fg.util.babylon.export.*
 import java.util.NoSuchElementException
 
 class FakeTranslationSnapshot(val content: Map<MsgFilePath, Messages>) : TranslationSnapshotReadContract {
