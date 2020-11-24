@@ -3,11 +3,13 @@ package com.fg.util.babylon.export
 import com.fg.util.babylon.processor.I18nFileManager
 import com.fg.util.babylon.propfiles.Property
 import com.fg.util.babylon.todo.TranslationFileUtils
+import java.lang.IllegalArgumentException
 
 class OldMessageLoaderAdaptor(private val i18nFileManager: I18nFileManager) : MessageLoader {
 
     override fun loadPrimaryMessages(filePath: String): Messages {
-        val propertyFileAR = i18nFileManager.loadPropertiesFromFile(filePath)!!
+        val propertyFileAR = i18nFileManager.loadPropertiesFromFile(filePath)
+                ?: throw IllegalArgumentException("Message file $filePath could not be found.")
         return dumpPropertyFile(propertyFileAR)
     }
 
