@@ -1,6 +1,5 @@
 package com.fg.util.babylon.export
 
-import com.fg.util.babylon.FakeTranslationSnapshot
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 
