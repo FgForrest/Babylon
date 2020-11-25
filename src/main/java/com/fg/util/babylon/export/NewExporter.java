@@ -33,11 +33,17 @@ public class NewExporter {
         result.getSheets().stream().forEach(sheet -> {
             try {
                 tss.uploadDataToGoogleSheet(sheet.getRows(), sheet.getSheetName(), processed);
-                ss.updateSnapshotWithNewFilePaths(originalSnapshot, result.getPathsOfNewMsgFiles(), config.getDataFileName());
             } catch (IOException | GeneralSecurityException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
         });
+        //FIXME: pridat logovani asi?
+        try {
+            ss.updateSnapshotWithNewFilePaths(originalSnapshot, result.getPathsOfNewMsgFiles(), config.getDataFileName());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }
