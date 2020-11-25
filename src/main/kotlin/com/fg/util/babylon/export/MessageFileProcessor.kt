@@ -27,16 +27,27 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
                                 primaryMsgs: Messages,
                                 translations: Map<Language, Messages>,
                                 translationLangs: List<Language>): SheetRows {
-        val newMessageKeys = determineNewPrimaryMessages(msgFile, primaryMsgs)
+        val newMessageKeys = determineNewMessageKeysUsingComparisonWithTranslation(primaryMsgs, translations)
         val existingMessages = primaryMsgs - newMessageKeys
         val keysOfChangedMsgs = determineChangedPrimaryMsgs(msgFile, existingMessages)
         val keysOfMissingTranslations = determineMissingTranslatedMsgs(existingMessages, translations.values)
         return createTranslationSheet(msgFile, primaryMsgs, translations, translationLangs, newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations)
     }
 
-    private fun determineNewPrimaryMessages(msgFile: MsgFilePath,
-                                            primaryMsgs: Map<MessageKey, Message>): Set<MessageKey> =
-            // if message file is not present in snapshot, it is a new message file and all its messages are new
+    // if primary message is not contained in any translation, then it is a new message
+    private fun determineNewMessageKeysUsingComparisonWithTranslation(primaryMsgs: Messages,
+                                                                      translations: Map<Language, Messages>): Set<MessageKey> {
+        val allTranslationKeys = translations.values
+                .map { it.keys }
+                .fold(emptySet(), Set<MessageKey>::union)
+        return primaryMsgs.keys
+                .filter { !allTranslationKeys.contains(it) }
+                .toSet()
+    }
+
+    // if message file is not present in snapshot, it is a new message file and all its messages are new
+    private fun determineNewPrimaryMessagesUsingSnapshot(msgFile: MsgFilePath,
+                                                         primaryMsgs: Messages): Set<MessageKey> =
             if (!snapshotReadContract.includesMsgFile(msgFile)) {
                 primaryMsgs.keys
             } else {
@@ -51,9 +62,13 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
      */
     private fun determineChangedPrimaryMsgs(msgFile: String,
                                             existingPrimaryMsgs: Messages): Set<MessageKey> =
-            existingPrimaryMsgs.filter { (msgKey, currentMsg) ->
-                snapshotReadContract.getLastMessageValue(msgKey, msgFile) != currentMsg
-            }.keys
+            if (!snapshotReadContract.includesMsgFile(msgFile)) {
+                emptySet()
+            } else {
+                existingPrimaryMsgs.filter { (msgKey, currentMsg) ->
+                    snapshotReadContract.getLastMessageValue(msgKey, msgFile) != currentMsg
+                }.keys
+            }
 
     /**
      * Given primary language messages and corresponding translations, returns keys of messages that are missing
@@ -66,7 +81,7 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
             msgs.filterValues { !it.isNullOrEmpty() }.keys
         }
         val keysInEveryTranslationBundle = if (nonEmptyMsgKeys.isEmpty())
-            // reduce doesn't work on empty collection, fold doesn't play well with intersection operation
+        // reduce doesn't work on empty collection, fold doesn't play well with intersection operation
             emptySet()
         else
             nonEmptyMsgKeys.reduce { acc: Set<MessageKey>, messageKeys ->

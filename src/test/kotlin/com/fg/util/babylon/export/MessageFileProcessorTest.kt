@@ -81,7 +81,7 @@ class MessageFileProcessorTest {
 
         val expected = listOf(
                 listOf("pagination.prev", "Previous", "Předchozí", null),
-                listOf("pagination.next", "Next", null, "Nasledujúce", null),
+                listOf("pagination.next", "Next", null, "Nasledujúce"),
                 listOf("price.zeroPriceString", "Free", null, null))
 
         val mfProcessor = MessageFileProcessor(emptySnapshot)
