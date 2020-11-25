@@ -36,7 +36,7 @@ public class MainService {
     public MainService(GoogleSheetApi gsApi, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) throws IOException {
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
         I18nFileManager i18FileManager = new I18nFileManager();
-        TranslationSheetService tss = new TranslationSheetService(gsApi, arguments.getGoogleSheetId());
+        TranslationSheetService tss = new TranslationSheetService(gsApi);
         exportProcessor = new ExportProcessor(tss, dfm, i18FileManager, springResLoader, configuration);
         importProcessor = new ImportProcessor(gsApi, dfm, i18FileManager, arguments.getGoogleSheetId(), configuration);
         this.configuration = configuration;
@@ -51,11 +51,11 @@ public class MainService {
         newExporter = new NewExporter(exporter, tss, dfm, gsc);
     }
 
-    public void startTranslation() throws IOException, GeneralSecurityException, InterruptedException {
+    public void startTranslation(String spreadsheetId) throws IOException, GeneralSecurityException, InterruptedException {
         long stTime = System.currentTimeMillis();
         switch (action) {
             case EXPORT:
-                newExporter.go(configuration.getPath(), configuration);
+                newExporter.go(configuration.getPath(), spreadsheetId, configuration);
 //                exportProcessor.doExport(configuration.getMutations());
                 break;
             case IMPORT:

@@ -49,8 +49,8 @@ public class ExportProcessor {
         this.configuration = configuration;
     }
 
-    public void doExport(List<String> translationLangs) throws IOException, GeneralSecurityException {
-        log.info("Started translation EXPORT with Google sheet id: '" + translationSheetService.googleSheetId +"'");
+    public void doExport(List<String> translationLangs, String spreadsheetId) throws IOException, GeneralSecurityException {
+        log.info("Started translation EXPORT with Google sheet id: '" + spreadsheetId +"'");
         statistics = new TranslationStatisticsOfExport();
         statistics.setAction(Action.EXPORT);
 
@@ -59,7 +59,7 @@ public class ExportProcessor {
         for (String path : configuration.getPath()) {
             processPath(path, changedMessageFilePaths);
         }
-        translationSheetService.uploadDataToGoogleSpreadsheet(dataFileManager, changedMessageFilePaths, translationLangs);
+        translationSheetService.uploadDataToGoogleSpreadsheet(spreadsheetId, dataFileManager, changedMessageFilePaths, translationLangs);
         saveSnapshotWithoutProperties();
         log.info(statistics);
     }
