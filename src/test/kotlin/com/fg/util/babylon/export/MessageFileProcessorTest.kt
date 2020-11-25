@@ -6,7 +6,7 @@ import org.junit.Test
 class MessageFileProcessorTest {
 
     @Test
-    fun `when no snapshot of previous translation and no translations (first run case) then all messages are exported to translation sheet`() {
+    fun `when no snapshot of previous translation and no translations then all messages are exported to translation sheet`() {
         val emptySnapshot = FakeTranslationSnapshot(emptyMap())
 
         val primaryMessages = mapOf(
@@ -58,6 +58,33 @@ class MessageFileProcessorTest {
                 listOf("availability.text.NOT_AVAILABLE", "Momentarily unavailable", null, null))
 
         val mfProcessor = MessageFileProcessor(snapshot)
+        val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
+        assertEquals(expected, sheet)
+    }
+
+    @Test
+    fun `when a message is missing some translations then the message values existing translations are included in the translation sheet`() {
+        val emptySnapshot = FakeTranslationSnapshot(emptyMap())
+
+        val primaryMessages = mapOf(
+                "pagination.prev" to "Previous",
+                "pagination.next" to "Next",
+                "price.zeroPriceString" to "Free")
+
+        val translateTo = listOf("cz", "sk")
+        val translations = mapOf(
+                "cz" to mapOf(
+                        "pagination.prev" to "Předchozí"),
+                "sk" to mapOf(
+                        "pagination.next" to "Nasledujúce")
+        )
+
+        val expected = listOf(
+                listOf("pagination.prev", "Previous", "Předchozí", null),
+                listOf("pagination.next", "Next", null, "Nasledujúce", null),
+                listOf("price.zeroPriceString", "Free", null, null))
+
+        val mfProcessor = MessageFileProcessor(emptySnapshot)
         val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
         assertEquals(expected, sheet)
     }
