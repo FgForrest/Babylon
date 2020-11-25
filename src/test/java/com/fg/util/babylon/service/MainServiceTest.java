@@ -32,19 +32,4 @@ public class MainServiceTest {
         assertNotNull("Json object from string is null", configFromStr);
     }
 
-    /**
-     * Checks creation of json configuration file.
-     * @throws IOException some exception derived from {@link IOException}
-    */
-    @Test
-    public void checkCreateConfigurationFile() throws IOException {
-        File file = new File("test-config.json");
-        TranslationConfiguration configuration = TestUtils.createTestConfiguration();
-        JsonUtils.objToJsonFile(file, configuration, true);
-        assertFalse("primary data file is empty", configuration.getDataFileName().isEmpty());
-        assertFalse("path is empty", configuration.getPath().isEmpty());
-        assertFalse("mutations is empty", configuration.getMutations().isEmpty());
-        assertTrue("Configuration file not generated", file.exists());
-    }
-
 }
