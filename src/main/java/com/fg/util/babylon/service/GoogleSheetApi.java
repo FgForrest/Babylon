@@ -81,10 +81,15 @@ public class GoogleSheetApi {
     }
 
     public void deleteSheets(final String spreadsheetId, List<Sheet> sheets) throws IOException, GeneralSecurityException {
+        List<Integer> sheetIds = sheets.stream().map(sheet -> sheet.getProperties().getSheetId()).collect(Collectors.toList());
+        deleteSheets(spreadsheetId, sheetIds);
+    }
+
+    public void deleteSheets(final String spreadsheetId, Iterable<Integer> sheetIds) throws IOException, GeneralSecurityException {
         List<Request> requests = new ArrayList<>();
-        sheets.forEach(sheet -> {
+        sheetIds.forEach(sheetId -> {
             DeleteSheetRequest request = new DeleteSheetRequest()
-                    .setSheetId(sheet.getProperties().getSheetId());
+                    .setSheetId(sheetId);
             requests.add(new Request().setDeleteSheet(request));
         });
         executeSpreadsheetBatchUpdate(spreadsheetId, requests);
