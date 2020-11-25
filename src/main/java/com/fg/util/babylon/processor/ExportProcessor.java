@@ -9,19 +9,17 @@ import com.fg.util.babylon.enums.PropertyType;
 import com.fg.util.babylon.gsheet.TranslationSheetService;
 import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
 import com.fg.util.babylon.propfiles.Property;
+import com.fg.util.babylon.snapshot.SnapshotService;
 import com.fg.util.babylon.statistics.ExportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfExport;
 import com.fg.util.babylon.todo.TranslationFileUtils;
-import com.fg.util.babylon.util.JsonUtils;
 import com.fg.util.babylon.util.PathUtils;
 import lombok.extern.apachecommons.CommonsLog;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Processor for {@link Action#EXPORT} action.
@@ -261,24 +259,8 @@ public class ExportProcessor {
      * FIXME: kdyz budu mit seznam novych souboru, nemusim tohle delat
      */
     private void saveSnapshotWithoutProperties() throws IOException {
-        Map<String, MessageFileContent> originalDataPropFiles = dataFileManager.getOriginalDataFile().getDataPropFiles();
-
-        Snapshot overriddenSnapshot = dataFileManager.getOrCreateDataFile();
-        List<String> newExportedFiles = overriddenSnapshot.getDataPropFiles()
-                .keySet()
-                .stream()
-                .filter(exportedFilePath -> !originalDataPropFiles.containsKey(exportedFilePath))
-                .collect(Collectors.toList());
-        updateSnapshotWithNewFilePaths(newExportedFiles);
-    }
-
-    private void updateSnapshotWithNewFilePaths(Iterable<String> newMsgFiles) throws IOException {
-        Snapshot untouchedSnapshot = dataFileManager.getOriginalDataFile();
-        newMsgFiles.forEach(newMsgFile ->
-                untouchedSnapshot.putPropFile(newMsgFile, new MessageFileContent())
-        );
-        File snapshotFileName = new File(configuration.getDataFileName());
-        JsonUtils.objToJsonFile(snapshotFileName, dataFileManager.getOriginalDataFile(), true);
+        SnapshotService snapService = new SnapshotService();
+        snapService.saveSnapshotWithoutProperties(dataFileManager.getOrCreateDataFile(), dataFileManager.getOriginalDataFile(), configuration.getDataFileName());
     }
 
 }
