@@ -434,9 +434,8 @@ public class ExportProcessor {
 
     private void updateSnapshotWithNewFilePaths(Iterable<String> newMsgFiles) throws IOException {
         Snapshot untouchedSnapshot = dataFileManager.getOriginalDataFile();
-        MessageFileContent emptyContent = new MessageFileContent();
         newMsgFiles.forEach(newMsgFile ->
-                untouchedSnapshot.putPropFile(newMsgFile, emptyContent)
+                untouchedSnapshot.putPropFile(newMsgFile, new MessageFileContent())
         );
         File snapshotFileName = new File(configuration.getDataFileName());
         JsonUtils.objToJsonFile(snapshotFileName, dataFileManager.getOriginalDataFile(), true);
