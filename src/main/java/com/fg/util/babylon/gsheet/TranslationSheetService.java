@@ -36,6 +36,7 @@ public class TranslationSheetService {
      * @throws GeneralSecurityException when authentication to Google sheets API problem is appeared.
      * @throws IOException              some exception derived from {@link IOException}
      */
+    @Deprecated
     public void uploadDataToGoogleSpreadsheet(DataFileManager dataFileManager, List<String> changedMessageFilePaths, List<String> translationLangs) throws GeneralSecurityException, IOException {
         Map<String, MessageFileContent> messageBundle = dataFileManager.getOrCreateDataFile().getDataPropFiles();
         // FIXME: It would be more efficient to iterate over the identifiers of the List and look them up in the Map
@@ -48,6 +49,7 @@ public class TranslationSheetService {
         doUploadDataToGoogleSpreadsheet(changedMessages, translationLangs);
     }
 
+    @Deprecated
     private void doUploadDataToGoogleSpreadsheet(Map<String, MessageFileContent> changedMessages, List<String> translationLangs) throws GeneralSecurityException, IOException {
         AtomicInteger processedCount = new AtomicInteger(0);
         // Gets all sheets existing at this moment.
@@ -66,6 +68,7 @@ public class TranslationSheetService {
         }
     }
 
+    @Deprecated
     private void prepareAndUploadDataToGoogleSheet(MessageFileContent messageFileContent, String fileNamePath, List<String> translationLangs, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
         SheetUtils sheetUtils = new SheetUtils();
 

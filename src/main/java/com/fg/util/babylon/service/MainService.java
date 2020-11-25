@@ -6,6 +6,8 @@ import com.fg.util.babylon.entity.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.export.*;
+import com.fg.util.babylon.gsheet.GoogleSheetContract;
+import com.fg.util.babylon.gsheet.LegacyGoogleSheetApiAdaptor;
 import com.fg.util.babylon.gsheet.TranslationSheetService;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.processor.ExportProcessor;
@@ -45,7 +47,8 @@ public class MainService {
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
         Exporter exporter = new Exporter(ml, mfp, springResLoader, snapshotAdapter, snapshotAdapter);
-        newExporter = new NewExporter(exporter, tss, dfm);
+        GoogleSheetContract gsc = new LegacyGoogleSheetApiAdaptor(gsApi);
+        newExporter = new NewExporter(exporter, tss, dfm, gsc);
     }
 
     public void startTranslation() throws IOException, GeneralSecurityException, InterruptedException {
