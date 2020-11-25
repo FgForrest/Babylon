@@ -23,11 +23,8 @@ public class TranslationSheetService {
 
     private final GoogleSheetApi googleSheetApi;
 
-    public final String googleSheetId;
-
-    public TranslationSheetService(GoogleSheetApi googleSheetApi, String googleSheetId) {
+    public TranslationSheetService(GoogleSheetApi googleSheetApi) {
         this.googleSheetApi = googleSheetApi;
-        this.googleSheetId = googleSheetId;
     }
 
     /**
@@ -37,7 +34,7 @@ public class TranslationSheetService {
      * @throws IOException              some exception derived from {@link IOException}
      */
     @Deprecated
-    public void uploadDataToGoogleSpreadsheet(DataFileManager dataFileManager, List<String> changedMessageFilePaths, List<String> translationLangs) throws GeneralSecurityException, IOException {
+    public void uploadDataToGoogleSpreadsheet(String spreadsheetId, DataFileManager dataFileManager, List<String> changedMessageFilePaths, List<String> translationLangs) throws GeneralSecurityException, IOException {
         Map<String, MessageFileContent> messageBundle = dataFileManager.getOrCreateDataFile().getDataPropFiles();
         // FIXME: It would be more efficient to iterate over the identifiers of the List and look them up in the Map
         Map<String, MessageFileContent> changedMessages = messageBundle
@@ -46,30 +43,30 @@ public class TranslationSheetService {
                 .filter(i -> changedMessageFilePaths.contains(i.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        doUploadDataToGoogleSpreadsheet(changedMessages, translationLangs);
+        doUploadDataToGoogleSpreadsheet(spreadsheetId, changedMessages, translationLangs);
     }
 
     @Deprecated
-    private void doUploadDataToGoogleSpreadsheet(Map<String, MessageFileContent> changedMessages, List<String> translationLangs) throws GeneralSecurityException, IOException {
+    private void doUploadDataToGoogleSpreadsheet(String spreadsheetId, Map<String, MessageFileContent> changedMessages, List<String> translationLangs) throws GeneralSecurityException, IOException {
         AtomicInteger processedCount = new AtomicInteger(0);
         // Gets all sheets existing at this moment.
-        List<Sheet> prevAllSheets = googleSheetApi.getAllSheets(googleSheetId);
+        List<Sheet> prevAllSheets = googleSheetApi.getAllSheets(spreadsheetId);
         for (Map.Entry<String, MessageFileContent> entry : changedMessages.entrySet()) {
             String fileNamePath = entry.getKey();
             MessageFileContent messageFileContent = entry.getValue();
 
-            prepareAndUploadDataToGoogleSheet(messageFileContent, fileNamePath, translationLangs, processedCount);
+            prepareAndUploadDataToGoogleSheet(spreadsheetId, messageFileContent, fileNamePath, translationLangs, processedCount);
         }
         // Delete all previously existing sheets (usually default "Sheet 1" of new empty spreadsheet) if
         // current sheets count is greater then previous.
-        List<Sheet> currAllSheets = googleSheetApi.getAllSheets(googleSheetId);
+        List<Sheet> currAllSheets = googleSheetApi.getAllSheets(spreadsheetId);
         if (currAllSheets.size() > prevAllSheets.size()) {
-            googleSheetApi.deleteSheets(googleSheetId, prevAllSheets);
+            googleSheetApi.deleteSheets(spreadsheetId, prevAllSheets);
         }
     }
 
     @Deprecated
-    private void prepareAndUploadDataToGoogleSheet(MessageFileContent messageFileContent, String fileNamePath, List<String> translationLangs, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
+    private void prepareAndUploadDataToGoogleSheet(String spreadsheetId, MessageFileContent messageFileContent, String fileNamePath, List<String> translationLangs, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
         SheetUtils sheetUtils = new SheetUtils();
 
         // Add data into sheet
@@ -87,29 +84,29 @@ public class TranslationSheetService {
         // If no data to upload return
         if (!sheetData.isEmpty()) {
             log.info("Uploading data of \"" + fileNamePath + "\" into google sheet \"" + sheetTitle + "\"...");
-            uploadDataToGoogleSheet(sheetRows, sheetTitle, processedCount);
+            uploadDataToGoogleSheet(spreadsheetId, sheetRows, sheetTitle, processedCount);
         } else {
             log.info("No changed data for primary properties file and its mutation files: " + fileNamePath);
         }
     }
 
-    public void uploadDataToGoogleSheet(List<List<String>> sheetRows, String sheetTitle, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
+    public void uploadDataToGoogleSheet(String spreadsheetId, List<List<String>> sheetRows, String sheetTitle, AtomicInteger processedCount) throws IOException, GeneralSecurityException {
         pauseProcessIfGoogleLimitExceed(sheetRows.size(), processedCount);
 
-        Sheet sheet = createGoogleSheet(sheetRows, sheetTitle);
+        Sheet sheet = createGoogleSheet(spreadsheetId, sheetRows, sheetTitle);
         if (sheet != null) {
             throw new SheetExistsException("Sheet \"" + sheetTitle + "\" already exists!");
         }
 
-        googleSheetApi.writeDataIntoSheet(googleSheetId, sheetTitle, sheetRows);
-        sheet = googleSheetApi.getSheet(googleSheetId, sheetTitle);
-        googleSheetApi.setWrappingStrategy(googleSheetId, sheet.getProperties().getSheetId());
-        googleSheetApi.resizeAllColumns(googleSheetId, sheet.getProperties().getSheetId());
-        googleSheetApi.protectFirstColumns(googleSheetId, sheet.getProperties().getSheetId());
-        hideSheetFirstColumn(sheet.getProperties().getSheetId());
+        googleSheetApi.writeDataIntoSheet(spreadsheetId, sheetTitle, sheetRows);
+        sheet = googleSheetApi.getSheet(spreadsheetId, sheetTitle);
+        googleSheetApi.setWrappingStrategy(spreadsheetId, sheet.getProperties().getSheetId());
+        googleSheetApi.resizeAllColumns(spreadsheetId, sheet.getProperties().getSheetId());
+        googleSheetApi.protectFirstColumns(spreadsheetId, sheet.getProperties().getSheetId());
+        hideSheetFirstColumn(spreadsheetId, sheet.getProperties().getSheetId());
     }
 
-    private Sheet createGoogleSheet(List<List<String>> sheetRows, String sheetTitle) throws GeneralSecurityException, IOException {
+    private Sheet createGoogleSheet(String spreadsheetId, List<List<String>> sheetRows, String sheetTitle) throws GeneralSecurityException, IOException {
         Integer columnCount = sheetRows.get(0).size();
         Integer rowCount = sheetRows.size();
         SheetParams sheetParams = new SheetParams(sheetTitle, columnCount, rowCount);
@@ -118,7 +115,7 @@ public class TranslationSheetService {
             sheetParams.setFrozenRowCount(1);
             sheetParams.setFrozenColumnCount(2);
         }
-        return googleSheetApi.addSheet(googleSheetId, sheetParams);
+        return googleSheetApi.addSheet(spreadsheetId, sheetParams);
     }
 
     private void pauseProcessIfGoogleLimitExceed(int size, AtomicInteger processedCount) {
@@ -144,13 +141,13 @@ public class TranslationSheetService {
      * @throws IOException              some exception derived from {@link IOException}
      * @throws GeneralSecurityException when authentication to Google sheets API problem is appeared.
      */
-    private void hideSheetFirstColumn(Integer sheetId) throws IOException, GeneralSecurityException {
+    private void hideSheetFirstColumn(String spreadsheetId, Integer sheetId) throws IOException, GeneralSecurityException {
         DimensionRange dimensionRange = new DimensionRange()
                 .setSheetId(sheetId)
                 .setDimension("COLUMNS")
                 .setStartIndex(0)
                 .setEndIndex(1);
-        googleSheetApi.hideDimensionRange(googleSheetId, dimensionRange);
+        googleSheetApi.hideDimensionRange(spreadsheetId, dimensionRange);
     }
 
 }
