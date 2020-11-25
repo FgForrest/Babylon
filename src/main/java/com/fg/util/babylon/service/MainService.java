@@ -45,14 +45,14 @@ public class MainService {
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
         Exporter exporter = new Exporter(ml, mfp, springResLoader, snapshotAdapter, snapshotAdapter);
-        newExporter = new NewExporter(exporter, tss);
+        newExporter = new NewExporter(exporter, tss, dfm);
     }
 
     public void startTranslation() throws IOException, GeneralSecurityException, InterruptedException {
         long stTime = System.currentTimeMillis();
         switch (action) {
             case EXPORT:
-                newExporter.go(configuration.getPath(), configuration.getMutations());
+                newExporter.go(configuration.getPath(), configuration);
 //                exportProcessor.doExport(configuration.getMutations());
                 break;
             case IMPORT:
