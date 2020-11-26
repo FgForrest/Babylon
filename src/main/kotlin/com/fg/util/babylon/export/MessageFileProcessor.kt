@@ -31,7 +31,11 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
         val existingMessages = primaryMsgs - newMessageKeys
         val keysOfChangedMsgs = determineChangedPrimaryMsgs(msgFile, existingMessages)
         val keysOfMissingTranslations = determineMissingTranslatedMsgs(existingMessages, translations.values)
-        return createTranslationSheet(msgFile, primaryMsgs, translations, translationLangs, newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations)
+        // create a mapping of message keys to their order as found in primary message file
+        val primaryMsgKeyOrdering = primaryMsgs.keys
+                .withIndex()
+                .associate { (index, msgKey) -> msgKey to index }
+        return createTranslationSheet(primaryMsgs, translations, translationLangs, newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations, primaryMsgKeyOrdering)
     }
 
     // if primary message is not contained in any translation, then it is a new message
@@ -96,15 +100,15 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
      *
      * @param msgFile message file for that the translation sheet will be prepared
      */
-    private fun createTranslationSheet(msgFile: MsgFilePath,
-                                       primaryMsgs: Messages,
+    private fun createTranslationSheet(primaryMsgs: Messages,
                                        translations: Map<Language, Messages>,
                                        translationLangs: List<Language>,
                                        newMsgKeys: Set<MessageKey>,
                                        changedMsgKeys: Set<MessageKey>,
-                                       missingTransKeys: Set<MessageKey>): SheetRows {
+                                       missingTransKeys: Set<MessageKey>,
+                                       msgKeyOrdering: Map<MessageKey, Int>): SheetRows {
         val populatedRows = missingTransKeys.map { msgKey ->
-            populateSheetRow(msgFile, primaryMsgs, translations, translationLangs, msgKey)
+            populateSheetRow(primaryMsgs, translations, translationLangs, msgKey)
         }
 
         val noUsableTranslations = changedMsgKeys + newMsgKeys
@@ -114,14 +118,17 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
             createRow(msgKey, primaryMsg, emptyCols)
         }
 
-        return blankRows + populatedRows
+        val allRows = blankRows + populatedRows
+        return allRows.sortedBy { row ->
+            val msgKey = row[0]
+            msgKeyOrdering[msgKey]
+        }
     }
 
     /**
      * Creates a single row in a translation sheet.
      */
-    private fun populateSheetRow(msgFile: MsgFilePath,
-                                 primaryMsgs: Messages,
+    private fun populateSheetRow(primaryMsgs: Messages,
                                  translations: Map<Language, Messages>,
                                  translationLangs: List<Language>,
                                  messageKey: MessageKey): SheetRow {
