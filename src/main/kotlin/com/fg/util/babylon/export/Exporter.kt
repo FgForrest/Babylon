@@ -26,13 +26,14 @@ class Exporter(private val messageLoader: MessageLoader,
         val allPaths = patternPaths.flatMap { path ->
             PathUtils().expandPath(path, resourceLoader)
         }
+        val newMsgFilesPaths = allPaths.filter { msgFilePath ->
+            !snapshotReadContract.includesMsgFile(msgFilePath)
+        }
+
         val sheets = allPaths.map { msgFilePath ->
             processMsgFile(msgFilePath, translateTo)
         }
-
-        val newMsgFilesPaths = allPaths.filter { msgFilePath ->
-            snapshotReadContract.includesMsgFile(msgFilePath)
-        }
+        
         return ExportResult(newMsgFilesPaths, sheets)
     }
 
