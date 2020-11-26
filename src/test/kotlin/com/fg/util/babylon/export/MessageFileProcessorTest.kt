@@ -6,6 +6,33 @@ import org.junit.Test
 class MessageFileProcessorTest {
 
     @Test
+    fun `when a message has translations for all desired languages and has not changed from snaphost then it is not included in the translation sheet`() {
+        val snapshot = FakeTranslationSnapshot(mapOf(
+                "i18n/common.properties" to mapOf(
+                        "pagination.prev" to "Previous",
+                        "pagination.next" to "Next")))
+
+        val primaryMessages = mapOf(
+                "pagination.prev" to "Previous",
+                "pagination.next" to "Next")
+
+        val translateTo = listOf("cz", "sk")
+        val translations = mapOf(
+                "cz" to mapOf(
+                        "pagination.prev" to "Předchozí",
+                        "pagination.next" to "Následující"),
+                "sk" to mapOf(
+                        "pagination.prev" to "Predchádzajúce",
+                        "pagination.next" to "Nasledujúce"))
+
+        val expected = emptyList<List<String>>()
+
+        val mfProcessor = MessageFileProcessor(snapshot)
+        val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
+        assertEquals(expected, sheet)
+    }
+
+    @Test
     fun `when no snapshot of previous translation and no translations then all messages are exported to translation sheet`() {
         val emptySnapshot = FakeTranslationSnapshot(emptyMap())
 
@@ -115,6 +142,37 @@ class MessageFileProcessorTest {
         val expected = listOf(
                 listOf("availability.text.ALWAYS_AVAILABLE", "Always in stock", null, null),
                 listOf("availability.text.NOT_AVAILABLE", "Momentarily unavailable", null, null))
+
+        val mfProcessor = MessageFileProcessor(snapshot)
+        val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
+        assertEquals(expected, sheet)
+    }
+
+    @Test
+    fun `when a message differs from the value in snapshot then all translations for this messages are empty in the translation sheet`() {
+        val snapshot = FakeTranslationSnapshot(mapOf(
+                "i18n/common.properties" to mapOf(
+                        "pagination.prev" to "Previous",
+                        "pagination.next" to "Next",
+                        "price.zeroPriceString" to "Free")))
+
+        val primaryMessages = mapOf(
+                "pagination.prev" to "Prev",
+                "pagination.next" to "Next",
+                "price.zeroPriceString" to "Free")
+
+        val translateTo = listOf("cz", "sk")
+        val translations = mapOf(
+                "cz" to mapOf(
+                        "pagination.prev" to "Předchozí",
+                        "pagination.next" to "Následující"),
+                "sk" to mapOf(
+                        "pagination.prev" to "Predchádzajúce",
+                        "pagination.next" to "Nasledujúce"))
+
+        val expected = listOf(
+                listOf("pagination.prev", "Prev", null, null),
+                listOf("price.zeroPriceString", "Free", null, null))
 
         val mfProcessor = MessageFileProcessor(snapshot)
         val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
