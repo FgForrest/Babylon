@@ -21,7 +21,6 @@ public interface TranslationSnapshotReadContract {
      *
      * @param msgKey key of message that might be contained in message file {@code msgFile}
      * @param msgFile message file path that we assume is included in the snapshot
-     * @throws NoSuchElementException in case snapshot doesn't include [msgFile] at all
      */
     boolean containsMessage(String msgKey, String msgFile);
 
