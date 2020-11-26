@@ -142,9 +142,9 @@ public class ImportProcessor {
             String propValue = cellData.getFormattedValue();
 
             // Double quotes in case of variable in property
-            if (propValue != null && propValue.matches(".*\\{.}.*")){
-                propValue = propValue.replace("'","''");
-            }
+//            if (propValue != null && propValue.matches(".*\\{.}.*")){
+//                propValue = propValue.replace("'","''");
+//            }
             if (col == 0) {
                 // First column contains properties keys.
                 propKey = propValue;
