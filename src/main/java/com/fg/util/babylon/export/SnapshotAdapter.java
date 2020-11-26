@@ -30,6 +30,7 @@ public class SnapshotAdapter implements TranslationSnapshotReadContract, Transla
 
     @Override
     public boolean containsMessage(String msgKey, String msgFile) {
+        if (!includesMsgFile(msgFile)) return false;
         return containsMessageInProps(msgKey, getTranslationProperties(msgFile));
     }
 
@@ -48,8 +49,13 @@ public class SnapshotAdapter implements TranslationSnapshotReadContract, Transla
 
     @Override
     public String getLastMessageValue(String msgKey, String msgFile) {
-        return null;
+        PropertiesMap msgProps = getTranslationProperties(msgFile);
+        if (!containsMessageInProps(msgKey, msgProps)) {
+            // caller should have asked before
+            String errMsg = "No message for key '" + msgKey + "' in '" + msgFile +"' message file snapshot.";
+            throw new NoSuchElementException(errMsg);
+        }
+        return msgProps.get(msgKey);
     }
-
 
 }

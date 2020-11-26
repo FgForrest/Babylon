@@ -9,7 +9,7 @@ class FakeTranslationSnapshot(val content: Map<MsgFilePath, Messages>) : Transla
 
     override fun containsMessage(msgKey: MessageKey, msgFile: MsgFilePath): Boolean =
             if (!includesMsgFile(msgFile))
-                throw NoSuchElementException("Message file '$msgFile' is not included in the snapshot.")
+                false
             else
                 content[msgFile]!!.containsKey(msgKey)
 

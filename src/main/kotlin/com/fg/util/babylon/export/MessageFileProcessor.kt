@@ -70,7 +70,10 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
                 emptySet()
             } else {
                 existingPrimaryMsgs.filter { (msgKey, currentMsg) ->
-                    snapshotReadContract.getLastMessageValue(msgKey, msgFile) != currentMsg
+                    if (!snapshotReadContract.containsMessage(msgKey, msgFile))
+                        false
+                    else
+                        snapshotReadContract.getLastMessageValue(msgKey, msgFile) != currentMsg
                 }.keys
             }
 
