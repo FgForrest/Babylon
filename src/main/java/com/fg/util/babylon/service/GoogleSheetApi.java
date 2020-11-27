@@ -287,7 +287,7 @@ public class GoogleSheetApi {
                 .setGridProperties(gridProperties);
     }
 
-    private BatchUpdateSpreadsheetResponse executeSpreadsheetBatchUpdate(String spreadsheetId, List<Request> requests) throws IOException, GeneralSecurityException {
+    public BatchUpdateSpreadsheetResponse executeSpreadsheetBatchUpdate(String spreadsheetId, List<Request> requests) throws IOException, GeneralSecurityException {
         BatchUpdateSpreadsheetRequest req = new BatchUpdateSpreadsheetRequest()
                 .setRequests(requests)
                 .setIncludeSpreadsheetInResponse(false);
