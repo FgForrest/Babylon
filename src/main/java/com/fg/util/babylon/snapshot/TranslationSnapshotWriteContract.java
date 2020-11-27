@@ -1,4 +1,6 @@
-package com.fg.util.babylon.export;
+package com.fg.util.babylon.snapshot;
+
+import java.util.Collection;
 
 /**
  * Set of write operations that are required from the translation snapshot.
@@ -12,5 +14,12 @@ public interface TranslationSnapshotWriteContract {
      * @return persistent id given to the [msgFilePath]
      */
     Integer registerMsgFile(String msgFilePath);
+
+    /**
+     * Removes message file paths from the translation snapshot.
+     *
+     * @param msgFilePaths message file paths to remove
+     */
+    void removeMsgFilPaths(Collection<String> msgFilePaths);
 
 }

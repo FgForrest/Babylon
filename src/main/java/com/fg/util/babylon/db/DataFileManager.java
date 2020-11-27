@@ -1,6 +1,6 @@
 package com.fg.util.babylon.db;
 
-import com.fg.util.babylon.entity.Snapshot;
+import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.util.JsonUtils;
 import lombok.extern.apachecommons.CommonsLog;
@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Manages DataFile instance. TODO more
+ * Manages Snapshot instance. TODO more
  */
 @CommonsLog
 public class DataFileManager {

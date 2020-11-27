@@ -1,7 +1,7 @@
 package com.fg.util.babylon.util;
 
 import com.fg.util.babylon.entity.TranslationConfiguration;
-import com.fg.util.babylon.entity.Snapshot;
+import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.entity.MessageFileContent;
 import com.fg.util.babylon.entity.PropertiesMap;
 import com.fg.util.babylon.enums.PropertyStatus;

@@ -1,5 +1,6 @@
-package com.fg.util.babylon.export;
+package com.fg.util.babylon.snapshot;
 
+import java.util.Collection;
 import java.util.NoSuchElementException;
 
 /**
@@ -15,6 +16,13 @@ public interface TranslationSnapshotReadContract {
      * @param msgFile message file path that is either included in the snapshot or it is not
      */
     boolean includesMsgFile(String msgFile);
+
+    /**
+     * Lists all message files included in the translation snapshot
+     *
+     * @return collection of message file paths
+     */
+    Collection<String> listMsgFiles();
 
     /**
      * Check if translation snapshot contains message {@code msgKey} for file {@code msgFile}.

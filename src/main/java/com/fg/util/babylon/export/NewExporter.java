@@ -1,10 +1,10 @@
 package com.fg.util.babylon.export;
 
 import com.fg.util.babylon.db.DataFileManager;
-import com.fg.util.babylon.entity.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.gsheet.GoogleSheetContract;
 import com.fg.util.babylon.gsheet.TranslationSheetService;
+import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.snapshot.SnapshotService;
 import com.google.api.services.sheets.v4.model.Sheet;
 

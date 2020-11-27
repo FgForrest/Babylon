@@ -3,6 +3,7 @@ package com.fg.util.babylon.entity;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fg.util.babylon.enums.PropertyStatus;
+import com.fg.util.babylon.snapshot.Snapshot;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

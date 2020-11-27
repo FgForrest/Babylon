@@ -1,7 +1,6 @@
 package com.fg.util.babylon.snapshot;
 
 import com.fg.util.babylon.entity.MessageFileContent;
-import com.fg.util.babylon.entity.Snapshot;
 import com.fg.util.babylon.util.JsonUtils;
 
 import java.io.File;
