@@ -1,6 +1,6 @@
 package com.fg.util.babylon.exception;
 
-import com.fg.util.babylon.entity.Snapshot;
+import com.fg.util.babylon.snapshot.Snapshot;
 
 import java.io.IOException;
 

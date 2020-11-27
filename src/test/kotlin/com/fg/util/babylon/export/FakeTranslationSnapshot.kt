@@ -1,11 +1,15 @@
 package com.fg.util.babylon.export
 
+import com.fg.util.babylon.snapshot.TranslationSnapshotReadContract
 import java.util.NoSuchElementException
 
 class FakeTranslationSnapshot(val content: Map<MsgFilePath, Messages>) : TranslationSnapshotReadContract {
 
     override fun includesMsgFile(msgFile: MsgFilePath): Boolean =
             content.containsKey(msgFile)
+
+    override fun listMsgFiles(): MutableCollection<String> =
+            content.keys.toMutableList()
 
     override fun containsMessage(msgKey: MessageKey, msgFile: MsgFilePath): Boolean =
             if (!includesMsgFile(msgFile))

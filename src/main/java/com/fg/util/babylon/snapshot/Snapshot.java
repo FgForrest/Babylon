@@ -1,13 +1,13 @@
-package com.fg.util.babylon.entity;
+package com.fg.util.babylon.snapshot;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fg.util.babylon.entity.MessageFileContent;
+import com.fg.util.babylon.entity.TranslationConfiguration;
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Class representing translation data file (snapshot) in json file. This data file keeps information about processing
@@ -24,7 +24,7 @@ public class Snapshot implements Serializable {
      * key - relative path to message file of the primary language<br>, eg <code>lib_eshop_edee\\src\\main\\resources\\META-INF\\lib_eshop_edee\\i18n\\common.properties</code>
      * value - contains {@link MessageFileContent}
      */
-    private Map<String, MessageFileContent> dataPropFiles = new LinkedHashMap<>(); //FIXME rename to messageBundle
+    Map<String, MessageFileContent> dataPropFiles = new LinkedHashMap<>(); //FIXME rename to messageBundle
 
     /**
      * Properties files data like {@link Map&lt;String, DataPropFile&gt;} by unique id<br>
@@ -32,7 +32,7 @@ public class Snapshot implements Serializable {
      * value - contains {@link MessageFileContent}
      */
     @JsonIgnore
-    private Map<Integer, MessageFileContent> dataPropFilesById = new LinkedHashMap<>();
+    Map<Integer, MessageFileContent> dataPropFilesById = new LinkedHashMap<>();
 
     public MessageFileContent putPropFile(String fileName, MessageFileContent messageFileContent) {
         MessageFileContent propFile = dataPropFiles.put(fileName, messageFileContent);

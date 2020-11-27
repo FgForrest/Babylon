@@ -1,9 +1,9 @@
-package com.fg.util.babylon.export;
+package com.fg.util.babylon.snapshot;
 
 import com.fg.util.babylon.entity.MessageFileContent;
 import com.fg.util.babylon.entity.PropertiesMap;
-import com.fg.util.babylon.entity.Snapshot;
 
+import java.util.Collection;
 import java.util.NoSuchElementException;
 
 /**
@@ -23,9 +23,19 @@ public class SnapshotAdapter implements TranslationSnapshotReadContract, Transla
     }
 
     @Override
+    public Collection<String> listMsgFiles() {
+        return snapshot.dataPropFiles.keySet();
+    }
+
+    @Override
     public Integer registerMsgFile(String msgFilePath) {
         MessageFileContent messageFileContent = snapshot.getOrPutNewPropFileByFileName(msgFilePath);
         return messageFileContent.id;
+    }
+
+    @Override
+    public void removeMsgFilPaths(Collection<String> msgFilePaths) {
+        snapshot.dataPropFiles.keySet().removeAll(msgFilePaths);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.fg.util.babylon.export
 
+import com.fg.util.babylon.snapshot.TranslationSnapshotReadContract
+
 /**
  * Creates translation sheet content for a single message file.
  *

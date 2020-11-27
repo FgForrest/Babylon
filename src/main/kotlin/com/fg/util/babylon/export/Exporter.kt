@@ -2,6 +2,8 @@ package com.fg.util.babylon.export
 
 import com.fg.util.babylon.gsheet.SheetUtils
 import com.fg.util.babylon.processor.AntPathResourceLoader
+import com.fg.util.babylon.snapshot.TranslationSnapshotReadContract
+import com.fg.util.babylon.snapshot.TranslationSnapshotWriteContract
 import com.fg.util.babylon.util.PathUtils
 
 /**
@@ -23,6 +25,7 @@ class Exporter(private val messageLoader: MessageLoader,
      */
     fun walkPathsAndCollectTranslationSheets(patternPaths: List<String>,
                                              translateTo: List<Language>): ExportResult {
+        //FIXME: move up
         val allPaths = patternPaths.flatMap { path ->
             PathUtils().expandPath(path, resourceLoader)
         }
@@ -33,7 +36,11 @@ class Exporter(private val messageLoader: MessageLoader,
         val sheets = allPaths.map { msgFilePath ->
             processMsgFile(msgFilePath, translateTo)
         }
-        
+
+        //FIXME: move up
+        val obsoleteFilePaths = snapshotReadContract.listMsgFiles() - allPaths
+        snapshotWriteContract.removeMsgFilPaths(obsoleteFilePaths)
+
         return ExportResult(newMsgFilesPaths, sheets)
     }
 
