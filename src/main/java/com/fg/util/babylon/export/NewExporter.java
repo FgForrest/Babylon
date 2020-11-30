@@ -14,10 +14,7 @@ import lombok.val;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,6 +28,9 @@ public class NewExporter {
     private final SnapshotService snapshotService;
     private final AntPathResourceLoader resourceLoader;
     private final PathUtils pu;
+
+    //FIXME: move to config
+    private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz","kamenik@fg.cz");
 
     public NewExporter(Exporter exporter, DataFileManager dfm, GoogleSheetContract gsc, AntPathResourceLoader resourceLoader) {
         this.exporter = exporter;
@@ -47,7 +47,6 @@ public class NewExporter {
         List<Sheet> prevSheets = listAllSheets(spreadsheetId);
 
 
-
         // FIXME remove:
         List<Integer> sheetIds = prevSheets.stream().map(sheet -> sheet.getProperties().getSheetId()).collect(Collectors.toList());
         sheetIds.remove(0);
@@ -61,7 +60,7 @@ public class NewExporter {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         Exporter.ExportResult result = exporter.walkPathsAndCollectTranslationSheets(allUniquePaths, config.getMutations());
 
-        uploadTranslations(result, spreadsheetId);
+        uploadTranslations(result, spreadsheetId, lockedCellEditors);
 
         Snapshot originalSnapshot = dfm.getOriginalDataFile();
         updateSnapshot(originalSnapshot, result, config.getDataFileName());
@@ -87,12 +86,12 @@ public class NewExporter {
         }
     }
 
-    private void uploadTranslations(Exporter.ExportResult exportResult, String spreadsheetId) {
+    private void uploadTranslations(Exporter.ExportResult exportResult, String spreadsheetId, List<String> lockedCellEditors) {
         exportResult.getSheets().stream()
                 .filter(sheet -> !sheet.getDataRows().isEmpty())
                 .forEach(sheet -> {
                     try {
-                        gsc.uploadDataToGoogleSheet(spreadsheetId, sheet.getSheetName(), sheet.getRows());
+                        gsc.uploadDataToGoogleSheet(spreadsheetId, sheet.getSheetName(), sheet.getRows(), lockedCellEditors);
                     } catch (SheetsException e) {
                         String errMsg = "Error when uploading data to spreadsheet '" + spreadsheetId + "'";
                         throw new RuntimeException(errMsg, e);

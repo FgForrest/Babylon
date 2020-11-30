@@ -105,15 +105,15 @@ public class GoogleSheetApiRequestFactory {
                 .setEndIndex(1);
     }
 
-    public Request protectCellsInFirstTwoColumns(Integer sheetId, List<String> editorAccounts) {
+    public Request protectCellsInFirstTwoColumns(Integer sheetId, List<String> lockedCellEditors) {
         return new Request()
                 .setAddProtectedRange(
-                        protectCells(firstTwoColsCellsRange(sheetId), editorAccounts));
+                        protectCells(firstTwoColsCellsRange(sheetId), lockedCellEditors));
     }
 
-    private AddProtectedRangeRequest protectCells(GridRange gridRange, List<String> editorAccounts) {
+    private AddProtectedRangeRequest protectCells(GridRange gridRange, List<String> lockedCellEditors) {
         return new AddProtectedRangeRequest()
-                .setProtectedRange(lockCells(gridRange, editorAccounts));
+                .setProtectedRange(lockCells(gridRange, lockedCellEditors));
     }
 
     /**

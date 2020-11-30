@@ -66,10 +66,10 @@ public class LightGoogleSheetService {
         log.info(String.format("%d cells written.", result.getUpdatedCells()));
     }
 
-    public void updateSheetStyle(String spreadsheetId, Integer sheetId, List<String> lockToAccounts) throws GeneralSecurityException, IOException {
+    public void updateSheetStyle(String spreadsheetId, Integer sheetId, List<String> lockedCellEditors) throws GeneralSecurityException, IOException {
         Request setWrappingStrategy = gSheetsRequestFactory.setWrapWrappingStrategyForAllCells(sheetId);
         Request resizeColumns = gSheetsRequestFactory.resizeAllColumns(sheetId, COLUMN_WIDTH);
-        Request protectColumns = gSheetsRequestFactory.protectCellsInFirstTwoColumns(sheetId, lockToAccounts);
+        Request protectColumns = gSheetsRequestFactory.protectCellsInFirstTwoColumns(sheetId, lockedCellEditors);
         Request hideColumn = gSheetsRequestFactory.hideFirstColumn(sheetId);
 
         executeRequests(spreadsheetId, setWrappingStrategy, resizeColumns, protectColumns, hideColumn);
