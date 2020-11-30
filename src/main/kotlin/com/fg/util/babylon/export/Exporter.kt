@@ -11,9 +11,12 @@ import com.fg.util.babylon.util.PathUtils
  */
 class Exporter(private val messageLoader: MessageLoader,
                private val messageFileProcessor: MessageFileProcessor,
-               private val resourceLoader: AntPathResourceLoader,
                private val snapshotReadContract: TranslationSnapshotReadContract,
                private val snapshotWriteContract: TranslationSnapshotWriteContract) {
+
+    companion object {
+        val log = org.apache.commons.logging.LogFactory.getLog(Exporter::class.java)
+    }
 
     /**
      * Collects message files and given a list of languages to translate to, generates a translation sheet
@@ -23,12 +26,8 @@ class Exporter(private val messageLoader: MessageLoader,
      * @param patternPaths paths to message files, might contain Ant-style patterns
      * @param translateTo list of languages to translate to
      */
-    fun walkPathsAndCollectTranslationSheets(patternPaths: List<String>,
+    fun walkPathsAndCollectTranslationSheets(allPaths: Collection<String>,
                                              translateTo: List<Language>): ExportResult {
-        //FIXME: move up
-        val allPaths = patternPaths.flatMap { path ->
-            PathUtils().expandPath(path, resourceLoader)
-        }
         val newMsgFilesPaths = allPaths.filter { msgFilePath ->
             !snapshotReadContract.includesMsgFile(msgFilePath)
         }
@@ -47,7 +46,9 @@ class Exporter(private val messageLoader: MessageLoader,
     private fun processMsgFile(msgFilePath: String, translateTo: List<Language>): TranslationSheet {
         val sheetRows = computeTranslationSheetRows(msgFilePath, translateTo)
         val sheetId = snapshotWriteContract.registerMsgFile(msgFilePath)
-        return newTranslationSheet(sheetRows, sheetId, msgFilePath, translateTo)
+        val translationSheet = newTranslationSheet(sheetRows, sheetId, msgFilePath, translateTo)
+        log.info("Gathered ${translationSheet.dataRows.size} translation rows from message file '$msgFilePath'.")
+        return translationSheet
     }
 
     private fun computeTranslationSheetRows(msgFilePath: String, translateTo: List<Language>): SheetRows {

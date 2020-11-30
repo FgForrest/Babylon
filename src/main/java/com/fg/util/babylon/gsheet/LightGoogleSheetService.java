@@ -63,7 +63,7 @@ public class LightGoogleSheetService {
         UpdateValuesResponse result = getSheetsService().spreadsheets().values().update(spreadsheetId, range, body)
                 .setValueInputOption("RAW")
                 .execute();
-        log.info(String.format("%d cells updated.", result.getUpdatedCells()));
+        log.info(String.format("%d cells written.", result.getUpdatedCells()));
     }
 
     public void updateSheetStyle(String spreadsheetId, Integer sheetId, List<String> lockToAccounts) throws GeneralSecurityException, IOException {

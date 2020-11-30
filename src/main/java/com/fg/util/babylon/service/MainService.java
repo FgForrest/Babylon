@@ -50,16 +50,17 @@ public class MainService {
         Snapshot snapshot = dfm.getOrCreateDataFile();
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
-        Exporter exporter = new Exporter(ml, mfp, springResLoader, snapshotAdapter, snapshotAdapter);
+        Exporter exporter = new Exporter(ml, mfp, snapshotAdapter, snapshotAdapter);
         LightGoogleSheetService lgss = new LightGoogleSheetService(new GoogleSheetApiRequestFactory(), gsApi);
         GoogleSheetContract gsc = new LegacyGoogleSheetApiAdaptor(lgss, gsApi);
-        newExporter = new NewExporter(exporter, dfm, gsc);
+        newExporter = new NewExporter(exporter, dfm, gsc, springResLoader);
     }
 
     public void startTranslation(String spreadsheetId) throws IOException, GeneralSecurityException, InterruptedException {
         long stTime = System.currentTimeMillis();
         switch (action) {
             case EXPORT:
+                log.info("New Babylon starting...");
                 newExporter.go(configuration.getPath(), spreadsheetId, configuration);
 //                exportProcessor.doExport(configuration.getMutations());
                 break;
