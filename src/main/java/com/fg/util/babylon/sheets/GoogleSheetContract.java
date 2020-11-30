@@ -23,6 +23,6 @@ public interface GoogleSheetContract {
 
     void deleteSheets(String spreadsheetId, Iterable<Integer> sheetIds) throws SheetsException;
 
-    void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows) throws SheetsException;
+    void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors) throws SheetsException;
 
 }

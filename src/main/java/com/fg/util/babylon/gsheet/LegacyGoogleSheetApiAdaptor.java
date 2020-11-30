@@ -42,7 +42,7 @@ public class LegacyGoogleSheetApiAdaptor implements GoogleSheetContract {
     }
 
     @Override
-    public void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows) throws SheetsException {
+    public void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors) throws SheetsException {
         try {
             Sheet existingSheet = lightGoogleSheetService.loadSheet(spreadsheetId, sheetTitle);
             if (existingSheet != null) {
@@ -51,7 +51,7 @@ public class LegacyGoogleSheetApiAdaptor implements GoogleSheetContract {
             lightGoogleSheetService.uploadDataToGoogleSheet(spreadsheetId, sheetTitle, sheetRows);
             Sheet sheet = lightGoogleSheetService.loadSheet(spreadsheetId, sheetTitle);
             Integer sheetId = sheet.getProperties().getSheetId();
-            lightGoogleSheetService.updateSheetStyle(spreadsheetId, sheetId, Arrays.asList("kosar@fg.cz","kamenik@fg.cz"));
+            lightGoogleSheetService.updateSheetStyle(spreadsheetId, sheetId, lockedCellEditors);
         } catch (IOException | GeneralSecurityException e) {
             String errMsg = "Error when creating sheet '" + sheetTitle + "' in spreadsheet '" + spreadsheetId + "'";
             throw new SheetsException(errMsg, e);
