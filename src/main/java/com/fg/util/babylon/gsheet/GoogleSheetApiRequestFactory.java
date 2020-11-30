@@ -6,10 +6,17 @@ import java.util.List;
 
 public class GoogleSheetApiRequestFactory {
 
-    //TODO: neresim, co se ma stat, pokud uz existuje sheet
-    public AddSheetRequest addSheet(String newSheetTitle,
+    public Request addSheet(String newSheetTitle,
                                     Integer rowCount, Integer colCount,
                                     Integer rowsToFreeze, Integer colsToFreeze) {
+        return new Request()
+                .setAddSheet(doAddSheet(newSheetTitle, rowCount, colCount, rowsToFreeze, colsToFreeze));
+    }
+
+    //TODO: neresim, co se ma stat, pokud uz existuje sheet
+    private AddSheetRequest doAddSheet(String newSheetTitle,
+                                       Integer rowCount, Integer colCount,
+                                       Integer rowsToFreeze, Integer colsToFreeze) {
 
         GridProperties gridProperties = new GridProperties()
                 .setRowCount(rowCount)
@@ -24,11 +31,6 @@ public class GoogleSheetApiRequestFactory {
         return new AddSheetRequest()
                 .setProperties(sheetProperties);
     }
-
-//    private GridProperties freezeFOO(Integer rowCount, Integer colCount,
-//                                     Integer rowsToFreeze, Integer colsToFreeze) {
-//
-//    }
 
     public Request setWrapWrappingStrategyForAllCells(Integer sheetId) {
         return new Request()

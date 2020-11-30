@@ -2,8 +2,9 @@ package com.fg.util.babylon.export;
 
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.TranslationConfiguration;
-import com.fg.util.babylon.gsheet.GoogleSheetContract;
-import com.fg.util.babylon.gsheet.TranslationSheetService;
+import com.fg.util.babylon.sheets.GoogleSheetContract;
+import com.fg.util.babylon.legacy.TranslationSheetService;
+import com.fg.util.babylon.sheets.SheetsException;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.snapshot.SnapshotService;
 import com.google.api.services.sheets.v4.model.Sheet;
@@ -14,17 +15,16 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+//FIXME: should throw unchecked or checked exceptions?
 public class NewExporter {
 
     private final Exporter exporter;
-    private final TranslationSheetService tss;
     private final DataFileManager dfm;
     private final GoogleSheetContract gsc;
     private final SnapshotService snapshotService;
 
-    public NewExporter(Exporter exporter, TranslationSheetService tss, DataFileManager dfm, GoogleSheetContract gsc) {
+    public NewExporter(Exporter exporter, DataFileManager dfm, GoogleSheetContract gsc) {
         this.exporter = exporter;
-        this.tss = tss;
         this.dfm = dfm;
         this.gsc = gsc;
         this.snapshotService = new SnapshotService();
@@ -49,18 +49,17 @@ public class NewExporter {
     private List<Sheet> listAllSheets(String spreadsheetId) {
         try {
             return gsc.listSheets(spreadsheetId);
-        } catch (GeneralSecurityException | IOException e) {
+        } catch (SheetsException e) {
             String errMsg = "Error when listing sheets of spreadsheet '" + spreadsheetId + "'";
             throw new RuntimeException(errMsg, e);
         }
     }
 
     private void uploadTranslations(Exporter.ExportResult exportResult, String spreadsheetId) {
-        AtomicInteger processed = new AtomicInteger(0);
         exportResult.getSheets().stream().forEach(sheet -> {
             try {
-                tss.uploadDataToGoogleSheet(spreadsheetId, sheet.getRows(), sheet.getSheetName(), processed);
-            } catch (IOException | GeneralSecurityException e) {
+                gsc.uploadDataToGoogleSheet(spreadsheetId, sheet.getSheetName(), sheet.getRows());
+            } catch (SheetsException e) {
                 String errMsg = "Error when uploading data to spreadsheet '" + spreadsheetId + "'";
                 throw new RuntimeException(errMsg, e);
             }
@@ -79,7 +78,7 @@ public class NewExporter {
     private void deleteOldSheets(Iterable<Integer> sheetIds, String spreadsheetId) {
         try {
             gsc.deleteSheets(spreadsheetId, sheetIds);
-        } catch (IOException | GeneralSecurityException e) {
+        } catch (SheetsException e) {
             String errMsg = "Error when deleting sheets '" + sheetIds + "'";
             throw new RuntimeException(errMsg, e);
         }

@@ -2,13 +2,16 @@ package com.fg.util.babylon.service;
 
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
+import com.fg.util.babylon.gsheet.GoogleSheetApiRequestFactory;
+import com.fg.util.babylon.gsheet.LightGoogleSheetService;
+import com.fg.util.babylon.legacy.GoogleSheetApi;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.export.*;
-import com.fg.util.babylon.gsheet.GoogleSheetContract;
+import com.fg.util.babylon.sheets.GoogleSheetContract;
 import com.fg.util.babylon.gsheet.LegacyGoogleSheetApiAdaptor;
-import com.fg.util.babylon.gsheet.TranslationSheetService;
+import com.fg.util.babylon.legacy.TranslationSheetService;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.processor.ExportProcessor;
 import com.fg.util.babylon.processor.I18nFileManager;
@@ -48,8 +51,9 @@ public class MainService {
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
         Exporter exporter = new Exporter(ml, mfp, springResLoader, snapshotAdapter, snapshotAdapter);
-        GoogleSheetContract gsc = new LegacyGoogleSheetApiAdaptor(gsApi);
-        newExporter = new NewExporter(exporter, tss, dfm, gsc);
+        LightGoogleSheetService lgss = new LightGoogleSheetService(new GoogleSheetApiRequestFactory(), gsApi);
+        GoogleSheetContract gsc = new LegacyGoogleSheetApiAdaptor(lgss, gsApi);
+        newExporter = new NewExporter(exporter, dfm, gsc);
     }
 
     public void startTranslation(String spreadsheetId) throws IOException, GeneralSecurityException, InterruptedException {

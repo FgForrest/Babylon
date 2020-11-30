@@ -1,11 +1,12 @@
-package com.fg.util.babylon.gsheet;
+package com.fg.util.babylon.legacy;
 
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.MessageFileContent;
 import com.fg.util.babylon.entity.SheetParams;
 import com.fg.util.babylon.exception.SheetExistsException;
-import com.fg.util.babylon.service.GoogleSheetApi;
+import com.fg.util.babylon.legacy.GoogleSheetApi;
+import com.fg.util.babylon.sheets.SheetUtils;
 import com.google.api.services.sheets.v4.model.*;
 import lombok.extern.apachecommons.CommonsLog;
 
@@ -19,11 +20,9 @@ import java.util.stream.Collectors;
 public class TranslationSheetService {
 
     private final GoogleSheetApi googleSheetApi;
-    private final GoogleSheetApiRequestFactory sheetsRequestFactory;
 
     public TranslationSheetService(GoogleSheetApi googleSheetApi) {
         this.googleSheetApi = googleSheetApi;
-        this.sheetsRequestFactory = new GoogleSheetApiRequestFactory();
     }
 
     /**
@@ -87,31 +86,6 @@ public class TranslationSheetService {
         } else {
             log.info("No changed data for primary properties file and its mutation files: " + fileNamePath);
         }
-    }
-
-    private static final Integer COLUMN_WIDTH = 350;
-
-    public void newUploadDataToGoogleSheet(String spreadsheetId, List<List<String>> sheetRows, String sheetTitle, AtomicInteger processedCount) {
-        Integer rows = sheetRows.size();
-        Integer cols = sheetRows.size() > 0
-                ? sheetRows.get(0).size()
-                : 0;
-        AddSheetRequest sheet = sheetsRequestFactory.addSheet(sheetTitle, rows, cols, 1, 2); //FIXME: hide magic values in api
-        //FIXME: write data in sheet cells
-        Integer sheetId = 0; // FIXME
-
-        List<Request> sheetRequests = new ArrayList<>();
-
-        sheetRequests.add(
-                sheetsRequestFactory.setWrapWrappingStrategyForAllCells(sheetId));
-        sheetRequests.add(
-                sheetsRequestFactory.resizeAllColumns(sheetId, COLUMN_WIDTH));
-        sheetRequests.add(
-                sheetsRequestFactory.protectCellsInFirstTwoColumns(sheetId, Arrays.asList("kosar@fg.cz","kamenik@fg.cz")));
-        sheetRequests.add(
-                sheetsRequestFactory.hideFirstColumn(sheetId));
-
-        googleSheetApi.executeSpreadsheetBatchUpdate(spreadsheetId, sheetRequests);
     }
 
     public void uploadDataToGoogleSheet(String spreadsheetId, List<List<String>> sheetRows, String sheetTitle, AtomicInteger processedCount) throws IOException, GeneralSecurityException {

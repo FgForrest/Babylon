@@ -1,4 +1,4 @@
-package com.fg.util.babylon.service;
+package com.fg.util.babylon.legacy;
 
 import com.fg.util.babylon.entity.SheetParams;
 import com.google.api.client.auth.oauth2.Credential;
@@ -301,7 +301,7 @@ public class GoogleSheetApi {
      * @throws IOException some exception derived from {@link IOException}
     */
     @NonNull
-    private Sheets getSheetService() throws GeneralSecurityException, IOException {
+    public Sheets getSheetService() throws GeneralSecurityException, IOException {
         if (sheetService == null) {
             final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
             sheetService = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
