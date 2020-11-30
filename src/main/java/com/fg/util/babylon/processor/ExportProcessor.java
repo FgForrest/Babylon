@@ -6,7 +6,7 @@ import com.fg.util.babylon.entity.*;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.enums.PropertyStatus;
 import com.fg.util.babylon.enums.PropertyType;
-import com.fg.util.babylon.gsheet.TranslationSheetService;
+import com.fg.util.babylon.legacy.TranslationSheetService;
 import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
 import com.fg.util.babylon.propfiles.Property;
 import com.fg.util.babylon.snapshot.SnapshotService;

@@ -11,7 +11,7 @@ import com.fg.util.babylon.exception.PropIdNotFoundException;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
 import com.fg.util.babylon.propfiles.Property;
-import com.fg.util.babylon.service.GoogleSheetApi;
+import com.fg.util.babylon.legacy.GoogleSheetApi;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfImport;
 import com.fg.util.babylon.todo.TranslationFileUtils;

@@ -1,10 +1,11 @@
-package com.fg.util.babylon.gsheet;
+package com.fg.util.babylon.sheets;
 
 import com.google.api.services.sheets.v4.model.Sheet;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public interface GoogleSheetContract {
 
@@ -16,12 +17,12 @@ public interface GoogleSheetContract {
      * @param spreadsheetId id of spreadsheet
      * @return sheets, or null when FIXME - when?? examine gapi more
      *
-     * @throws GeneralSecurityException in case of permission issues
-     * @throws IOException general I/O error
+     * @throws SheetsException in case of permission issues or I/O error
      */
-    public List<Sheet> listSheets(String spreadsheetId) throws GeneralSecurityException, IOException;
+    List<Sheet> listSheets(String spreadsheetId) throws SheetsException;
 
-    //FIXME javadoc
-    void deleteSheets(String spreadsheetId, Iterable<Integer> sheetIds) throws IOException, GeneralSecurityException;
+    void deleteSheets(String spreadsheetId, Iterable<Integer> sheetIds) throws SheetsException;
+
+    void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows) throws SheetsException;
 
 }
