@@ -9,7 +9,7 @@ class OldMessageLoaderAdaptor(private val i18nFileManager: I18nFileManager) : Me
 
     override fun loadPrimaryMessages(filePath: String): Messages {
         val propertyFileAR = i18nFileManager.loadPropertiesFromFile(filePath)
-                ?: throw IllegalArgumentException("Message file $filePath could not be found.")
+                ?: throw IllegalArgumentException("Message file '$filePath' could not be found.")
         return dumpPropertyFile(propertyFileAR)
     }
 
