@@ -1,7 +1,7 @@
-package com.fg.util.babylon.gsheets;
+package com.fg.util.babylon.sheets.gsheets;
 
-import com.fg.util.babylon.gsheets.executor.SpreadsheetUpdateRQE;
-import com.fg.util.babylon.gsheets.executor.SpreadsheetValuesUpdateRQE;
+import com.fg.util.babylon.sheets.gsheets.executor.SpreadsheetUpdateRQE;
+import com.fg.util.babylon.sheets.gsheets.executor.SpreadsheetValuesUpdateRQE;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
 import lombok.extern.apachecommons.CommonsLog;
