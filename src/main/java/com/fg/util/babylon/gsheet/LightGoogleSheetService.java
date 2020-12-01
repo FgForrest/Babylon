@@ -1,7 +1,6 @@
 package com.fg.util.babylon.gsheet;
 
 import com.fg.util.babylon.legacy.GoogleSheetApi;
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
 import lombok.extern.apachecommons.CommonsLog;
@@ -10,7 +9,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 //FIXME: abstract out interface
 @CommonsLog
@@ -63,12 +61,15 @@ public class LightGoogleSheetService {
     private void writeDataToGoogleSheet(String spreadsheetId, String range, List<? extends List<? extends Object>> values) throws GeneralSecurityException, IOException {
         // casting to List<List<Object>> is safe here, the Sheets API could have accepted List<? extends List<? extends Object>> in setValues()
         List<List<Object>> castValues = (List)values;
-        ValueRange body = new ValueRange()
-                .setValues(castValues);
-        UpdateValuesResponse result = getSheetsService().spreadsheets().values().update(spreadsheetId, range, body)
+        ValueRange valueRange = new ValueRange()
+                .setValues(castValues)
+                .setRange(range);
+        BatchUpdateValuesRequest update = new BatchUpdateValuesRequest()
                 .setValueInputOption("RAW")
-                .execute();
-        log.info(String.format("%d cells written.", result.getUpdatedCells()));
+                .setData(Arrays.asList(valueRange));
+
+        BatchUpdateValuesResponse result = executeRequest(spreadsheetId, update);
+        log.info(String.format("%d cells written.", result.getTotalUpdatedCells()));
     }
 
     public void updateSheetStyle(String spreadsheetId, Integer sheetId, List<String> lockedCellEditors) throws GeneralSecurityException, IOException {
@@ -80,13 +81,18 @@ public class LightGoogleSheetService {
         executeRequests(spreadsheetId, setWrappingStrategy, resizeColumns, protectColumns, hideColumn);
     }
 
-    private void executeRequests(String spreadsheetId, Request... requests) throws GeneralSecurityException, IOException {
+    private BatchUpdateValuesResponse executeRequest(String spreadsheetId, BatchUpdateValuesRequest request) throws GeneralSecurityException, IOException {
+        SpreadsheetValuesUpdateRQE requestQueueExecutor = new SpreadsheetValuesUpdateRQE(googleSheetApi, spreadsheetId, request);
+        return requestQueueExecutor.executeRequest();
+    }
+
+    private BatchUpdateSpreadsheetResponse executeRequests(String spreadsheetId, Request... requests) throws GeneralSecurityException, IOException {
         BatchUpdateSpreadsheetRequest req = new BatchUpdateSpreadsheetRequest()
                 .setRequests(Arrays.asList(requests))
                 .setIncludeSpreadsheetInResponse(false);
 
-        RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(googleSheetApi, Arrays.asList(req), spreadsheetId);
-        requestQueueExecutor.executeRequests();
+        SpreadsheetUpdateRQE requestQueueExecutor = new SpreadsheetUpdateRQE(googleSheetApi, spreadsheetId, req);
+        return requestQueueExecutor.executeRequest();
     }
 
 
