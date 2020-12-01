@@ -5,7 +5,7 @@
     <groupId>com.fg.util</groupId>
     <artifactId>babylon-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-    <version>1.0.9-SNAPSHOT</version>
+    <version>1.0.11-SNAPSHOT</version>
     <name>Babylon - translation utility</name>
     <url>http://maven.apache.org</url>
 
