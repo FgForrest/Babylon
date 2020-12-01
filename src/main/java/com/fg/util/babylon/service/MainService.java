@@ -13,9 +13,7 @@ import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.export.*;
 import com.fg.util.babylon.sheet.export.GoogleSheetExporterContract;
 import com.fg.util.babylon.gsheets.LightGSheetServiceExporterContractAdaptor;
-import com.fg.util.babylon.legacy.TranslationSheetService;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
-import com.fg.util.babylon.processor.ExportProcessor;
 import com.fg.util.babylon.processor.I18nFileManager;
 import com.fg.util.babylon.processor.ImportProcessor;
 import com.fg.util.babylon.processor.spring.SpringResourceLoader;
@@ -32,7 +30,6 @@ import java.security.GeneralSecurityException;
 @CommonsLog
 public class MainService {
 
-    private final ExportProcessor exportProcessor;
     private final ImportProcessor importProcessor;
     private final Action action;
     private final TranslationConfiguration configuration;
@@ -42,8 +39,6 @@ public class MainService {
     public MainService(GoogleSheetApi gsApi, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) throws IOException {
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
         I18nFileManager i18FileManager = new I18nFileManager();
-        TranslationSheetService tss = new TranslationSheetService(gsApi);
-        exportProcessor = new ExportProcessor(tss, dfm, i18FileManager, springResLoader, configuration);
         importProcessor = new ImportProcessor(gsApi, dfm, i18FileManager, arguments.getGoogleSheetId(), configuration);
         this.configuration = configuration;
         this.action = arguments.getAction();
@@ -65,7 +60,6 @@ public class MainService {
             case EXPORT:
                 log.info("New Babylon starting...");
                 newExporter.go(configuration.getPath(), spreadsheetId, configuration);
-//                exportProcessor.doExport(configuration.getMutations());
                 break;
             case IMPORT:
                 importProcessor.doImport();
