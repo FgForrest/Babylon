@@ -5,7 +5,7 @@
     <groupId>com.fg.util</groupId>
     <artifactId>babylon-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-    <version>1.0.9</version>
+    <version>1.0.9-SNAPSHOT</version>
     <name>Babylon - translation utility</name>
     <url>http://maven.apache.org</url>
 
@@ -13,7 +13,7 @@
         <connection>scm:git:git@gitlab.fg.cz:edee/babylon.git</connection>
         <developerConnection>scm:git:git@gitlab.fg.cz:edee/babylon.git</developerConnection>
         <url>https://https://gitlab.fg.cz/edee/babylon</url>
-      <tag>babylon-maven-plugin-1.0.9-SNAPSHOT</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <parent>
