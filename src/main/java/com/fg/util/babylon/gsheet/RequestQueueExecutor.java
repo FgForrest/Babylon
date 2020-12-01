@@ -59,7 +59,7 @@ public abstract class RequestQueueExecutor<T extends GenericJson, U extends Gene
     private void sleepFor(int seconds) {
         try {
             String secStr = seconds == 1 ? "second" : "seconds";
-            log.info("API limit exceeded. Pausing for " + seconds + secStr + ".");
+            log.info("API rate limit exceeded. Pausing for " + seconds + " " + secStr + ".");
             TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
