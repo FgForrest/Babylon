@@ -15,7 +15,7 @@ import java.io.IOException;
  * classpath:com/mycompany/**&#47;applicationContext.xml
  * </pre>
  *
- * Specifies the resource loading contract of {@link ExportProcessor}.
+ * Specifies the resource loading contract of {@link com.fg.util.babylon.export.NewExporter}.
  *
  * @see PathMatchingResourcePatternResolver
  */
