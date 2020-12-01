@@ -5,8 +5,7 @@ import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.MessageFileContent;
 import com.fg.util.babylon.entity.SheetParams;
 import com.fg.util.babylon.exception.SheetExistsException;
-import com.fg.util.babylon.legacy.GoogleSheetApi;
-import com.fg.util.babylon.sheets.SheetUtils;
+import com.fg.util.babylon.sheet.SheetUtils;
 import com.google.api.services.sheets.v4.model.*;
 import lombok.extern.apachecommons.CommonsLog;
 

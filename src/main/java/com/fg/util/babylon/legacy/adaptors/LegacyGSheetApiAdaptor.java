@@ -1,24 +1,24 @@
-package com.fg.util.babylon.gsheet;
+package com.fg.util.babylon.legacy.adaptors;
 
+import com.fg.util.babylon.gsheets.LightGSheetService;
 import com.fg.util.babylon.legacy.GoogleSheetApi;
-import com.fg.util.babylon.sheets.GoogleSheetContract;
-import com.fg.util.babylon.sheets.SheetsException;
+import com.fg.util.babylon.sheet.GoogleSheetContract;
+import com.fg.util.babylon.sheet.SheetsException;
 import com.google.api.services.sheets.v4.model.Sheet;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
 import java.util.List;
 
 // migrating from GoogleSheetApi to LightGoogleSheetService
-public class LegacyGoogleSheetApiAdaptor implements GoogleSheetContract {
+public class LegacyGSheetApiAdaptor implements GoogleSheetContract {
 
-    private final LightGoogleSheetService lightGoogleSheetService;
+    private final LightGSheetService lightGSheetService;
     private final GoogleSheetApi googleSheetApi;
 
-    public LegacyGoogleSheetApiAdaptor(LightGoogleSheetService lightGoogleSheetService,
-                                       GoogleSheetApi googleSheetApi) {
-        this.lightGoogleSheetService = lightGoogleSheetService;
+    public LegacyGSheetApiAdaptor(LightGSheetService lightGSheetService,
+                                  GoogleSheetApi googleSheetApi) {
+        this.lightGSheetService = lightGSheetService;
         this.googleSheetApi = googleSheetApi;
     }
 
@@ -44,14 +44,14 @@ public class LegacyGoogleSheetApiAdaptor implements GoogleSheetContract {
     @Override
     public void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors) throws SheetsException {
         try {
-            Sheet existingSheet = lightGoogleSheetService.loadSheet(spreadsheetId, sheetTitle);
+            Sheet existingSheet = lightGSheetService.loadSheet(spreadsheetId, sheetTitle);
             if (existingSheet != null) {
                 throw new SheetsException("Sheet '" + sheetTitle + "' already exists.");
             }
-            lightGoogleSheetService.uploadDataToGoogleSheet(spreadsheetId, sheetTitle, sheetRows);
-            Sheet sheet = lightGoogleSheetService.loadSheet(spreadsheetId, sheetTitle);
+            lightGSheetService.uploadDataToGoogleSheet(spreadsheetId, sheetTitle, sheetRows);
+            Sheet sheet = lightGSheetService.loadSheet(spreadsheetId, sheetTitle);
             Integer sheetId = sheet.getProperties().getSheetId();
-            lightGoogleSheetService.updateSheetStyle(spreadsheetId, sheetId, lockedCellEditors);
+            lightGSheetService.updateSheetStyle(spreadsheetId, sheetId, lockedCellEditors);
         } catch (IOException | GeneralSecurityException e) {
             String errMsg = "Error when creating sheet '" + sheetTitle + "' in spreadsheet '" + spreadsheetId + "'";
             throw new SheetsException(errMsg, e);

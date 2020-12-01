@@ -2,15 +2,17 @@ package com.fg.util.babylon.service;
 
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
-import com.fg.util.babylon.gsheet.GoogleSheetApiRequestFactory;
-import com.fg.util.babylon.gsheet.LightGoogleSheetService;
+import com.fg.util.babylon.gsheets.GSheetsClient;
+import com.fg.util.babylon.gsheets.GSheetApiRequestFactory;
+import com.fg.util.babylon.gsheets.LightGSheetService;
 import com.fg.util.babylon.legacy.GoogleSheetApi;
+import com.fg.util.babylon.legacy.adaptors.LegacyGoogleServiceClientAdaptor;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.export.*;
-import com.fg.util.babylon.sheets.GoogleSheetContract;
-import com.fg.util.babylon.gsheet.LegacyGoogleSheetApiAdaptor;
+import com.fg.util.babylon.sheet.GoogleSheetContract;
+import com.fg.util.babylon.legacy.adaptors.LegacyGSheetApiAdaptor;
 import com.fg.util.babylon.legacy.TranslationSheetService;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.processor.ExportProcessor;
@@ -51,8 +53,9 @@ public class MainService {
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
         TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
-        LightGoogleSheetService lgss = new LightGoogleSheetService(new GoogleSheetApiRequestFactory(), gsApi);
-        GoogleSheetContract gsc = new LegacyGoogleSheetApiAdaptor(lgss, gsApi);
+        GSheetsClient gsClient = new LegacyGoogleServiceClientAdaptor(gsApi);
+        LightGSheetService lgss = new LightGSheetService(new GSheetApiRequestFactory(), gsClient);
+        GoogleSheetContract gsc = new LegacyGSheetApiAdaptor(lgss, gsApi);
         newExporter = new NewExporter(translationCollector, dfm, gsc, springResLoader);
     }
 
