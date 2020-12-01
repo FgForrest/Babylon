@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.fg.util</groupId>
     <artifactId>babylon-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-    <version>1.0.9-SNAPSHOT</version>
+    <version>1.0.9</version>
     <name>Babylon - translation utility</name>
     <url>http://maven.apache.org</url>
 
@@ -15,7 +13,8 @@
         <connection>scm:git:git@gitlab.fg.cz:edee/babylon.git</connection>
         <developerConnection>scm:git:git@gitlab.fg.cz:edee/babylon.git</developerConnection>
         <url>https://https://gitlab.fg.cz/edee/babylon</url>
-    </scm>
+      <tag>SNAPSHOT</tag>
+  </scm>
 
     <parent>
         <groupId>com.fg</groupId>
@@ -158,11 +157,11 @@
                 "mvn babylon:import -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc"
                 in terminal.
              -->
-            <plugin>
-                <groupId>com.fg.util</groupId>
-                <artifactId>babylon-maven-plugin</artifactId>
-                <version>1.0.9-SNAPSHOT</version>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>com.fg.util</groupId>-->
+<!--                <artifactId>babylon-maven-plugin</artifactId>-->
+<!--                <version>1.0.9-SNAPSHOT</version>-->
+<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
