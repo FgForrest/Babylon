@@ -50,6 +50,7 @@ public class GoogleSheetApi {
      * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
+    @Deprecated
     public Sheet addSheet(final String spreadsheetId, final SheetParams sheetParams) throws GeneralSecurityException, IOException {
         Sheet sheetByTitle = getSheet(spreadsheetId, sheetParams.getSheetTitle());
         if (sheetByTitle != null) {
@@ -72,6 +73,7 @@ public class GoogleSheetApi {
      * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
+    @Deprecated
     public Sheet getSheet(final String spreadsheetId, final String sheetTitle) throws GeneralSecurityException, IOException {
         Spreadsheet spreadsheet = getSheetService().spreadsheets().get(spreadsheetId).execute();
         List<Sheet> sheets = spreadsheet.getSheets();
@@ -80,11 +82,13 @@ public class GoogleSheetApi {
                 .findFirst().orElse(null);
     }
 
+    @Deprecated
     public void deleteSheets(final String spreadsheetId, List<Sheet> sheets) throws IOException, GeneralSecurityException {
         List<Integer> sheetIds = sheets.stream().map(sheet -> sheet.getProperties().getSheetId()).collect(Collectors.toList());
         deleteSheets(spreadsheetId, sheetIds);
     }
 
+    @Deprecated
     public void deleteSheets(final String spreadsheetId, Iterable<Integer> sheetIds) throws IOException, GeneralSecurityException {
         List<Request> requests = new ArrayList<>();
         sheetIds.forEach(sheetId -> {
@@ -104,6 +108,7 @@ public class GoogleSheetApi {
      * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
+    @Deprecated
     public List<Sheet> getAllSheets(final String spreadsheetId) throws GeneralSecurityException, IOException {
         Spreadsheet spreadsheet = getSheetService().spreadsheets().get(spreadsheetId).execute();
         return spreadsheet.getSheets();
@@ -116,6 +121,7 @@ public class GoogleSheetApi {
      * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
+    @Deprecated
     public List<Sheet> getAllSheetsWithData(final String spreadsheetId) throws GeneralSecurityException, IOException {
         Sheets.Spreadsheets.Get request = getSheetService().spreadsheets().get(spreadsheetId)
                 .setIncludeGridData(true);
@@ -131,6 +137,7 @@ public class GoogleSheetApi {
      * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
+    @Deprecated
     public ClearValuesResponse clearSheetData(final String spreadsheetId, final String range) throws GeneralSecurityException, IOException {
         ClearValuesRequest requestBody = new ClearValuesRequest();
         Sheets.Spreadsheets.Values.Clear request = getSheetService().spreadsheets().values().clear(spreadsheetId, range, requestBody);
@@ -144,6 +151,7 @@ public class GoogleSheetApi {
      * @throws IOException some exception derived from {@link IOException}
      * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      */
+    @Deprecated
     void setSheetRowAndColCount(final String spreadsheetId, final SheetParams sheetParams) throws IOException, GeneralSecurityException {
         SheetProperties sheetProperties = createSheetProperties(sheetParams);
         List<Request> requests = new ArrayList<>();
@@ -162,6 +170,7 @@ public class GoogleSheetApi {
      * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      * @throws IOException some exception derived from {@link IOException}
     */
+    @Deprecated
     public List<List<Object>> readDataFromSheet(final String spreadsheetId, final String range) throws GeneralSecurityException, IOException {
         Sheets service = getSheetService();
         ValueRange response = service.spreadsheets().values()
@@ -185,6 +194,7 @@ public class GoogleSheetApi {
      * @throws IOException some exception derived from {@link IOException}
      * @throws GeneralSecurityException when access to google sheet failed due to security reasons.
      */
+    @Deprecated
     public void writeDataIntoSheet(final String spreadsheetId, final String range, final List<? extends List<? extends Object>> values) throws IOException, GeneralSecurityException {
         // casting to List<List<Object>> is safe here, the Sheets API could have accepted List<? extends List<? extends Object>> in setValues()
         List<List<Object>> castValues = (List)values;
@@ -212,6 +222,7 @@ public class GoogleSheetApi {
         executeSpreadsheetBatchUpdate(spreadsheetId, requests);
     }
 
+    @Deprecated
     public BatchUpdateSpreadsheetResponse resizeAllColumns(String spreadsheetId, Integer sheetId) throws IOException, GeneralSecurityException {
         List<Request> requests = new ArrayList<>();
         DimensionRange dimensionRange = new DimensionRange()
@@ -227,6 +238,7 @@ public class GoogleSheetApi {
         return executeSpreadsheetBatchUpdate(spreadsheetId, requests);
     }
 
+    @Deprecated
     public BatchUpdateSpreadsheetResponse protectFirstColumns(String spreadsheetId, Integer sheetId) throws IOException, GeneralSecurityException {
         List<Request> requests = new ArrayList<>();
         GridRange gridRange = new GridRange()
@@ -251,6 +263,7 @@ public class GoogleSheetApi {
      * @param spreadsheetId spreadsheet ID
      * @param dimensionRange all necessary parameters for hide range
      */
+    @Deprecated
     public void hideDimensionRange(final String spreadsheetId, final DimensionRange dimensionRange) throws IOException, GeneralSecurityException {
         List<Request> requests = new ArrayList<>();
         DimensionProperties dimensionProperties = new DimensionProperties()
@@ -267,6 +280,7 @@ public class GoogleSheetApi {
      * Sets wrapping strategy to all cells.
      * @param spreadsheetId spreadsheet ID
      */
+    @Deprecated
     public void setWrappingStrategy(final String spreadsheetId, Integer sheetId) throws IOException, GeneralSecurityException {
         RepeatCellRequest request = new RepeatCellRequest()
              .setFields("userEnteredFormat.wrapStrategy")
@@ -276,6 +290,7 @@ public class GoogleSheetApi {
         executeSpreadsheetBatchUpdate(spreadsheetId, singletonList(new Request().setRepeatCell(request)));
     }
 
+    @Deprecated
     private SheetProperties createSheetProperties(SheetParams sheetParams) {
         GridProperties gridProperties = new GridProperties()
                 .setRowCount(sheetParams.getRowCount())
@@ -287,6 +302,7 @@ public class GoogleSheetApi {
                 .setGridProperties(gridProperties);
     }
 
+    @Deprecated
     public BatchUpdateSpreadsheetResponse executeSpreadsheetBatchUpdate(String spreadsheetId, List<Request> requests) throws IOException, GeneralSecurityException {
         BatchUpdateSpreadsheetRequest req = new BatchUpdateSpreadsheetRequest()
                 .setRequests(requests)

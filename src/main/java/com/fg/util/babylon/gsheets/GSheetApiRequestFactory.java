@@ -1,10 +1,10 @@
-package com.fg.util.babylon.gsheet;
+package com.fg.util.babylon.gsheets;
 
 import com.google.api.services.sheets.v4.model.*;
 
 import java.util.List;
 
-public class GoogleSheetApiRequestFactory {
+public class GSheetApiRequestFactory {
 
     public Request addSheet(String newSheetTitle,
                                     Integer rowCount, Integer colCount,

@@ -1,11 +1,8 @@
-package com.fg.util.babylon.sheets;
+package com.fg.util.babylon.sheet;
 
 import com.google.api.services.sheets.v4.model.Sheet;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public interface GoogleSheetContract {
 

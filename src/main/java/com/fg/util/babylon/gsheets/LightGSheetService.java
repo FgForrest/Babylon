@@ -1,6 +1,5 @@
-package com.fg.util.babylon.gsheet;
+package com.fg.util.babylon.gsheets;
 
-import com.fg.util.babylon.legacy.GoogleSheetApi;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
 import lombok.extern.apachecommons.CommonsLog;
@@ -12,19 +11,19 @@ import java.util.List;
 
 //FIXME: abstract out interface
 @CommonsLog
-public class LightGoogleSheetService {
+public class LightGSheetService {
 
-    private final GoogleSheetApiRequestFactory gSheetsRequestFactory;
-    private final GoogleSheetApi googleSheetApi;
+    private final GSheetApiRequestFactory gSheetsRequestFactory;
+    private final GSheetsClient gsClient;
 
     //FIXME: this should not be here
     private BatchUpdateSpreadsheetRequest currentRequest;
 
     private static final Integer COLUMN_WIDTH = 350;
 
-    public LightGoogleSheetService(GoogleSheetApiRequestFactory googleSheetApiRequestFactory, GoogleSheetApi googleSheetApi) {
-        this.gSheetsRequestFactory = googleSheetApiRequestFactory;
-        this.googleSheetApi = googleSheetApi;
+    public LightGSheetService(GSheetApiRequestFactory gSheetApiRequestFactory, GSheetsClient gsClient) {
+        this.gSheetsRequestFactory = gSheetApiRequestFactory;
+        this.gsClient = gsClient;
     }
 
     /**
@@ -82,7 +81,7 @@ public class LightGoogleSheetService {
     }
 
     private BatchUpdateValuesResponse executeRequest(String spreadsheetId, BatchUpdateValuesRequest request) throws GeneralSecurityException, IOException {
-        SpreadsheetValuesUpdateRQE requestQueueExecutor = new SpreadsheetValuesUpdateRQE(googleSheetApi, spreadsheetId, request);
+        SpreadsheetValuesUpdateRQE requestQueueExecutor = new SpreadsheetValuesUpdateRQE(gsClient, spreadsheetId, request);
         return requestQueueExecutor.executeRequest();
     }
 
@@ -91,13 +90,13 @@ public class LightGoogleSheetService {
                 .setRequests(Arrays.asList(requests))
                 .setIncludeSpreadsheetInResponse(false);
 
-        SpreadsheetUpdateRQE requestQueueExecutor = new SpreadsheetUpdateRQE(googleSheetApi, spreadsheetId, req);
+        SpreadsheetUpdateRQE requestQueueExecutor = new SpreadsheetUpdateRQE(gsClient, spreadsheetId, req);
         return requestQueueExecutor.executeRequest();
     }
 
 
     private Sheets getSheetsService() throws GeneralSecurityException, IOException {
-        return googleSheetApi.getSheetService();
+        return gsClient.getSheetService();
     }
 
 }
