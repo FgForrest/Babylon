@@ -1,21 +1,19 @@
 package com.fg.util.babylon.export
 
 import com.fg.util.babylon.sheets.SheetUtils
-import com.fg.util.babylon.processor.AntPathResourceLoader
 import com.fg.util.babylon.snapshot.TranslationSnapshotReadContract
 import com.fg.util.babylon.snapshot.TranslationSnapshotWriteContract
-import com.fg.util.babylon.util.PathUtils
 
 /**
- * Performs the "export" part of the translation synchronization.
+ * Collects messages from primary language message files and from translation message files.
  */
-class Exporter(private val messageLoader: MessageLoader,
-               private val messageFileProcessor: MessageFileProcessor,
-               private val snapshotReadContract: TranslationSnapshotReadContract,
-               private val snapshotWriteContract: TranslationSnapshotWriteContract) {
+class TranslationCollector(private val messageLoader: MessageLoader,
+                           private val messageFileProcessor: MessageFileProcessor,
+                           private val snapshotReadContract: TranslationSnapshotReadContract,
+                           private val snapshotWriteContract: TranslationSnapshotWriteContract) {
 
     companion object {
-        val log = org.apache.commons.logging.LogFactory.getLog(Exporter::class.java)
+        val log = org.apache.commons.logging.LogFactory.getLog(TranslationCollector::class.java)
     }
 
     /**
@@ -23,7 +21,7 @@ class Exporter(private val messageLoader: MessageLoader,
      * that contains messages in primary language and possibly existing translated messages, if the translated message
      * exists for given language and unless invalidated by the change to its primary message.
      *
-     * @param patternPaths paths to message files, might contain Ant-style patterns
+     * @param allPaths paths to message files
      * @param translateTo list of languages to translate to
      */
     fun walkPathsAndCollectTranslationSheets(allPaths: Collection<String>,
@@ -38,7 +36,7 @@ class Exporter(private val messageLoader: MessageLoader,
 
         //FIXME: move up
         val obsoleteFilePaths = snapshotReadContract.listMsgFiles() - allPaths
-        snapshotWriteContract.removeMsgFilPaths(obsoleteFilePaths)
+        snapshotWriteContract.removeMsgFilePaths(obsoleteFilePaths)
 
         return ExportResult(newMsgFilesPaths, sheets)
     }

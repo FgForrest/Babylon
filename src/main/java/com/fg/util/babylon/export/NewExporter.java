@@ -4,25 +4,22 @@ import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.sheets.GoogleSheetContract;
-import com.fg.util.babylon.legacy.TranslationSheetService;
 import com.fg.util.babylon.sheets.SheetsException;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.snapshot.SnapshotService;
 import com.fg.util.babylon.util.PathUtils;
 import com.google.api.services.sheets.v4.model.Sheet;
-import lombok.val;
+import lombok.extern.apachecommons.CommonsLog;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 //FIXME: should throw unchecked or checked exceptions?
+@CommonsLog
 public class NewExporter {
 
-    private final Exporter exporter;
+    private final TranslationCollector translationCollector;
     private final DataFileManager dfm;
     private final GoogleSheetContract gsc;
     private final SnapshotService snapshotService;
@@ -32,8 +29,8 @@ public class NewExporter {
     //FIXME: move to config
     private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz","kamenik@fg.cz");
 
-    public NewExporter(Exporter exporter, DataFileManager dfm, GoogleSheetContract gsc, AntPathResourceLoader resourceLoader) {
-        this.exporter = exporter;
+    public NewExporter(TranslationCollector translationCollector, DataFileManager dfm, GoogleSheetContract gsc, AntPathResourceLoader resourceLoader) {
+        this.translationCollector = translationCollector;
         this.dfm = dfm;
         this.gsc = gsc;
         this.snapshotService = new SnapshotService();
@@ -54,11 +51,8 @@ public class NewExporter {
             deleteOldSheets(sheetIds, spreadsheetId);
         }
 
-        Set<String> allUniquePaths = patternPaths.stream()
-                .map(path -> expandPath(path))
-                .flatMap(Collection::stream)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        Exporter.ExportResult result = exporter.walkPathsAndCollectTranslationSheets(allUniquePaths, config.getMutations());
+        Collection<String> allUniquePaths = expandsToUniquePaths(patternPaths);
+        TranslationCollector.ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, config.getMutations());
 
         uploadTranslations(result, spreadsheetId, lockedCellEditors);
 
@@ -69,11 +63,18 @@ public class NewExporter {
         deleteOldSheets(prevSheetIds, spreadsheetId);
     }
 
+    private Collection<String> expandsToUniquePaths(List<String> patternPaths) {
+        return patternPaths.stream()
+                .map(path -> expandPath(path))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
     private List<String> expandPath(String patternPath) {
         try {
             return pu.expandPath(patternPath, resourceLoader);
         } catch (IOException e) {
-            throw new RuntimeException("Error when expading path '" + patternPath + "'", e);
+            throw new RuntimeException("Error when expanding path '" + patternPath + "'", e);
         }
     }
 
@@ -86,11 +87,13 @@ public class NewExporter {
         }
     }
 
-    private void uploadTranslations(Exporter.ExportResult exportResult, String spreadsheetId, List<String> lockedCellEditors) {
+    private void uploadTranslations(TranslationCollector.ExportResult exportResult, String spreadsheetId, List<String> lockedCellEditors) {
+        int remaining = exportResult.getSheets().size();
         exportResult.getSheets().stream()
                 .filter(sheet -> !sheet.getDataRows().isEmpty())
                 .forEach(sheet -> {
                     try {
+                        log.info("Writing " + sheet.getDataRows().size() + " rows into sheet '" + sheet.getSheetName() + "'.");
                         gsc.uploadDataToGoogleSheet(spreadsheetId, sheet.getSheetName(), sheet.getRows(), lockedCellEditors);
                     } catch (SheetsException e) {
                         String errMsg = "Error when uploading data to spreadsheet '" + spreadsheetId + "'";
@@ -99,7 +102,7 @@ public class NewExporter {
                 });
     }
 
-    private void updateSnapshot(Snapshot originalSnapshot, Exporter.ExportResult exportResult, String snapshotFilename) {
+    private void updateSnapshot(Snapshot originalSnapshot, TranslationCollector.ExportResult exportResult, String snapshotFilename) {
         try {
             snapshotService.updateSnapshotWithNewFilePaths(originalSnapshot, exportResult.getPathsOfNewMsgFiles(), snapshotFilename);
         } catch (IOException e) {
