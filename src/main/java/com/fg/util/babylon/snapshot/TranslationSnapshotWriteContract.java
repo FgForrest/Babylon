@@ -20,6 +20,6 @@ public interface TranslationSnapshotWriteContract {
      *
      * @param msgFilePaths message file paths to remove
      */
-    void removeMsgFilPaths(Collection<String> msgFilePaths);
+    void removeMsgFilePaths(Collection<String> msgFilePaths);
 
 }

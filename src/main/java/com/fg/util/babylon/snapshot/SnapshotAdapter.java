@@ -34,7 +34,7 @@ public class SnapshotAdapter implements TranslationSnapshotReadContract, Transla
     }
 
     @Override
-    public void removeMsgFilPaths(Collection<String> msgFilePaths) {
+    public void removeMsgFilePaths(Collection<String> msgFilePaths) {
         snapshot.dataPropFiles.keySet().removeAll(msgFilePaths);
     }
 

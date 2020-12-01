@@ -50,10 +50,10 @@ public class MainService {
         Snapshot snapshot = dfm.getOrCreateDataFile();
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
-        Exporter exporter = new Exporter(ml, mfp, snapshotAdapter, snapshotAdapter);
+        TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
         LightGoogleSheetService lgss = new LightGoogleSheetService(new GoogleSheetApiRequestFactory(), gsApi);
         GoogleSheetContract gsc = new LegacyGoogleSheetApiAdaptor(lgss, gsApi);
-        newExporter = new NewExporter(exporter, dfm, gsc, springResLoader);
+        newExporter = new NewExporter(translationCollector, dfm, gsc, springResLoader);
     }
 
     public void startTranslation(String spreadsheetId) throws IOException, GeneralSecurityException, InterruptedException {
