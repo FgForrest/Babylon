@@ -2,13 +2,13 @@ package com.fg.util.babylon.export;
 
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.TranslationConfiguration;
+import com.fg.util.babylon.gsheets.model.ASheet;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
-import com.fg.util.babylon.sheet.GoogleSheetContract;
 import com.fg.util.babylon.sheet.SheetsException;
+import com.fg.util.babylon.sheet.export.GoogleSheetExporterContract;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.snapshot.SnapshotService;
 import com.fg.util.babylon.util.PathUtils;
-import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ public class NewExporter {
 
     private final TranslationCollector translationCollector;
     private final DataFileManager dfm;
-    private final GoogleSheetContract gsc;
+    private final GoogleSheetExporterContract gsc;
     private final SnapshotService snapshotService;
     private final AntPathResourceLoader resourceLoader;
     private final PathUtils pu;
@@ -29,7 +29,7 @@ public class NewExporter {
     //FIXME: move to config
     private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz","kamenik@fg.cz");
 
-    public NewExporter(TranslationCollector translationCollector, DataFileManager dfm, GoogleSheetContract gsc, AntPathResourceLoader resourceLoader) {
+    public NewExporter(TranslationCollector translationCollector, DataFileManager dfm, GoogleSheetExporterContract gsc, AntPathResourceLoader resourceLoader) {
         this.translationCollector = translationCollector;
         this.dfm = dfm;
         this.gsc = gsc;
@@ -41,11 +41,11 @@ public class NewExporter {
     public void go(List<String> patternPaths,
                    String spreadsheetId,
                    TranslationConfiguration config) {
-        List<Sheet> prevSheets = listAllSheets(spreadsheetId);
+        List<ASheet> prevSheets = listAllSheets(spreadsheetId);
 
 
         // FIXME remove:
-        List<Integer> sheetIds = prevSheets.stream().map(sheet -> sheet.getProperties().getSheetId()).collect(Collectors.toList());
+        List<Integer> sheetIds = prevSheets.stream().map(sheet -> sheet.getId()).collect(Collectors.toList());
         sheetIds.remove(0);
         if (sheetIds.size() > 0) {
             deleteOldSheets(sheetIds, spreadsheetId);
@@ -59,7 +59,7 @@ public class NewExporter {
         Snapshot originalSnapshot = dfm.getOriginalDataFile();
         updateSnapshot(originalSnapshot, result, config.getDataFileName());
 
-        List<Integer> prevSheetIds = prevSheets.stream().map(sheet -> sheet.getProperties().getSheetId()).collect(Collectors.toList());
+        List<Integer> prevSheetIds = prevSheets.stream().map(sheet -> sheet.getId()).collect(Collectors.toList());
         deleteOldSheets(prevSheetIds, spreadsheetId);
     }
 
@@ -78,7 +78,7 @@ public class NewExporter {
         }
     }
 
-    private List<Sheet> listAllSheets(String spreadsheetId) {
+    private List<ASheet> listAllSheets(String spreadsheetId) {
         try {
             return gsc.listSheets(spreadsheetId);
         } catch (SheetsException e) {

@@ -1,31 +1,36 @@
 package com.fg.util.babylon.legacy.adaptors;
 
 import com.fg.util.babylon.gsheets.LightGSheetService;
+import com.fg.util.babylon.gsheets.model.ASheet;
+import com.fg.util.babylon.gsheets.model.SheetAdaptor;
 import com.fg.util.babylon.legacy.GoogleSheetApi;
-import com.fg.util.babylon.sheet.GoogleSheetContract;
+import com.fg.util.babylon.sheet.export.GoogleSheetExporterContract;
 import com.fg.util.babylon.sheet.SheetsException;
 import com.google.api.services.sheets.v4.model.Sheet;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 // migrating from GoogleSheetApi to LightGoogleSheetService
-public class LegacyGSheetApiAdaptor implements GoogleSheetContract {
+public class LegacyGSheetExporterApiAdaptor implements GoogleSheetExporterContract {
 
     private final LightGSheetService lightGSheetService;
     private final GoogleSheetApi googleSheetApi;
 
-    public LegacyGSheetApiAdaptor(LightGSheetService lightGSheetService,
-                                  GoogleSheetApi googleSheetApi) {
+    public LegacyGSheetExporterApiAdaptor(LightGSheetService lightGSheetService,
+                                          GoogleSheetApi googleSheetApi) {
         this.lightGSheetService = lightGSheetService;
         this.googleSheetApi = googleSheetApi;
     }
 
     @Override
-    public List<Sheet> listSheets(String spreadsheetId) throws SheetsException {
+    public List<ASheet> listSheets(String spreadsheetId) throws SheetsException {
         try {
-            return googleSheetApi.getAllSheets(spreadsheetId);
+            return googleSheetApi.getAllSheets(spreadsheetId).stream()
+                    .map(sheet -> new SheetAdaptor(sheet))
+                    .collect(Collectors.toList());
         } catch (GeneralSecurityException | IOException e) {
             throw new SheetsException("Error when listing all sheets of spreadsheet '" + spreadsheetId + "'", e);
         }

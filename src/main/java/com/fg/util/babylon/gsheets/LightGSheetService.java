@@ -1,5 +1,7 @@
 package com.fg.util.babylon.gsheets;
 
+import com.fg.util.babylon.gsheets.executor.SpreadsheetUpdateRQE;
+import com.fg.util.babylon.gsheets.executor.SpreadsheetValuesUpdateRQE;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
 import lombok.extern.apachecommons.CommonsLog;
@@ -27,6 +29,18 @@ public class LightGSheetService {
     }
 
     /**
+     * Lists all sheets of a spreadsheet without loading their rows.
+     *
+     * @param spreadsheetId id of spreadsheet
+     *
+     * @return
+     */
+    public List<Sheet> listSheetsLazily(final String spreadsheetId) throws GeneralSecurityException, IOException {
+        Sheets.Spreadsheets.Get listRequest = getSheetsClient().spreadsheets().get(spreadsheetId);
+        return listRequest.execute().getSheets();
+    }
+
+    /**
      * Loads sheet from given spreadsheet, if exists.
      *
      * @param spreadsheetId id of spreadsheet to find in
@@ -37,7 +51,7 @@ public class LightGSheetService {
      * @throws IOException
      */
     public Sheet loadSheet(String spreadsheetId, String sheetTitle) throws GeneralSecurityException, IOException {
-        Spreadsheet spreadsheet = getSheetsService().spreadsheets().get(spreadsheetId).execute();
+        Spreadsheet spreadsheet = getSheetsClient().spreadsheets().get(spreadsheetId).execute();
         return spreadsheet.getSheets()
                 .stream()
                 .filter(sheet -> sheet.getProperties().getTitle().equals(sheetTitle))
@@ -51,6 +65,7 @@ public class LightGSheetService {
                 : 0;
         // FIXME: do not create sheet at all in case of 0 rows, 0 cols?
 
+        // FIXME: magic numbers
         Request addSheet = gSheetsRequestFactory.addSheet(sheetTitle, rows, cols, 1, 2);
         executeRequests(spreadsheetId, addSheet);
 
@@ -95,7 +110,7 @@ public class LightGSheetService {
     }
 
 
-    private Sheets getSheetsService() throws GeneralSecurityException, IOException {
+    private Sheets getSheetsClient() throws GeneralSecurityException, IOException {
         return gsClient.getSheetService();
     }
 

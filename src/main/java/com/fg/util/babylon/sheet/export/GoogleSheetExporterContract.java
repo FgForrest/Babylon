@@ -1,10 +1,11 @@
-package com.fg.util.babylon.sheet;
+package com.fg.util.babylon.sheet.export;
 
-import com.google.api.services.sheets.v4.model.Sheet;
+import com.fg.util.babylon.gsheets.model.ASheet;
+import com.fg.util.babylon.sheet.SheetsException;
 
 import java.util.List;
 
-public interface GoogleSheetContract {
+public interface GoogleSheetExporterContract {
 
     /**
      * Lists all sheets of spreadsheet {@code spreadsheetId}. Does not fetch the data of the sheets!
@@ -16,7 +17,7 @@ public interface GoogleSheetContract {
      *
      * @throws SheetsException in case of permission issues or I/O error
      */
-    List<Sheet> listSheets(String spreadsheetId) throws SheetsException;
+    List<ASheet> listSheets(String spreadsheetId) throws SheetsException;
 
     void deleteSheets(String spreadsheetId, Iterable<Integer> sheetIds) throws SheetsException;
 
