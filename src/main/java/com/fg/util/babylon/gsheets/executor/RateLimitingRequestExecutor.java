@@ -1,5 +1,6 @@
-package com.fg.util.babylon.gsheets;
+package com.fg.util.babylon.gsheets.executor;
 
+import com.fg.util.babylon.gsheets.GSheetsClient;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.GenericJson;
 import com.google.api.services.sheets.v4.Sheets;
@@ -86,7 +87,7 @@ public abstract class RateLimitingRequestExecutor<T extends GenericJson, U exten
         }
     }
 
-    protected Sheets getSheetsService() throws GeneralSecurityException, IOException {
+    protected Sheets getSheetsClient() throws GeneralSecurityException, IOException {
         return gsClient.getSheetService();
     }
 

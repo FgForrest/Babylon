@@ -11,8 +11,8 @@ import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.export.*;
-import com.fg.util.babylon.sheet.GoogleSheetContract;
-import com.fg.util.babylon.legacy.adaptors.LegacyGSheetApiAdaptor;
+import com.fg.util.babylon.sheet.export.GoogleSheetExporterContract;
+import com.fg.util.babylon.legacy.adaptors.LegacyGSheetExporterApiAdaptor;
 import com.fg.util.babylon.legacy.TranslationSheetService;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.processor.ExportProcessor;
@@ -55,7 +55,7 @@ public class MainService {
         TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
         GSheetsClient gsClient = new LegacyGoogleServiceClientAdaptor(gsApi);
         LightGSheetService lgss = new LightGSheetService(new GSheetApiRequestFactory(), gsClient);
-        GoogleSheetContract gsc = new LegacyGSheetApiAdaptor(lgss, gsApi);
+        GoogleSheetExporterContract gsc = new LegacyGSheetExporterApiAdaptor(lgss, gsApi);
         newExporter = new NewExporter(translationCollector, dfm, gsc, springResLoader);
     }
 

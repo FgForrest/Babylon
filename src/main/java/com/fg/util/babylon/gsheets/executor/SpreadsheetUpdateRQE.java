@@ -1,5 +1,6 @@
-package com.fg.util.babylon.gsheets;
+package com.fg.util.babylon.gsheets.executor;
 
+import com.fg.util.babylon.gsheets.GSheetsClient;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetResponse;
 
@@ -14,7 +15,7 @@ public class SpreadsheetUpdateRQE extends RateLimitingRequestExecutor<BatchUpdat
 
     @Override
     BatchUpdateSpreadsheetResponse executeRequest(BatchUpdateSpreadsheetRequest request) throws GeneralSecurityException, IOException {
-        return getSheetsService().spreadsheets().batchUpdate(spreadsheetId, request).execute();
+        return getSheetsClient().spreadsheets().batchUpdate(spreadsheetId, request).execute();
     }
 
 }
