@@ -1,6 +1,7 @@
 package com.fg.util.babylon.gsheet;
 
 import com.fg.util.babylon.legacy.GoogleSheetApi;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
 import lombok.extern.apachecommons.CommonsLog;
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 //FIXME: abstract out interface
 @CommonsLog
@@ -16,6 +18,9 @@ public class LightGoogleSheetService {
 
     private final GoogleSheetApiRequestFactory gSheetsRequestFactory;
     private final GoogleSheetApi googleSheetApi;
+
+    //FIXME: this should not be here
+    private BatchUpdateSpreadsheetRequest currentRequest;
 
     private static final Integer COLUMN_WIDTH = 350;
 
@@ -79,8 +84,11 @@ public class LightGoogleSheetService {
         BatchUpdateSpreadsheetRequest req = new BatchUpdateSpreadsheetRequest()
                 .setRequests(Arrays.asList(requests))
                 .setIncludeSpreadsheetInResponse(false);
-        BatchUpdateSpreadsheetResponse result = getSheetsService().spreadsheets().batchUpdate(spreadsheetId, req).execute();
+
+        RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(googleSheetApi, Arrays.asList(req), spreadsheetId);
+        requestQueueExecutor.executeRequests();
     }
+
 
     private Sheets getSheetsService() throws GeneralSecurityException, IOException {
         return googleSheetApi.getSheetService();
