@@ -1,4 +1,4 @@
-package com.fg.util.babylon.gsheets.model;
+package com.fg.util.babylon.sheets.gsheets.model;
 
 /**
  * Abstraction exposing only required properties of Sheet from GSheets client library model.

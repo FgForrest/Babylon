@@ -1,4 +1,4 @@
-package com.fg.util.babylon.gsheets.model;
+package com.fg.util.babylon.sheets.gsheets.model;
 
 /**
  * Implements {@link ASheet} with {@link com.google.api.services.sheets.v4.model.Sheet} from Google Sheets client library.

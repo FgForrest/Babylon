@@ -1,6 +1,6 @@
-package com.fg.util.babylon.gsheets.executor;
+package com.fg.util.babylon.sheets.gsheets.executor;
 
-import com.fg.util.babylon.gsheets.GSheetsClient;
+import com.fg.util.babylon.sheets.gsheets.GSheetsClient;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetResponse;
 

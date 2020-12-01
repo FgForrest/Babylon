@@ -1,9 +1,9 @@
-package com.fg.util.babylon.gsheets;
+package com.fg.util.babylon.sheets.gsheets;
 
-import com.fg.util.babylon.gsheets.model.ASheet;
-import com.fg.util.babylon.gsheets.model.SheetAdaptor;
-import com.fg.util.babylon.sheet.export.GoogleSheetExporterContract;
-import com.fg.util.babylon.sheet.SheetsException;
+import com.fg.util.babylon.sheets.gsheets.model.ASheet;
+import com.fg.util.babylon.sheets.gsheets.model.SheetAdaptor;
+import com.fg.util.babylon.sheets.export.GoogleSheetExporterContract;
+import com.fg.util.babylon.sheets.SheetsException;
 import com.google.api.services.sheets.v4.model.Sheet;
 
 import java.io.IOException;
