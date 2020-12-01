@@ -111,7 +111,7 @@ public class NewExporter {
         }
     }
 
-    private void deleteOldSheets(Iterable<Integer> sheetIds, String spreadsheetId) {
+    private void deleteOldSheets(Collection<Integer> sheetIds, String spreadsheetId) {
         try {
             gsc.deleteSheets(spreadsheetId, sheetIds);
         } catch (SheetsException e) {

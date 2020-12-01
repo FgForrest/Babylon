@@ -9,6 +9,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -32,7 +33,6 @@ public class LightGSheetService {
      * Lists all sheets of a spreadsheet without loading their cell data.
      *
      * @param spreadsheetId id of spreadsheet
-     *
      * @return all sheets of spreadsheet {@code spreadSheetId}
      */
     public List<Sheet> listSheetsLazily(final String spreadsheetId) throws GeneralSecurityException, IOException {
@@ -45,10 +45,8 @@ public class LightGSheetService {
      * Loads sheet from given spreadsheet, if exists.
      *
      * @param spreadsheetId id of spreadsheet to find in
-     * @param sheetTitle title of sheet to find
-     *
+     * @param sheetTitle    title of sheet to find
      * @return sheet {@code sheetTitle} from spreadsheet {@spreadsheetId}, or null if not found
-     *
      * @throws GeneralSecurityException
      * @throws IOException
      */
@@ -78,7 +76,7 @@ public class LightGSheetService {
 
     private void writeDataToGoogleSheet(String spreadsheetId, String range, List<? extends List<? extends Object>> values) throws GeneralSecurityException, IOException {
         // casting to List<List<Object>> is safe here, the Sheets API could have accepted List<? extends List<? extends Object>> in setValues()
-        List<List<Object>> castValues = (List)values;
+        List<List<Object>> castValues = (List) values;
         ValueRange valueRange = new ValueRange()
                 .setValues(castValues)
                 .setRange(range);
@@ -100,6 +98,14 @@ public class LightGSheetService {
         executeRequests(spreadsheetId, setWrappingStrategy, resizeColumns, protectColumns, hideColumn);
     }
 
+    public void deleteSheets(String spreadsheetId, Collection<Integer> sheetIds) throws GeneralSecurityException, IOException {
+        Request[] deleteSheetRequests = sheetIds.stream()
+                .map(gSheetsRequestFactory::deleteSheet)
+                .toArray(Request[]::new);
+
+        executeRequests(spreadsheetId, deleteSheetRequests);
+    }
+
     private BatchUpdateValuesResponse executeRequest(String spreadsheetId, BatchUpdateValuesRequest request) throws GeneralSecurityException, IOException {
         SpreadsheetValuesUpdateRQE requestQueueExecutor = new SpreadsheetValuesUpdateRQE(gsClient, spreadsheetId, request);
         return requestQueueExecutor.executeRequest();
@@ -113,7 +119,6 @@ public class LightGSheetService {
         SpreadsheetUpdateRQE requestQueueExecutor = new SpreadsheetUpdateRQE(gsClient, spreadsheetId, req);
         return requestQueueExecutor.executeRequest();
     }
-
 
     private Sheets getSheetsClient() throws GeneralSecurityException, IOException {
         return gsClient.getSheetService();

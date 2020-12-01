@@ -1,28 +1,26 @@
-package com.fg.util.babylon.legacy.adaptors;
+package com.fg.util.babylon.gsheets;
 
-import com.fg.util.babylon.gsheets.LightGSheetService;
 import com.fg.util.babylon.gsheets.model.ASheet;
 import com.fg.util.babylon.gsheets.model.SheetAdaptor;
-import com.fg.util.babylon.legacy.GoogleSheetApi;
 import com.fg.util.babylon.sheet.export.GoogleSheetExporterContract;
 import com.fg.util.babylon.sheet.SheetsException;
 import com.google.api.services.sheets.v4.model.Sheet;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// migrating from GoogleSheetApi to LightGoogleSheetService
-public class LegacyGSheetExporterApiAdaptor implements GoogleSheetExporterContract {
+/**
+ * Implements contract for translation export using {@link LightGSheetService} without exposing its details.
+ */
+public class LightGSheetServiceExporterContractAdaptor implements GoogleSheetExporterContract {
 
     private final LightGSheetService lightGSheetService;
-    private final GoogleSheetApi googleSheetApi;
 
-    public LegacyGSheetExporterApiAdaptor(LightGSheetService lightGSheetService,
-                                          GoogleSheetApi googleSheetApi) {
+    public LightGSheetServiceExporterContractAdaptor(LightGSheetService lightGSheetService) {
         this.lightGSheetService = lightGSheetService;
-        this.googleSheetApi = googleSheetApi;
     }
 
     @Override
@@ -37,9 +35,9 @@ public class LegacyGSheetExporterApiAdaptor implements GoogleSheetExporterContra
     }
 
     @Override
-    public void deleteSheets(String spreadsheetId, Iterable<Integer> sheetIds) throws SheetsException {
+    public void deleteSheets(String spreadsheetId, Collection<Integer> sheetIds) throws SheetsException {
         try {
-            googleSheetApi.deleteSheets(spreadsheetId, sheetIds);
+            lightGSheetService.deleteSheets(spreadsheetId, sheetIds);
         } catch (IOException | GeneralSecurityException e) {
             String errMsg = "Error when deleting sheets '" + sheetIds + "' of spreadsheet '" + spreadsheetId + "'";
             throw new SheetsException(errMsg, e);

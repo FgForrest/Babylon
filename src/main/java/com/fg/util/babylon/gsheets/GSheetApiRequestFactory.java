@@ -140,4 +140,14 @@ public class GSheetApiRequestFactory {
                 .setStartRowIndex(0);
     }
 
+    public Request deleteSheet(Integer sheetId) {
+        return new Request()
+                .setDeleteSheet(deleteSheetRequest(sheetId));
+    }
+
+    private DeleteSheetRequest deleteSheetRequest(Integer sheetId) {
+        return new DeleteSheetRequest()
+                .setSheetId(sheetId);
+    }
+
 }
