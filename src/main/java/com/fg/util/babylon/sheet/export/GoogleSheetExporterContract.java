@@ -3,6 +3,7 @@ package com.fg.util.babylon.sheet.export;
 import com.fg.util.babylon.gsheets.model.ASheet;
 import com.fg.util.babylon.sheet.SheetsException;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface GoogleSheetExporterContract {
@@ -19,7 +20,7 @@ public interface GoogleSheetExporterContract {
      */
     List<ASheet> listSheets(String spreadsheetId) throws SheetsException;
 
-    void deleteSheets(String spreadsheetId, Iterable<Integer> sheetIds) throws SheetsException;
+    void deleteSheets(String spreadsheetId, Collection<Integer> sheetIds) throws SheetsException;
 
     void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors) throws SheetsException;
 

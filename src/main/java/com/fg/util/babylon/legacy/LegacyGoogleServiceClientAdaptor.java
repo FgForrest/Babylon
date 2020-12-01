@@ -1,7 +1,6 @@
-package com.fg.util.babylon.legacy.adaptors;
+package com.fg.util.babylon.legacy;
 
 import com.fg.util.babylon.gsheets.GSheetsClient;
-import com.fg.util.babylon.legacy.GoogleSheetApi;
 import com.google.api.services.sheets.v4.Sheets;
 
 import java.io.IOException;
