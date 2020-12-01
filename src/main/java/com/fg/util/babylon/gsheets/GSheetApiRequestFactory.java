@@ -4,11 +4,14 @@ import com.google.api.services.sheets.v4.model.*;
 
 import java.util.List;
 
+/**
+ * Helps create requests for the Google Sheets API client library.
+ */
 public class GSheetApiRequestFactory {
 
     public Request addSheet(String newSheetTitle,
-                                    Integer rowCount, Integer colCount,
-                                    Integer rowsToFreeze, Integer colsToFreeze) {
+                            Integer rowCount, Integer colCount,
+                            Integer rowsToFreeze, Integer colsToFreeze) {
         return new Request()
                 .setAddSheet(doAddSheet(newSheetTitle, rowCount, colCount, rowsToFreeze, colsToFreeze));
     }
