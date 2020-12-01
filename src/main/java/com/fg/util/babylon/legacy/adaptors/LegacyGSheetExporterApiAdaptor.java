@@ -28,8 +28,8 @@ public class LegacyGSheetExporterApiAdaptor implements GoogleSheetExporterContra
     @Override
     public List<ASheet> listSheets(String spreadsheetId) throws SheetsException {
         try {
-            return googleSheetApi.getAllSheets(spreadsheetId).stream()
-                    .map(sheet -> new SheetAdaptor(sheet))
+            return lightGSheetService.listSheetsLazily(spreadsheetId).stream()
+                    .map(SheetAdaptor::new)
                     .collect(Collectors.toList());
         } catch (GeneralSecurityException | IOException e) {
             throw new SheetsException("Error when listing all sheets of spreadsheet '" + spreadsheetId + "'", e);

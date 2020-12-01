@@ -11,15 +11,15 @@ import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
 
-//FIXME: abstract out interface
+/**
+ * Implements business logic by calling Google Sheets API client library in a way that optimizes number of HTTP requests sent.
+ * Does not attempt to build a general abstraction over the client library.
+ */
 @CommonsLog
 public class LightGSheetService {
 
     private final GSheetApiRequestFactory gSheetsRequestFactory;
     private final GSheetsClient gsClient;
-
-    //FIXME: this should not be here
-    private BatchUpdateSpreadsheetRequest currentRequest;
 
     private static final Integer COLUMN_WIDTH = 350;
 
@@ -29,15 +29,16 @@ public class LightGSheetService {
     }
 
     /**
-     * Lists all sheets of a spreadsheet without loading their rows.
+     * Lists all sheets of a spreadsheet without loading their cell data.
      *
      * @param spreadsheetId id of spreadsheet
      *
-     * @return
+     * @return all sheets of spreadsheet {@code spreadSheetId}
      */
     public List<Sheet> listSheetsLazily(final String spreadsheetId) throws GeneralSecurityException, IOException {
         Sheets.Spreadsheets.Get listRequest = getSheetsClient().spreadsheets().get(spreadsheetId);
-        return listRequest.execute().getSheets();
+        Spreadsheet spreadSheet = listRequest.execute();
+        return spreadSheet.getSheets();
     }
 
     /**
@@ -47,17 +48,20 @@ public class LightGSheetService {
      * @param sheetTitle title of sheet to find
      *
      * @return sheet {@code sheetTitle} from spreadsheet {@spreadsheetId}, or null if not found
+     *
      * @throws GeneralSecurityException
      * @throws IOException
      */
     public Sheet loadSheet(String spreadsheetId, String sheetTitle) throws GeneralSecurityException, IOException {
-        Spreadsheet spreadsheet = getSheetsClient().spreadsheets().get(spreadsheetId).execute();
-        return spreadsheet.getSheets()
+        Sheets.Spreadsheets.Get loadRequest = getSheetsClient().spreadsheets().get(spreadsheetId);
+        Spreadsheet spreadSheet = loadRequest.execute();
+        return spreadSheet.getSheets()
                 .stream()
                 .filter(sheet -> sheet.getProperties().getTitle().equals(sheetTitle))
                 .findFirst().orElse(null);
     }
 
+    //FIXME javadoc
     public void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows) throws GeneralSecurityException, IOException {
         Integer rows = sheetRows.size();
         Integer cols = sheetRows.size() > 0
@@ -86,6 +90,7 @@ public class LightGSheetService {
         log.info(String.format("%d cells written.", result.getTotalUpdatedCells()));
     }
 
+    //FIXME javadoc
     public void updateSheetStyle(String spreadsheetId, Integer sheetId, List<String> lockedCellEditors) throws GeneralSecurityException, IOException {
         Request setWrappingStrategy = gSheetsRequestFactory.setWrapWrappingStrategyForAllCells(sheetId);
         Request resizeColumns = gSheetsRequestFactory.resizeAllColumns(sheetId, COLUMN_WIDTH);
