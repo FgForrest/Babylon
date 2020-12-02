@@ -2,7 +2,7 @@ package com.fg.util.babylon.sheets.gsheets;
 
 import com.fg.util.babylon.sheets.gsheets.model.ASheet;
 import com.fg.util.babylon.sheets.gsheets.model.SheetAdaptor;
-import com.fg.util.babylon.sheets.export.GoogleSheetExporterContract;
+import com.fg.util.babylon.sheets.export.ExporterSheetContract;
 import com.fg.util.babylon.sheets.SheetsException;
 import com.google.api.services.sheets.v4.model.Sheet;
 
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * Implements contract for translation export using {@link LightGSheetService} without exposing its details.
  */
-public class LightGSheetServiceExporterContractAdaptor implements GoogleSheetExporterContract {
+public class LightGSheetServiceExporterContractAdaptor implements ExporterSheetContract {
 
     private final LightGSheetService lightGSheetService;
 
@@ -45,7 +45,7 @@ public class LightGSheetServiceExporterContractAdaptor implements GoogleSheetExp
     }
 
     @Override
-    public void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors) throws SheetsException {
+    public void createSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors) throws SheetsException {
         try {
             Sheet existingSheet = lightGSheetService.loadSheet(spreadsheetId, sheetTitle);
             if (existingSheet != null) {
