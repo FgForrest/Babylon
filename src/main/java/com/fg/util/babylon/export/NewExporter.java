@@ -29,7 +29,7 @@ public class NewExporter {
     private final PathUtils pu;
 
     //FIXME: move to config
-    private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz","kamenik@fg.cz");
+    private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz", "kamenik@fg.cz");
 
     public NewExporter(TranslationCollector translationCollector, DataFileManager dfm, ExporterSheetContract gsc, AntPathResourceLoader resourceLoader) {
         this.translationCollector = translationCollector;
@@ -40,9 +40,9 @@ public class NewExporter {
         this.pu = new PathUtils();
     }
 
-    public void go(List<String> patternPaths,
-                   String spreadsheetId,
-                   TranslationConfiguration config) {
+    public void walkPathsAndWriteSheets(List<String> patternPaths,
+                                        String spreadsheetId,
+                                        TranslationConfiguration config) {
         warnDuplicatePaths(patternPaths);
 
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);

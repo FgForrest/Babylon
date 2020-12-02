@@ -2,7 +2,7 @@ package com.fg.util.babylon.export
 
 import org.junit.Test
 
-class ExportTest {
+class ExporterTest {
 
     @Test
     fun `foo`() {
