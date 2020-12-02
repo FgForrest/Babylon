@@ -6,7 +6,7 @@ import com.fg.util.babylon.export.dto.ExportResult;
 import com.fg.util.babylon.sheets.gsheets.model.ASheet;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.sheets.SheetsException;
-import com.fg.util.babylon.sheets.export.GoogleSheetExporterContract;
+import com.fg.util.babylon.sheets.export.ExporterSheetContract;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.snapshot.SnapshotService;
 import com.fg.util.babylon.util.PathUtils;
@@ -23,7 +23,7 @@ public class NewExporter {
 
     private final TranslationCollector translationCollector;
     private final DataFileManager dfm;
-    private final GoogleSheetExporterContract gsc;
+    private final ExporterSheetContract gsc;
     private final SnapshotService snapshotService;
     private final AntPathResourceLoader resourceLoader;
     private final PathUtils pu;
@@ -31,7 +31,7 @@ public class NewExporter {
     //FIXME: move to config
     private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz","kamenik@fg.cz");
 
-    public NewExporter(TranslationCollector translationCollector, DataFileManager dfm, GoogleSheetExporterContract gsc, AntPathResourceLoader resourceLoader) {
+    public NewExporter(TranslationCollector translationCollector, DataFileManager dfm, ExporterSheetContract gsc, AntPathResourceLoader resourceLoader) {
         this.translationCollector = translationCollector;
         this.dfm = dfm;
         this.gsc = gsc;
@@ -107,7 +107,7 @@ public class NewExporter {
                 .forEach(sheet -> {
                     try {
                         log.info("Writing " + sheet.getDataRows().size() + " rows into sheet '" + sheet.getSheetName() + "'.");
-                        gsc.uploadDataToGoogleSheet(spreadsheetId, sheet.getSheetName(), sheet.getRows(), lockedCellEditors);
+                        gsc.createSheet(spreadsheetId, sheet.getSheetName(), sheet.getRows(), lockedCellEditors);
                     } catch (SheetsException e) {
                         String errMsg = "Error when uploading data to spreadsheet '" + spreadsheetId + "'";
                         throw new RuntimeException(errMsg, e);

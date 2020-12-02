@@ -9,7 +9,7 @@ import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.export.*;
-import com.fg.util.babylon.sheets.export.GoogleSheetExporterContract;
+import com.fg.util.babylon.sheets.export.ExporterSheetContract;
 import com.fg.util.babylon.sheets.gsheets.LightGSheetServiceExporterContractAdaptor;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.processor.I18nFileManager;
@@ -48,7 +48,7 @@ public class MainService {
         TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
         GSheetsClient gsClient = new LegacyGoogleServiceClientAdaptor(gsApi);
         LightGSheetService lgss = new LightGSheetService(new GSheetApiRequestFactory(), gsClient);
-        GoogleSheetExporterContract gsc = new LightGSheetServiceExporterContractAdaptor(lgss);
+        ExporterSheetContract gsc = new LightGSheetServiceExporterContractAdaptor(lgss);
         newExporter = new NewExporter(translationCollector, dfm, gsc, springResLoader);
     }
 
