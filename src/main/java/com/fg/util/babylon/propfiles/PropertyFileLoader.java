@@ -1,4 +1,4 @@
-package com.fg.util.babylon.processor;
+package com.fg.util.babylon.propfiles;
 
 import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
 
@@ -9,9 +9,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Handles i18n property files.
+ * Loads {@link PropertyFileActiveRecord} from a file.
  */
-public class I18nFileManager {
+public class PropertyFileLoader {
 
     /**
      * Loads properties from file.
