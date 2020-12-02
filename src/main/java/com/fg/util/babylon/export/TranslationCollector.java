@@ -2,9 +2,11 @@ package com.fg.util.babylon.export;
 
 import com.fg.util.babylon.export.data.ExportResult;
 import com.fg.util.babylon.export.data.TranslationSheet;
+import com.fg.util.babylon.export.stats.MessageFileExportStats;
 import com.fg.util.babylon.sheets.SheetUtils;
 import com.fg.util.babylon.snapshot.TranslationSnapshotReadContract;
 import com.fg.util.babylon.snapshot.TranslationSnapshotWriteContract;
+import kotlin.Pair;
 import lombok.extern.apachecommons.CommonsLog;
 
 import java.util.*;
@@ -14,14 +16,14 @@ import java.util.stream.Collectors;
  * Collects messages from primary language message files and from translation message files.
  */
 @CommonsLog
-public class TranslationCollectur {
+public class TranslationCollector {
 
     private MessageLoader messageLoader;
     private MessageFileProcessor messageFileProcessor;
     private TranslationSnapshotReadContract snapshotReadContract;
     private TranslationSnapshotWriteContract snapshotWriteContract;
 
-    public TranslationCollectur(MessageLoader messageLoader,
+    public TranslationCollector(MessageLoader messageLoader,
                                 MessageFileProcessor messageFileProcessor,
                                 TranslationSnapshotReadContract snapshotReadContract,
                                 TranslationSnapshotWriteContract snapshotWriteContract) {
@@ -59,14 +61,19 @@ public class TranslationCollectur {
     }
 
     private TranslationSheet processMsgFile(String msgFilePath, List<String> translateTo) {
-        List<List<String>> sheetRows = computeTranslationSheetRows(msgFilePath, translateTo);
+        Pair<List<List<String>>, MessageFileExportStats> msgFileResult = computeTranslationSheetRows(msgFilePath, translateTo);
+        List<List<String>> sheetData = msgFileResult.getFirst();
+        MessageFileExportStats msgFileStats = msgFileResult.getSecond();
+
         Integer sheetId = snapshotWriteContract.registerMsgFile(msgFilePath);
-        TranslationSheet translationSheet = newTranslationSheet(sheetRows, sheetId, msgFilePath, translateTo);
-        log.info("Gathered '" + translationSheet.getDataRows().size() + "' translation rows from message file '$msgFilePath'.");
+        TranslationSheet translationSheet = newTranslationSheet(sheetData, sheetId, msgFilePath, translateTo);
+
+        logMsgFileStats(msgFilePath, translationSheet.getDataRows().size(), msgFileStats);
+
         return translationSheet;
     }
 
-    private List<List<String>> computeTranslationSheetRows(String msgFilePath, List<String> translateTo) {
+    private Pair<List<List<String>>, MessageFileExportStats> computeTranslationSheetRows(String msgFilePath, List<String> translateTo) {
         Map<String, String> primaryMsgs = messageLoader.loadPrimaryMessages(msgFilePath);
         Map<String, Map<String, String>> translations = messageLoader.loadTranslations(msgFilePath, translateTo);
 
@@ -88,6 +95,15 @@ public class TranslationCollectur {
         result.addAll(Arrays.asList("key", "primary"));
         result.addAll(targetLangs);
         return result;
+    }
+
+    private void logMsgFileStats(String msgFilePath, int sheetDataRows, MessageFileExportStats msgFileStats) {
+        String msg = msgFilePath + ": " + "\n\t"
+                + msgFileStats.getNewPrimaryMsgKeyCount() + " new messages, " + "\n\t"
+                + msgFileStats.getChangedPrimaryMsgKeyCount() + " messages with changed values in primary language, " + "\n\t"
+                + msgFileStats.getMissingTranslationMsgKeyCount() + " messages with some translations missing." + "\n\t"
+                + sheetDataRows + " total rows in translation sheet.";
+        log.info(msg);
     }
 
 }

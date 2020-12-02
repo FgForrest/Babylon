@@ -5,8 +5,6 @@ import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.sheets.gsheets.GSheetsClient;
 import com.fg.util.babylon.sheets.gsheets.GSheetApiRequestFactory;
 import com.fg.util.babylon.sheets.gsheets.LightGSheetService;
-import com.fg.util.babylon.legacy.GoogleSheetApi;
-import com.fg.util.babylon.legacy.LegacyGoogleServiceClientAdaptor;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
@@ -47,7 +45,7 @@ public class MainService {
         Snapshot snapshot = dfm.getOrCreateDataFile();
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
-        TranslationCollectur translationCollector = new TranslationCollectur(ml, mfp, snapshotAdapter, snapshotAdapter);
+        TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
         GSheetsClient gsClient = new LegacyGoogleServiceClientAdaptor(gsApi);
         LightGSheetService lgss = new LightGSheetService(new GSheetApiRequestFactory(), gsClient);
         GoogleSheetExporterContract gsc = new LightGSheetServiceExporterContractAdaptor(lgss);

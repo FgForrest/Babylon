@@ -28,7 +28,7 @@ class MessageFileProcessorTest {
         val expected = emptyList<List<String>>()
 
         val mfProcessor = MessageFileProcessor(snapshot)
-        val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
+        val (sheet, _) = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
         assertEquals(expected, sheet)
     }
 
@@ -50,7 +50,7 @@ class MessageFileProcessorTest {
                 listOf("price.zeroPriceString", "Free", null, null))
 
         val mfProcessor = MessageFileProcessor(emptySnapshot)
-        val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, noTranslations, translateTo)
+        val (sheet, _) = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, noTranslations, translateTo)
         assertEquals(expected, sheet)
     }
 
@@ -85,7 +85,7 @@ class MessageFileProcessorTest {
                 listOf("availability.text.NOT_AVAILABLE", "Momentarily unavailable", null, null))
 
         val mfProcessor = MessageFileProcessor(snapshot)
-        val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
+        val (sheet, _) = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
         assertEquals(expected, sheet)
     }
 
@@ -112,7 +112,7 @@ class MessageFileProcessorTest {
                 listOf("price.zeroPriceString", "Free", null, null))
 
         val mfProcessor = MessageFileProcessor(emptySnapshot)
-        val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
+        val (sheet, _) = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
         assertEquals(expected, sheet)
     }
 
@@ -144,7 +144,7 @@ class MessageFileProcessorTest {
                 listOf("availability.text.NOT_AVAILABLE", "Momentarily unavailable", null, null))
 
         val mfProcessor = MessageFileProcessor(snapshot)
-        val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
+        val (sheet, _) = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
         assertEquals(expected, sheet)
     }
 
@@ -175,7 +175,7 @@ class MessageFileProcessorTest {
                 listOf("price.zeroPriceString", "Free", null, null))
 
         val mfProcessor = MessageFileProcessor(snapshot)
-        val sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
+        val (sheet, _) = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo)
         assertEquals(expected, sheet)
     }
 

@@ -1,5 +1,6 @@
 package com.fg.util.babylon.export
 
+import com.fg.util.babylon.export.stats.MessageFileExportStats
 import com.fg.util.babylon.snapshot.TranslationSnapshotReadContract
 
 
@@ -44,7 +45,7 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
     fun prepareTranslationSheet(msgFile: MsgFilePath,
                                 primaryMsgs: Messages,
                                 translations: Map<Language, Messages>,
-                                translationLangs: List<Language>): SheetRows {
+                                translationLangs: List<Language>): Pair<SheetRows, MessageFileExportStats> {
         val newMessageKeys = determineNewMessageKeysUsingComparisonWithTranslation(primaryMsgs, translations)
         val existingMessages = primaryMsgs - newMessageKeys
         val keysOfChangedMsgs = determineChangedPrimaryMsgs(msgFile, existingMessages)
@@ -53,7 +54,9 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
         val primaryMsgKeyOrdering = primaryMsgs.keys
                 .withIndex()
                 .associate { (index, msgKey) -> msgKey to index }
-        return createTranslationSheet(primaryMsgs, translations, translationLangs, newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations, primaryMsgKeyOrdering)
+        val translationSheet = createTranslationSheet(primaryMsgs, translations, translationLangs, newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations, primaryMsgKeyOrdering)
+        val stats = createExportStats(newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations)
+        return translationSheet to stats
     }
 
     // if primary message is not contained in any translation, then it is a new message
@@ -165,5 +168,10 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
 
     private fun createRow(msgKey: MessageKey, primaryMsg: Message, translations: List<Message>): SheetRow =
             listOf(msgKey, primaryMsg) + translations
+
+    private fun createExportStats(newMsgKeys: Set<MessageKey>,
+                                  changedMsgKeys: Set<MessageKey>,
+                                  missingTransKeys: Set<MessageKey>) =
+            MessageFileExportStats(newMsgKeys.size, changedMsgKeys.size, missingTransKeys.size);
 
 }

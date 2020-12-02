@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class NewExporter {
 
-    private final TranslationCollectur translationCollector;
+    private final TranslationCollector translationCollector;
     private final DataFileManager dfm;
     private final GoogleSheetExporterContract gsc;
     private final SnapshotService snapshotService;
@@ -31,7 +31,7 @@ public class NewExporter {
     //FIXME: move to config
     private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz","kamenik@fg.cz");
 
-    public NewExporter(TranslationCollectur translationCollector, DataFileManager dfm, GoogleSheetExporterContract gsc, AntPathResourceLoader resourceLoader) {
+    public NewExporter(TranslationCollector translationCollector, DataFileManager dfm, GoogleSheetExporterContract gsc, AntPathResourceLoader resourceLoader) {
         this.translationCollector = translationCollector;
         this.dfm = dfm;
         this.gsc = gsc;
