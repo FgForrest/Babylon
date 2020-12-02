@@ -6,7 +6,7 @@ import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.legacy.GoogleSheetApi;
-import com.fg.util.babylon.service.MainService;
+import com.fg.util.babylon.legacy.MainService;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
