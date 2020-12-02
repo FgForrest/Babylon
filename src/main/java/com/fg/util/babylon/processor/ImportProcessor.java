@@ -1,7 +1,7 @@
 package com.fg.util.babylon.processor;
 
 import com.fg.util.babylon.SheetConstants;
-import com.fg.util.babylon.db.DataFileManager;
+import com.fg.util.babylon.db.SnapshotManager;
 import com.fg.util.babylon.entity.*;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.exception.EmptyDataFileException;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class ImportProcessor {
 
-    private final DataFileManager dataFileManager;
+    private final SnapshotManager snapshotManager;
     private final PropertyFileLoader propertyFileLoader;
     private final GoogleSheetApi googleSheetApi;
 
@@ -46,11 +46,11 @@ public class ImportProcessor {
     private final TranslationConfiguration configuration;
 
     public ImportProcessor(GoogleSheetApi googleSheetApi,
-                           DataFileManager dataFileManager,
+                           SnapshotManager snapshotManager,
                            PropertyFileLoader propertyFileLoader,
                            String googleSheetId,
                            TranslationConfiguration configuration) {
-        this.dataFileManager = dataFileManager;
+        this.snapshotManager = snapshotManager;
         this.propertyFileLoader = propertyFileLoader;
         this.googleSheetApi = googleSheetApi;
         this.googleSheetId = googleSheetId;
@@ -79,7 +79,7 @@ public class ImportProcessor {
      * @throws IOException some exception derived from {@link IOException}
      */
     private void saveDataFile() throws IOException {
-        Snapshot snapshot = dataFileManager.getOrCreateDataFile();
+        Snapshot snapshot = snapshotManager.getOrCreateDataFile();
         if (!snapshot.getDataPropFiles().isEmpty()) {
             JsonUtils.objToJsonFile(new File(configuration.getDataFileName()), snapshot, true);
         } else {
@@ -169,7 +169,7 @@ public class ImportProcessor {
      * @throws IOException some exception derived from {@link IOException}
      */
     private MessageFileContent getPropFileById(Integer fileId) throws IOException {
-        MessageFileContent propFile = dataFileManager.getOrCreateDataFile().getPropFileById(fileId);
+        MessageFileContent propFile = snapshotManager.getOrCreateDataFile().getPropFileById(fileId);
         if (propFile == null) {
             String msg = "No record found by id=\"" + fileId + "\" in \"" + configuration.getDataFileName() + "\"";
             throw new PropIdNotFoundException(msg);
@@ -199,7 +199,7 @@ public class ImportProcessor {
      * Saves all translated secondary mutations properties into target properties files.
      */
     private void saveTranslations(TranslationStatisticsOfImport statistics) throws IOException, InterruptedException {
-        Map<String, MessageFileContent> dataPropFiles = dataFileManager.getOrCreateDataFile().getDataPropFiles();
+        Map<String, MessageFileContent> dataPropFiles = snapshotManager.getOrCreateDataFile().getDataPropFiles();
         for (Map.Entry<String, MessageFileContent> entry : dataPropFiles.entrySet()) {
             String primaryPropFilePath = entry.getKey();
             MessageFileContent messageFileContent = entry.getValue();

@@ -1,7 +1,6 @@
 package com.fg.util.babylon;
 
 import com.fg.util.babylon.config.TranslationConfigurationReader;
-import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
