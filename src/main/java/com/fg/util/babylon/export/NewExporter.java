@@ -2,6 +2,7 @@ package com.fg.util.babylon.export;
 
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.TranslationConfiguration;
+import com.fg.util.babylon.export.data.ExportResult;
 import com.fg.util.babylon.sheets.gsheets.model.ASheet;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.sheets.SheetsException;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class NewExporter {
 
-    private final TranslationCollector translationCollector;
+    private final TranslationCollectur translationCollector;
     private final DataFileManager dfm;
     private final GoogleSheetExporterContract gsc;
     private final SnapshotService snapshotService;
@@ -30,7 +31,7 @@ public class NewExporter {
     //FIXME: move to config
     private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz","kamenik@fg.cz");
 
-    public NewExporter(TranslationCollector translationCollector, DataFileManager dfm, GoogleSheetExporterContract gsc, AntPathResourceLoader resourceLoader) {
+    public NewExporter(TranslationCollectur translationCollector, DataFileManager dfm, GoogleSheetExporterContract gsc, AntPathResourceLoader resourceLoader) {
         this.translationCollector = translationCollector;
         this.dfm = dfm;
         this.gsc = gsc;
@@ -47,7 +48,7 @@ public class NewExporter {
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
 
         Collection<String> allUniquePaths = expandsToUniquePaths(patternPaths);
-        TranslationCollector.ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, config.getMutations());
+        ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, config.getMutations());
 
         uploadTranslations(result, spreadsheetId, lockedCellEditors);
 
@@ -99,7 +100,7 @@ public class NewExporter {
         }
     }
 
-    private void uploadTranslations(TranslationCollector.ExportResult exportResult, String spreadsheetId, List<String> lockedCellEditors) {
+    private void uploadTranslations(ExportResult exportResult, String spreadsheetId, List<String> lockedCellEditors) {
         int remaining = exportResult.getSheets().size();
         exportResult.getSheets().stream()
                 .filter(sheet -> !sheet.getDataRows().isEmpty())
@@ -114,7 +115,7 @@ public class NewExporter {
                 });
     }
 
-    private void updateSnapshot(Snapshot originalSnapshot, TranslationCollector.ExportResult exportResult, String snapshotFilename) {
+    private void updateSnapshot(Snapshot originalSnapshot, ExportResult exportResult, String snapshotFilename) {
         try {
             snapshotService.updateSnapshotWithNewFilePaths(originalSnapshot, exportResult.getPathsOfNewMsgFiles(), snapshotFilename);
         } catch (IOException e) {

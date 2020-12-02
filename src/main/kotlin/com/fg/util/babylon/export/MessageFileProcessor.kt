@@ -2,6 +2,22 @@ package com.fg.util.babylon.export
 
 import com.fg.util.babylon.snapshot.TranslationSnapshotReadContract
 
+
+typealias Messages = Map<MessageKey, Message>
+
+typealias MsgFilePath = String
+
+typealias Message = String?
+
+typealias MessageKey = String
+
+typealias Language = String
+
+typealias SheetRows = List<SheetRow>
+
+typealias SheetRow = List<String?>
+
+
 /**
  * Collects translation sheet content for a single message file.
  *
