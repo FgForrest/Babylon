@@ -46,8 +46,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         try {
             log.info("Loading config file: '" + arguments.getConfigFileName() + "'");
             TranslationConfiguration configuration = configurationReader.readAndCheckConfiguration(arguments.getConfigFileName());
-            DataFileManager dataFileManager = new DataFileManager(configuration.getDataFileName());
-            MainService ts = new MainService(googleSheetApi, dataFileManager, arguments, configuration);
+            MainService ts = new MainService(googleSheetApi, arguments, configuration);
             ts.startTranslation(arguments.getGoogleSheetId());
         } catch (Exception e) {
             log.error("BABYLON ERROR: ", e);
