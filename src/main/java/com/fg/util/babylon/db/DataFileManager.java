@@ -47,6 +47,7 @@ public class DataFileManager {
     /**
      * Gets original {@link Snapshot} object (before modification). God knows why this is needed. FIXME
      */
+    @Deprecated
     public Snapshot getOriginalDataFile() {
         return originalSnapshotOnDisk;
     }

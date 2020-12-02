@@ -34,7 +34,8 @@ public class MainService {
 
     private final NewExporter newExporter;
 
-    public MainService(GoogleSheetApi gsApi, DataFileManager dfm, Arguments arguments, TranslationConfiguration configuration) throws IOException {
+    public MainService(GoogleSheetApi gsApi, Arguments arguments, TranslationConfiguration configuration) throws IOException {
+        DataFileManager dfm = new DataFileManager(configuration.getDataFileName());
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
         I18nFileManager i18FileManager = new I18nFileManager();
         importProcessor = new ImportProcessor(gsApi, dfm, i18FileManager, arguments.getGoogleSheetId(), configuration);
@@ -48,8 +49,8 @@ public class MainService {
         TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
         GSheetsClient gsClient = new LegacyGoogleServiceClientAdaptor(gsApi);
         LightGSheetService lgss = new LightGSheetService(new GSheetApiRequestFactory(), gsClient);
-        ExporterSheetContract gsc = new LightGSheetServiceExporterContractAdaptor(lgss);
-        newExporter = new NewExporter(translationCollector, dfm, gsc, springResLoader);
+        ExporterSheetContract esc = new LightGSheetServiceExporterContractAdaptor(lgss);
+        newExporter = new NewExporter(translationCollector, dfm, esc, springResLoader);
     }
 
     public void startTranslation(String spreadsheetId) throws IOException, GeneralSecurityException, InterruptedException {
