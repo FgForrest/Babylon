@@ -9,6 +9,19 @@
     <name>Babylon - translation utility</name>
     <url>http://maven.apache.org</url>
 
+    <distributionManagement>
+		<repository>
+			<id>fg-central</id>
+			<name>FG Central repository</name>
+			<url>https://nexus.fg.cz/content/repositories/plugin-releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>fg-central</id>
+			<name>FG Central repository</name>
+			<url>https://nexus.fg.cz/content/repositories/plugin-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
     <scm>
         <connection>scm:git:git@gitlab.fg.cz:edee/babylon.git</connection>
         <developerConnection>scm:git:git@gitlab.fg.cz:edee/babylon.git</developerConnection>
