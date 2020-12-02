@@ -11,23 +11,6 @@ import java.util.stream.Collectors;
 
 public class SnapshotService {
 
-    /**
-     * Saves created Snapshot object without properties into file on disk. Only if DataFile not exists on disk!
-     * FIXME: tohle prida do snapshotu cesty k novym message souborum, stavajici to ponecha
-     * FIXME: kdyz budu mit seznam novych souboru, nemusim tohle delat
-     */
-    public void saveSnapshotWithoutProperties(Snapshot currentSnapshot, Snapshot originalSnapshot, String snapshotName) throws IOException {
-        Map<String, MessageFileContent> originalDataPropFiles = originalSnapshot.getDataPropFiles();
-
-        Snapshot overriddenSnapshot = currentSnapshot;
-        List<String> newExportedFiles = overriddenSnapshot.getDataPropFiles()
-                .keySet()
-                .stream()
-                .filter(exportedFilePath -> !originalDataPropFiles.containsKey(exportedFilePath))
-                .collect(Collectors.toList());
-        updateSnapshotWithNewFilePaths(originalSnapshot, newExportedFiles, snapshotName);
-    }
-
     public void updateSnapshotWithNewFilePaths(Snapshot originalSnapshot, Iterable<String> newMsgFiles, String snapshotName) throws IOException {
         newMsgFiles.forEach(newMsgFile ->
                 originalSnapshot.putPropFile(newMsgFile, new MessageFileContent())

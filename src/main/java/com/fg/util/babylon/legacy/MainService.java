@@ -57,7 +57,7 @@ public class MainService {
         switch (action) {
             case EXPORT:
                 log.info("New Babylon starting...");
-                newExporter.go(configuration.getPath(), spreadsheetId, configuration);
+                newExporter.walkPathsAndWriteSheets(configuration.getPath(), spreadsheetId, configuration);
                 break;
             case IMPORT:
                 importProcessor.doImport();
