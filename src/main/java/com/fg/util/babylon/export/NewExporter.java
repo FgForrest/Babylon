@@ -13,6 +13,7 @@ import lombok.extern.apachecommons.CommonsLog;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 //FIXME: should throw unchecked or checked exceptions?
@@ -41,6 +42,8 @@ public class NewExporter {
     public void go(List<String> patternPaths,
                    String spreadsheetId,
                    TranslationConfiguration config) {
+        warnDuplicatePaths(patternPaths);
+
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
 
         Collection<String> allUniquePaths = expandsToUniquePaths(patternPaths);
@@ -53,6 +56,23 @@ public class NewExporter {
 
         List<Integer> prevSheetIds = prevSheets.stream().map(sheet -> sheet.getId()).collect(Collectors.toList());
         deleteOldSheets(prevSheetIds, spreadsheetId);
+    }
+
+    private void warnDuplicatePaths(List<String> patternPaths) {
+        List<String> duplicatePaths = detectDuplicatePatternPaths(patternPaths);
+        if (!duplicatePaths.isEmpty()) {
+            log.warn("Detected duplicate message file paths in configuration file:");
+            duplicatePaths.forEach(dup -> log.warn("'" + dup + "' is defined more than once."));
+        }
+    }
+
+    private List<String> detectDuplicatePatternPaths(List<String> patternPaths) {
+        return patternPaths.stream()
+                .collect(Collectors.groupingBy(Function.identity()))
+                .entrySet().stream()
+                .filter(e -> e.getValue().size() > 1)
+                .map(e -> e.getKey())
+                .collect(Collectors.toList());
     }
 
     private Collection<String> expandsToUniquePaths(List<String> patternPaths) {
