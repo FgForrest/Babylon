@@ -47,7 +47,7 @@ public class MainService {
         Snapshot snapshot = dfm.getOrCreateDataFile();
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
-        TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
+        TranslationCollectur translationCollector = new TranslationCollectur(ml, mfp, snapshotAdapter, snapshotAdapter);
         GSheetsClient gsClient = new LegacyGoogleServiceClientAdaptor(gsApi);
         LightGSheetService lgss = new LightGSheetService(new GSheetApiRequestFactory(), gsClient);
         GoogleSheetExporterContract gsc = new LightGSheetServiceExporterContractAdaptor(lgss);
