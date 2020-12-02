@@ -1,14 +1,14 @@
 package com.fg.util.babylon.export
 
-import com.fg.util.babylon.processor.I18nFileManager
+import com.fg.util.babylon.propfiles.PropertyFileLoader
 import com.fg.util.babylon.propfiles.Property
 import com.fg.util.babylon.todo.TranslationFileUtils
 import java.lang.IllegalArgumentException
 
-class OldMessageLoaderAdaptor(private val i18nFileManager: I18nFileManager) : MessageLoader {
+class OldMessageLoaderAdaptor(private val propertyFileLoader: PropertyFileLoader) : MessageLoader {
 
     override fun loadPrimaryMessages(filePath: String): Messages {
-        val propertyFileAR = i18nFileManager.loadPropertiesFromFile(filePath)
+        val propertyFileAR = propertyFileLoader.loadPropertiesFromFile(filePath)
                 ?: throw IllegalArgumentException("Message file '$filePath' could not be found.")
         return dumpPropertyFile(propertyFileAR)
     }
@@ -16,7 +16,7 @@ class OldMessageLoaderAdaptor(private val i18nFileManager: I18nFileManager) : Me
     override fun loadTranslations(primaryFilePath: String, languages: List<Language>): Map<Language, Messages> =
             languages.map { lang ->
                 val translationFilePath = TranslationFileUtils.getFileNameForTranslation(primaryFilePath, lang)!!
-                val translationFileAR = i18nFileManager.loadPropertiesFromFile(translationFilePath) ?: emptyMap()
+                val translationFileAR = propertyFileLoader.loadPropertiesFromFile(translationFilePath) ?: emptyMap()
                 val translationFileContent = dumpPropertyFile(translationFileAR)
                 lang to translationFileContent
             }.associateBy({ it.first }, { it.second })

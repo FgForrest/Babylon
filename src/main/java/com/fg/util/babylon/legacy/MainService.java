@@ -12,7 +12,7 @@ import com.fg.util.babylon.export.*;
 import com.fg.util.babylon.sheets.export.ExporterSheetContract;
 import com.fg.util.babylon.sheets.gsheets.LightGSheetServiceExporterContractAdaptor;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
-import com.fg.util.babylon.processor.I18nFileManager;
+import com.fg.util.babylon.propfiles.PropertyFileLoader;
 import com.fg.util.babylon.processor.ImportProcessor;
 import com.fg.util.babylon.processor.spring.SpringResourceLoader;
 import com.fg.util.babylon.snapshot.SnapshotAdapter;
@@ -37,7 +37,7 @@ public class MainService {
     public MainService(GoogleSheetApi gsApi, Arguments arguments, TranslationConfiguration configuration) throws IOException {
         DataFileManager dfm = new DataFileManager(configuration.getDataFileName());
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
-        I18nFileManager i18FileManager = new I18nFileManager();
+        PropertyFileLoader i18FileManager = new PropertyFileLoader();
         importProcessor = new ImportProcessor(gsApi, dfm, i18FileManager, arguments.getGoogleSheetId(), configuration);
         this.configuration = configuration;
         this.action = arguments.getAction();

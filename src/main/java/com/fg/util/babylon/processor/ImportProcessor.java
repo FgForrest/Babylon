@@ -8,6 +8,7 @@ import com.fg.util.babylon.exception.EmptyDataFileException;
 import com.fg.util.babylon.exception.NoSheetsException;
 import com.fg.util.babylon.exception.ParsePropIdException;
 import com.fg.util.babylon.exception.PropIdNotFoundException;
+import com.fg.util.babylon.propfiles.PropertyFileLoader;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
 import com.fg.util.babylon.propfiles.Property;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 public class ImportProcessor {
 
     private final DataFileManager dataFileManager;
-    private final I18nFileManager i18nFileManager;
+    private final PropertyFileLoader propertyFileLoader;
     private final GoogleSheetApi googleSheetApi;
 
     private final String googleSheetId;
@@ -46,11 +47,11 @@ public class ImportProcessor {
 
     public ImportProcessor(GoogleSheetApi googleSheetApi,
                            DataFileManager dataFileManager,
-                           I18nFileManager i18nFileManager,
+                           PropertyFileLoader propertyFileLoader,
                            String googleSheetId,
                            TranslationConfiguration configuration) {
         this.dataFileManager = dataFileManager;
-        this.i18nFileManager =  i18nFileManager;
+        this.propertyFileLoader = propertyFileLoader;
         this.googleSheetApi = googleSheetApi;
         this.googleSheetId = googleSheetId;
         this.configuration = configuration;
@@ -232,9 +233,9 @@ public class ImportProcessor {
         }
         final ImportFileStatistic fileStatistic = fs;
         // Load target properties file to get formatting and row numbers of all its properties.
-        PropertyFileActiveRecord originalMutationFileProps = Optional.ofNullable(i18nFileManager.loadPropertiesFromFile(mutationPropFilePath)).orElse(new PropertyFileActiveRecord());
+        PropertyFileActiveRecord originalMutationFileProps = Optional.ofNullable(propertyFileLoader.loadPropertiesFromFile(mutationPropFilePath)).orElse(new PropertyFileActiveRecord());
         // Load also properties of primary mutation file to get format from it.
-        PropertyFileActiveRecord updatedFileProps = i18nFileManager.loadPropertiesFromFile(primaryPropFilePath);
+        PropertyFileActiveRecord updatedFileProps = propertyFileLoader.loadPropertiesFromFile(primaryPropFilePath);
         // Clears all keys values in loaded primaryFileProps to create template for making of mutation properties file.
         // In this point we have clear format, this means each key and value on correct row,
         // empty rows and comments from primary mutation file is also on correct rows.
