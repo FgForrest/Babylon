@@ -1,6 +1,6 @@
 package com.fg.util.babylon.export;
 
-import com.fg.util.babylon.db.DataFileManager;
+import com.fg.util.babylon.db.SnapshotManager;
 import com.fg.util.babylon.entity.MessageFileContent;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.export.dto.ExportResult;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class NewExporter {
 
     private final TranslationCollector translationCollector;
-    private final DataFileManager dfm;
+    private final SnapshotManager dfm;
     private final ExporterSheetContract gsc;
     private final AntPathResourceLoader resourceLoader;
     private final PathUtils pu;
@@ -32,7 +32,7 @@ public class NewExporter {
     //FIXME: move to config
     private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz", "kamenik@fg.cz");
 
-    public NewExporter(TranslationCollector translationCollector, DataFileManager dfm, ExporterSheetContract gsc, AntPathResourceLoader resourceLoader) {
+    public NewExporter(TranslationCollector translationCollector, SnapshotManager dfm, ExporterSheetContract gsc, AntPathResourceLoader resourceLoader) {
         this.translationCollector = translationCollector;
         this.dfm = dfm;
         this.gsc = gsc;

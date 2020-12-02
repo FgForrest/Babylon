@@ -1,6 +1,6 @@
 package com.fg.util.babylon.legacy;
 
-import com.fg.util.babylon.db.DataFileManager;
+import com.fg.util.babylon.db.SnapshotManager;
 import com.fg.util.babylon.entity.Arguments;
 import com.fg.util.babylon.sheets.gsheets.GSheetsClient;
 import com.fg.util.babylon.sheets.gsheets.GSheetApiRequestFactory;
@@ -35,22 +35,22 @@ public class MainService {
     private final NewExporter newExporter;
 
     public MainService(GoogleSheetApi gsApi, Arguments arguments, TranslationConfiguration configuration) throws IOException {
-        DataFileManager dfm = new DataFileManager(configuration.getDataFileName());
+        SnapshotManager sm = new SnapshotManager(configuration.getSnapshotPath());
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
         PropertyFileLoader i18FileManager = new PropertyFileLoader();
-        importProcessor = new ImportProcessor(gsApi, dfm, i18FileManager, arguments.getGoogleSheetId(), configuration);
+        importProcessor = new ImportProcessor(gsApi, sm, i18FileManager, arguments.getGoogleSheetId(), configuration);
         this.configuration = configuration;
         this.action = arguments.getAction();
 
         MessageLoader ml = new OldMessageLoaderAdaptor(i18FileManager);
-        Snapshot snapshot = dfm.getOrCreateDataFile();
+        Snapshot snapshot = sm.getOrCreateDataFile();
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
         TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
         GSheetsClient gsClient = new LegacyGoogleServiceClientAdaptor(gsApi);
         LightGSheetService lgss = new LightGSheetService(new GSheetApiRequestFactory(), gsClient);
         ExporterSheetContract esc = new LightGSheetServiceExporterContractAdaptor(lgss);
-        newExporter = new NewExporter(translationCollector, dfm, esc, springResLoader);
+        newExporter = new NewExporter(translationCollector, sm, esc, springResLoader);
     }
 
     public void startTranslation(String spreadsheetId) throws IOException, GeneralSecurityException, InterruptedException {

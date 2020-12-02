@@ -7,17 +7,18 @@ import lombok.extern.apachecommons.CommonsLog;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
- * Manages Snapshot instance. TODO more
+ * Manages Snapshot instance.
  */
 @CommonsLog
-public class DataFileManager {
+public class SnapshotManager {
 
     /**
      * Name of the DataFile in Json format which serves as working database for translation process.
      */
-    private final String dataFileName;
+    private final Path snapshotFile;
 
     /**
      * Working DataFile object that changing during the export process. Initial state is given from existing json DataFile.
@@ -29,8 +30,8 @@ public class DataFileManager {
     /** Original untouched DataFile loaded from json file on disk while configuration reading phase. */
     private Snapshot originalSnapshotOnDisk;
 
-    public DataFileManager(String dataFileName) throws IOException {
-        this.dataFileName = dataFileName;
+    public SnapshotManager(Path snapshotFile) throws IOException {
+        this.snapshotFile = snapshotFile;
         loadOriginalDataFile();
     }
 
@@ -38,7 +39,7 @@ public class DataFileManager {
      * This method loads the original DataFile and should be called as the first thing.
      */
     private void loadOriginalDataFile() throws IOException {
-        originalSnapshotOnDisk = getExistingDataFileFromDisk(dataFileName);
+        originalSnapshotOnDisk = getExistingDataFileFromDisk(snapshotFile);
         if (originalSnapshotOnDisk == null) {
             originalSnapshotOnDisk = new Snapshot();
         }
@@ -60,7 +61,7 @@ public class DataFileManager {
      */
     public Snapshot getOrCreateDataFile() throws IOException {
         if (snapshot == null) {
-            snapshot = getExistingDataFileFromDisk(dataFileName);
+            snapshot = getExistingDataFileFromDisk(snapshotFile);
             if (snapshot == null) {
                 snapshot = new Snapshot();
             }
@@ -68,8 +69,8 @@ public class DataFileManager {
         return snapshot;
     }
 
-    private Snapshot getExistingDataFileFromDisk(String dataFileName) throws IOException {
-        File file = new File(getDataFileName(dataFileName));
+    private Snapshot getExistingDataFileFromDisk(Path snapshotFile) throws IOException {
+        File file = snapshotFile.toFile();
         if (file.exists() && file.length() != 0) {
             Snapshot df = JsonUtils.jsonObjFromFile(file, Snapshot.class);
             loadDataPropFilesIds(df);
@@ -92,35 +93,6 @@ public class DataFileManager {
                 log.warn("Id for path \"" + key + "\" not found.");
             }
         });
-    }
-
-    /**
-     * Get data file name like {@link TranslationConfiguration#getDataFileName()} + .json extension if not appended.
-     * @return correct file name.
-     * FIXME: tohle asi neni potreba, ne??? to dela ten plugin mene predvidatelny, tyhle chytristiky
-     */
-    private String getDataFileName(String dataFileName) {
-        String resultFileName = dataFileName;
-        if (!resultFileName.endsWith(".json")) {
-            resultFileName += ".json";
-        }
-        return resultFileName;
-    }
-
-    /**
-     * Used only for testing. This should be done in a way that doesn't break encapsulation, but for now we have to live with this.
-     * @param snapshot data file to use instead of the managed data file
-     */
-    public void switchDataFileTo(Snapshot snapshot) {
-        this.snapshot = snapshot;
-    }
-
-    /**
-     * Used only for testing. This should be done in a way that doesn't break encapsulation, but for now we have to live with this.
-     * @param snapshot data file to use instead of the original data file (why would that ever needed to be changed is beyond me).
-     */
-    public void switchOriginalDataFileTo(Snapshot snapshot) {
-        this.originalSnapshotOnDisk = snapshot;
     }
 
 }

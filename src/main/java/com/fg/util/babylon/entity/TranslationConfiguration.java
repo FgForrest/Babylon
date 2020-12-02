@@ -1,11 +1,14 @@
 package com.fg.util.babylon.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.io.Serializable;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +35,11 @@ public class TranslationConfiguration implements Serializable {
      */
     @NonNull
     private String dataFileName;
+
+    @JsonIgnore
+    public Path getSnapshotPath() {
+        return Paths.get(dataFileName);
+    }
 
     /**
      * List of all mutations to translate (e.g. CZ,EN,...).
