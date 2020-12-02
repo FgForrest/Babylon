@@ -1,4 +1,4 @@
-package com.fg.util.babylon.export.data;
+package com.fg.util.babylon.export.dto;
 
 import lombok.Data;
 

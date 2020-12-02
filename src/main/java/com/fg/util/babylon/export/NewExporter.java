@@ -2,7 +2,7 @@ package com.fg.util.babylon.export;
 
 import com.fg.util.babylon.db.DataFileManager;
 import com.fg.util.babylon.entity.TranslationConfiguration;
-import com.fg.util.babylon.export.data.ExportResult;
+import com.fg.util.babylon.export.dto.ExportResult;
 import com.fg.util.babylon.sheets.gsheets.model.ASheet;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
 import com.fg.util.babylon.sheets.SheetsException;
