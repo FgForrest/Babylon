@@ -43,14 +43,6 @@ public class NewExporter {
                    TranslationConfiguration config) {
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
 
-
-        // FIXME remove:
-        List<Integer> sheetIds = prevSheets.stream().map(sheet -> sheet.getId()).collect(Collectors.toList());
-        sheetIds.remove(0);
-        if (sheetIds.size() > 0) {
-            deleteOldSheets(sheetIds, spreadsheetId);
-        }
-
         Collection<String> allUniquePaths = expandsToUniquePaths(patternPaths);
         TranslationCollector.ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, config.getMutations());
 
