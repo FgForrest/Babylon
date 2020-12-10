@@ -55,7 +55,7 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
                 .withIndex()
                 .associate { (index, msgKey) -> msgKey to index }
         val translationSheet = createTranslationSheet(primaryMsgs, translations, translationLangs, newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations, primaryMsgKeyOrdering)
-        val stats = createExportStats(newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations)
+        val stats = createExportStats(msgFile, newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations, translationSheet.size)
         return translationSheet to stats
     }
 
@@ -169,9 +169,11 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
     private fun createRow(msgKey: MessageKey, primaryMsg: Message, translations: List<Message>): SheetRow =
             listOf(msgKey, primaryMsg) + translations
 
-    private fun createExportStats(newMsgKeys: Set<MessageKey>,
+    private fun createExportStats(msgFilePath: String,
+                                  newMsgKeys: Set<MessageKey>,
                                   changedMsgKeys: Set<MessageKey>,
-                                  missingTransKeys: Set<MessageKey>) =
-            MessageFileExportStats(newMsgKeys.size, changedMsgKeys.size, missingTransKeys.size);
+                                  missingTransKeys: Set<MessageKey>,
+                                  totalRows: Int) =
+            MessageFileExportStats(msgFilePath, newMsgKeys.size, changedMsgKeys.size, missingTransKeys.size, totalRows);
 
 }
