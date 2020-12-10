@@ -1,6 +1,7 @@
 package com.fg.util.babylon.export;
 
 import com.fg.util.babylon.export.dto.ExportResult;
+import com.fg.util.babylon.export.dto.MessageFileExportResult;
 import com.fg.util.babylon.export.dto.TranslationSheet;
 import com.fg.util.babylon.export.stats.MessageFileExportStats;
 import com.fg.util.babylon.sheets.SheetUtils;
@@ -47,9 +48,14 @@ public class TranslationCollector {
                 .filter(msgFilePath -> !snapshotReadContract.includesMsgFile(msgFilePath))
                 .collect(Collectors.toList());
 
-        List<TranslationSheet> sheets = allPaths.stream()
+        List<MessageFileExportResult> sheetsAndStats = allPaths.stream()
                 .map(msgFilePath -> processMsgFile(msgFilePath, translateTo))
                 .collect(Collectors.toList());
+
+        List<TranslationSheet> sheets = getSheets(sheetsAndStats);
+        List<MessageFileExportStats> exportStats = getStats(sheetsAndStats);
+
+        logMsgFileStats(exportStats);
 
         //FIXME: move up?
         List<String> obsoleteFilePaths = snapshotReadContract.listMsgFiles().stream()
@@ -60,7 +66,17 @@ public class TranslationCollector {
         return new ExportResult(newMsgFilesPaths, sheets);
     }
 
-    private TranslationSheet processMsgFile(String msgFilePath, List<String> translateTo) {
+    /** Collects only {@link TranslationSheet}s from {@link MessageFileExportResult} - for lack of tuples and unzip function */
+    private List<TranslationSheet> getSheets(List<MessageFileExportResult> sheetsAndStats) {
+        return sheetsAndStats.stream().map(MessageFileExportResult::getTranslationSheet).collect(Collectors.toList());
+    }
+
+    /** Collects only {@link MessageFileExportStats}s from {@link MessageFileExportResult} - for lack of tuples and unzip function */
+    private List<MessageFileExportStats> getStats(List<MessageFileExportResult> sheetsAndStats) {
+        return sheetsAndStats.stream().map(MessageFileExportResult::getExportStats).collect(Collectors.toList());
+    }
+
+    private MessageFileExportResult processMsgFile(String msgFilePath, List<String> translateTo) {
         Pair<List<List<String>>, MessageFileExportStats> msgFileResult = computeTranslationSheetRows(msgFilePath, translateTo);
         List<List<String>> sheetData = msgFileResult.getFirst();
         MessageFileExportStats msgFileStats = msgFileResult.getSecond();
@@ -68,9 +84,7 @@ public class TranslationCollector {
         Integer sheetId = snapshotWriteContract.registerMsgFile(msgFilePath);
         TranslationSheet translationSheet = newTranslationSheet(sheetData, sheetId, msgFilePath, translateTo);
 
-        logMsgFileStats(msgFilePath, translationSheet.getDataRows().size(), msgFileStats);
-
-        return translationSheet;
+        return new MessageFileExportResult(translationSheet, msgFileStats);
     }
 
     private Pair<List<List<String>>, MessageFileExportStats> computeTranslationSheetRows(String msgFilePath, List<String> translateTo) {
@@ -97,12 +111,16 @@ public class TranslationCollector {
         return result;
     }
 
-    private void logMsgFileStats(String msgFilePath, int sheetDataRows, MessageFileExportStats msgFileStats) {
-        String msg = msgFilePath + ": " + "\n\t"
+    private void logMsgFileStats(Iterable<MessageFileExportStats> exportStats) {
+        exportStats.forEach(msgFileStats -> logMsgFileStats(msgFileStats));
+    }
+
+    private void logMsgFileStats(MessageFileExportStats msgFileStats) {
+        String msg = msgFileStats.getMessageFilePath() + ": " + "\n\t"
                 + msgFileStats.getNewPrimaryMsgKeyCount() + " new messages, " + "\n\t"
                 + msgFileStats.getChangedPrimaryMsgKeyCount() + " messages with changed values in primary language, " + "\n\t"
                 + msgFileStats.getMissingTranslationMsgKeyCount() + " messages with some translations missing." + "\n\t"
-                + sheetDataRows + " total rows in translation sheet.";
+                + msgFileStats.getSheetDataRows() + " total rows in translation sheet.";
         log.info(msg);
     }
 
