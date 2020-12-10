@@ -9,9 +9,9 @@ import com.fg.util.babylon.snapshot.Snapshot
 import com.fg.util.babylon.snapshot.SnapshotAdapter
 import org.junit.Test
 
-class ExporterTest {
+class NewExporterTest {
 
-//    //FIXME: tady neco jako File?
+    //FIXME: tady neco jako File?
 //    var sm = SnapshotManager(configuration.getDataFileName())
 //    val ml: MessageLoader = OldMessageLoaderAdaptor(PropertyFileLoader())
 //    var springResLoader: AntPathResourceLoader = SpringResourceLoader()
@@ -22,7 +22,7 @@ class ExporterTest {
 //    val esc = FakeExporterSheetContractImpl()
 //
 //    val exporter = NewExporter(translationCollector, sm, esc, springResLoader)
-//
+
 //    @Test
 //    fun `foo`() {
 //        val config = TranslationConfiguration()

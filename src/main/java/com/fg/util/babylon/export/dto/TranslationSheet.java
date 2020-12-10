@@ -14,4 +14,8 @@ public class TranslationSheet {
         return rows.subList(1, rows.size());
     }
 
+    public int getDataRowCount() {
+        return rows.size() - 1;
+    }
+
 }
