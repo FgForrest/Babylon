@@ -11,6 +11,7 @@ import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implements business logic by calling Google Sheets API client library in a way that optimizes number of HTTP requests sent.
@@ -76,9 +77,11 @@ public class LightGSheetService {
 
     private void writeDataToGoogleSheet(String spreadsheetId, String range, List<? extends List<? extends Object>> values) throws GeneralSecurityException, IOException {
         // casting to List<List<Object>> is safe here, the Sheets API could have accepted List<? extends List<? extends Object>> in setValues()
-        List<List<Object>> castValues = (List) values;
+        // convert nulls to empty strings, GSheet API skips null values
+        List<List<Object>> convertedValues = convertNullsToEmptyString((List)values);
+
         ValueRange valueRange = new ValueRange()
-                .setValues(castValues)
+                .setValues(convertedValues)
                 .setRange(range);
         BatchUpdateValuesRequest update = new BatchUpdateValuesRequest()
                 .setValueInputOption("RAW")
@@ -86,6 +89,12 @@ public class LightGSheetService {
 
         BatchUpdateValuesResponse result = executeRequest(spreadsheetId, update);
         log.info(String.format("%d cells written.", result.getTotalUpdatedCells()));
+    }
+
+    private List<? extends List<? extends Object>> convertNullsToEmptyString(List<? extends List<?extends Object>> values) {
+        return values.stream().map(row ->
+                row.stream().map(cell -> (cell == null) ? "" : cell).collect(Collectors.toList())
+        ).collect(Collectors.toList());
     }
 
     //FIXME javadoc
