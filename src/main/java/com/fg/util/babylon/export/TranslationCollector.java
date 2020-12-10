@@ -77,8 +77,8 @@ public class TranslationCollector {
     }
 
     private MessageFileExportResult processMsgFile(String msgFilePath, List<String> translateTo) {
-        Pair<List<List<String>>, MessageFileExportStats> msgFileResult = computeTranslationSheetRows(msgFilePath, translateTo);
-        List<List<String>> sheetData = msgFileResult.getFirst();
+        Pair<SheetContent, MessageFileExportStats> msgFileResult = computeTranslationSheetRows(msgFilePath, translateTo);
+        SheetContent sheetData = msgFileResult.getFirst();
         MessageFileExportStats msgFileStats = msgFileResult.getSecond();
 
         Integer sheetId = snapshotWriteContract.registerMsgFile(msgFilePath);
@@ -87,28 +87,20 @@ public class TranslationCollector {
         return new MessageFileExportResult(translationSheet, msgFileStats);
     }
 
-    private Pair<List<List<String>>, MessageFileExportStats> computeTranslationSheetRows(String msgFilePath, List<String> translateTo) {
+    private Pair<SheetContent, MessageFileExportStats> computeTranslationSheetRows(String msgFilePath, List<String> translateTo) {
         Map<String, String> primaryMsgs = messageLoader.loadPrimaryMessages(msgFilePath);
         Map<String, Map<String, String>> translations = messageLoader.loadTranslations(msgFilePath, translateTo);
 
         return messageFileProcessor.prepareTranslationSheet(msgFilePath, primaryMsgs, translations, translateTo);
     }
 
-    private TranslationSheet newTranslationSheet(List<List<String>> sheetRows, Integer sheetId, String msgFilePath, List<String> translateTo) {
+    private TranslationSheet newTranslationSheet(SheetContent sheetContent, Integer sheetId, String msgFilePath, List<String> translateTo) {
         String sheetName = new SheetUtils().getSheetName(msgFilePath, sheetId);
-        List<String> header = createSheetHeader(translateTo);
 
         List<List<String>> allRows = new ArrayList<>();
-        allRows.addAll(Collections.singletonList(header));
-        allRows.addAll(sheetRows);
+        allRows.addAll(Collections.singletonList(sheetContent.getHeader()));
+        allRows.addAll(sheetContent.getDataRows());
         return new TranslationSheet(sheetName, allRows);
-    }
-
-    private List<String> createSheetHeader(List<String> targetLangs) {
-        List<String> result = new ArrayList<>();
-        result.addAll(Arrays.asList("key", "primary"));
-        result.addAll(targetLangs);
-        return result;
     }
 
     private void logMsgFileStats(Iterable<MessageFileExportStats> exportStats) {

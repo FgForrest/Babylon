@@ -2,6 +2,7 @@ package com.fg.util.babylon.export
 
 import com.fg.util.babylon.export.stats.MessageFileExportStats
 import com.fg.util.babylon.snapshot.TranslationSnapshotReadContract
+import java.util.*
 
 
 typealias Messages = Map<MessageKey, Message>
@@ -14,9 +15,11 @@ typealias MessageKey = String
 
 typealias Language = String
 
-typealias SheetRows = List<SheetRow>
-
 typealias SheetRow = List<String?>
+
+data class SheetContent(val header: List<String>, val dataRows: List<SheetRow>) {
+    val dataRowCount = dataRows.size
+}
 
 
 /**
@@ -45,7 +48,7 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
     fun prepareTranslationSheet(msgFile: MsgFilePath,
                                 primaryMsgs: Messages,
                                 translations: Map<Language, Messages>,
-                                translationLangs: List<Language>): Pair<SheetRows, MessageFileExportStats> {
+                                translationLangs: List<Language>): Pair<SheetContent, MessageFileExportStats> {
         val newMessageKeys = determineNewMessageKeysUsingComparisonWithTranslation(primaryMsgs, translations)
         val existingMessages = primaryMsgs - newMessageKeys
         val keysOfChangedMsgs = determineChangedPrimaryMsgs(msgFile, existingMessages)
@@ -55,7 +58,7 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
                 .withIndex()
                 .associate { (index, msgKey) -> msgKey to index }
         val translationSheet = createTranslationSheet(primaryMsgs, translations, translationLangs, newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations, primaryMsgKeyOrdering)
-        val stats = createExportStats(msgFile, newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations, translationSheet.size)
+        val stats = createExportStats(msgFile, newMessageKeys, keysOfChangedMsgs, keysOfMissingTranslations, translationSheet.dataRows.size)
         return translationSheet to stats
     }
 
@@ -130,7 +133,7 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
                                        newMsgKeys: Set<MessageKey>,
                                        changedMsgKeys: Set<MessageKey>,
                                        missingTransKeys: Set<MessageKey>,
-                                       msgKeyOrdering: Map<MessageKey, Int>): SheetRows {
+                                       msgKeyOrdering: Map<MessageKey, Int>): SheetContent {
         val populatedRows = missingTransKeys.map { msgKey ->
             populateSheetRow(primaryMsgs, translations, translationLangs, msgKey)
         }
@@ -143,10 +146,12 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
         }
 
         val allRows = blankRows + populatedRows
-        return allRows.sortedBy { row ->
+        val sortedRows = allRows.sortedBy { row ->
             val msgKey = row[0]
             msgKeyOrdering[msgKey]
         }
+        val header = createSheetHeader(translationLangs)
+        return SheetContent(header, sortedRows)
     }
 
     /**
@@ -159,7 +164,7 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
         val primaryMsg = primaryMsgs[messageKey]
         val translatedMsgs = translationLangs.map { lang ->
             translations[lang]?.get(messageKey)
-        }
+         }
         // TODO this should not happen, these keys are filtered out - exception? asi jo
         // if the primary message is missing, there is nothing to translate
         // TODO log.warn("Primary language message file 'msgFile' contains message key '$messageKey' with no value. Message key will be ignored.")
@@ -168,6 +173,10 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
 
     private fun createRow(msgKey: MessageKey, primaryMsg: Message, translations: List<Message>): SheetRow =
             listOf(msgKey, primaryMsg) + translations
+
+
+    private fun createSheetHeader(targetLangs: List<String>): List<String> =
+            listOf("key", "primary") + targetLangs
 
     private fun createExportStats(msgFilePath: String,
                                   newMsgKeys: Set<MessageKey>,
