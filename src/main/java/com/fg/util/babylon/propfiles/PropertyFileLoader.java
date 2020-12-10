@@ -1,7 +1,5 @@
 package com.fg.util.babylon.propfiles;
 
-import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

@@ -48,6 +48,11 @@ public class NewExporter {
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
 
         Collection<String> allUniquePaths = expandsToUniquePaths(patternPaths);
+        boolean pathsOk = checkPathsExist(allUniquePaths);
+        if (!pathsOk) {
+            throw new IllegalArgumentException("Please fix the message file paths in the configuration file.");
+        }
+
         ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, config.getMutations());
 
         uploadTranslations(result, spreadsheetId, lockedCellEditors);
@@ -89,6 +94,17 @@ public class NewExporter {
         } catch (IOException e) {
             throw new RuntimeException("Error when expanding path '" + patternPath + "'", e);
         }
+    }
+
+    private boolean checkPathsExist(Collection<String> paths) {
+        boolean pathsOk = true;
+        for (String path : paths) {
+            if (! new File(path).exists()) {
+                log.error("File '" + path + "' could not be found.");
+                pathsOk = false;
+            }
+        }
+        return pathsOk;
     }
 
     private List<ASheet> listAllSheets(String spreadsheetId) {
