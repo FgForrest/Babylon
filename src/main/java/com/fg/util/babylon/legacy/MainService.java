@@ -12,7 +12,7 @@ import com.fg.util.babylon.export.*;
 import com.fg.util.babylon.sheets.export.ExporterSheetContract;
 import com.fg.util.babylon.sheets.gsheets.LightGSheetServiceExporterContractAdaptor;
 import com.fg.util.babylon.processor.AntPathResourceLoader;
-import com.fg.util.babylon.propfiles.PropertyFileLoader;
+import com.fg.util.babylon.properties.PropertyFileLoader;
 import com.fg.util.babylon.processor.ImportProcessor;
 import com.fg.util.babylon.processor.spring.SpringResourceLoader;
 import com.fg.util.babylon.snapshot.SnapshotAdapter;

@@ -1,8 +1,8 @@
 package com.fg.util.babylon.processor;
 
 import com.fg.util.babylon.enums.PropertyType;
-import com.fg.util.babylon.propfiles.PropertyFileActiveRecord;
-import com.fg.util.babylon.propfiles.Property;
+import com.fg.util.babylon.properties.PropertyFileActiveRecord;
+import com.fg.util.babylon.properties.Property;
 
 import java.util.*;
 

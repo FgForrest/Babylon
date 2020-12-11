@@ -1,6 +1,6 @@
 package com.fg.util.babylon.enums;
 
-import com.fg.util.babylon.propfiles.Property;
+import com.fg.util.babylon.properties.Property;
 
 /**
  * Enum of all types of properties {@link Property}
