@@ -1,14 +1,5 @@
 package com.fg.util.babylon.export
 
-import com.fg.util.babylon.db.SnapshotManager
-import com.fg.util.babylon.entity.TranslationConfiguration
-import com.fg.util.babylon.processor.AntPathResourceLoader
-import com.fg.util.babylon.propfiles.PropertyFileLoader
-import com.fg.util.babylon.processor.spring.SpringResourceLoader
-import com.fg.util.babylon.snapshot.Snapshot
-import com.fg.util.babylon.snapshot.SnapshotAdapter
-import org.junit.Test
-
 class NewExporterTest {
 
     //FIXME: tady neco jako File?

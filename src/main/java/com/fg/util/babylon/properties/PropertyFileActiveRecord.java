@@ -1,4 +1,4 @@
-package com.fg.util.babylon.propfiles;
+package com.fg.util.babylon.properties;
 
 import com.fg.util.babylon.enums.PropertyType;
 import com.google.common.io.LineReader;

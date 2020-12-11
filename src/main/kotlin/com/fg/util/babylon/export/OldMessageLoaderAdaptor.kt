@@ -1,7 +1,7 @@
 package com.fg.util.babylon.export
 
-import com.fg.util.babylon.propfiles.PropertyFileLoader
-import com.fg.util.babylon.propfiles.Property
+import com.fg.util.babylon.properties.PropertyFileLoader
+import com.fg.util.babylon.properties.Property
 import com.fg.util.babylon.todo.TranslationFileUtils
 import java.lang.IllegalArgumentException
 
