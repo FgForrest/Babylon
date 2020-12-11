@@ -8,10 +8,8 @@ import com.fg.util.babylon.exception.EmptyDataFileException;
 import com.fg.util.babylon.exception.NoSheetsException;
 import com.fg.util.babylon.exception.ParsePropIdException;
 import com.fg.util.babylon.exception.PropIdNotFoundException;
-import com.fg.util.babylon.properties.PropertyFileLoader;
+import com.fg.util.babylon.properties.*;
 import com.fg.util.babylon.snapshot.Snapshot;
-import com.fg.util.babylon.properties.PropertyFileActiveRecord;
-import com.fg.util.babylon.properties.Property;
 import com.fg.util.babylon.legacy.GoogleSheetApi;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfImport;
@@ -233,9 +231,9 @@ public class ImportProcessor {
         }
         final ImportFileStatistic fileStatistic = fs;
         // Load target properties file to get formatting and row numbers of all its properties.
-        PropertyFileActiveRecord originalMutationFileProps = Optional.ofNullable(propertyFileLoader.loadPropertiesFromFile(mutationPropFilePath)).orElse(new PropertyFileActiveRecord());
+        PFActiveRecord originalMutationFileProps = Optional.ofNullable(propertyFileLoader.loadPropertiesFromFile(mutationPropFilePath)).orElse(new PropertyFileActiveRecord());
         // Load also properties of primary mutation file to get format from it.
-        PropertyFileActiveRecord updatedFileProps = propertyFileLoader.loadPropertiesFromFile(primaryPropFilePath);
+        PFActiveRecord updatedFileProps = propertyFileLoader.loadPropertiesFromFile(primaryPropFilePath);
         // Clears all keys values in loaded primaryFileProps to create template for making of mutation properties file.
         // In this point we have clear format, this means each key and value on correct row,
         // empty rows and comments from primary mutation file is also on correct rows.
@@ -244,7 +242,7 @@ public class ImportProcessor {
                 property.setValue(SheetConstants.EMPTY_VAL);
             }
         });
-        PropertyFileActiveRecord propsOnlyInMutation = new PropertyFileActiveRecord();
+        PFActiveRecord propsOnlyInMutation = new PropertyFileActiveRecord();
         // Sets values of all keys from mutation properties file into updatedFileProps. Properties which exists only
         // in secondary mutation file is added to another map and append at end of mutation property file.
         originalMutationFileProps.forEach((key, sourceProp) -> {
@@ -252,7 +250,7 @@ public class ImportProcessor {
             if (!sourceProp.isPropValue() && !sourceProp.isPropValueMultiLine()) {
                 return;
             }
-            Property targetProp = updatedFileProps.get(key);
+            IProperty targetProp = updatedFileProps.get(key);
             // Set values only for keys existing in primary mutation file.
             if (targetProp != null) {
                 targetProp.setValue(sourceProp.getValue());
@@ -265,7 +263,7 @@ public class ImportProcessor {
         });
         // Sets all values for keys from properties map (data from google sheet filled up by translation agency).
         mutationProperties.forEach((key, value) -> {
-            Property property = updatedFileProps.get(key);
+            IProperty property = updatedFileProps.get(key);
             if (property != null && !Objects.equals(value, property.getValue())) {
                 property.setValue(value);
                 updatedFileProps.put(key, property);
@@ -293,7 +291,7 @@ public class ImportProcessor {
         savePropertiesToFile(updatedFileProps, mutationPropFilePath);
     }
 
-    private void savePropertiesToFile(PropertyFileActiveRecord propertyFileActiveRecord, String pathFileName) throws IOException, InterruptedException {
+    private void savePropertiesToFile(PFActiveRecord propertyFileActiveRecord, String pathFileName) throws IOException, InterruptedException {
 
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(pathFileName), StandardCharsets.UTF_8);
         propertyFileActiveRecord.save(outputStreamWriter);

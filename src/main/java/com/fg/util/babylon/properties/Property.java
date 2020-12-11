@@ -10,7 +10,7 @@ import java.util.List;
  * Common class for property values of all types by {@link PropertyType}
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-public class Property {
+public class Property implements IProperty {
 
     static final String MULTILINE_SEPARATOR = "\\";
 
@@ -29,7 +29,7 @@ public class Property {
         lines.add(line.replace(System.lineSeparator(), ""));
     }
 
-    Integer getRowCount() {
+    public Integer getRowCount() {
         return lines.size();
     }
 
@@ -58,19 +58,19 @@ public class Property {
         this.value = value;
     }
 
-    public final boolean isPropValue() {
+    public boolean isPropValue() {
         return type == PropertyType.VALUE;
     }
 
-    public final boolean isPropValueMultiLine() {
+    public  boolean isPropValueMultiLine() {
         return type == PropertyType.MULTILINE;
     }
 
-    final boolean isPropEmptyLine() {
+    public boolean isPropEmptyLine() {
         return type == PropertyType.EMPTY;
     }
 
-    final boolean isPropComment() {
+    public boolean isPropComment() {
         return type == PropertyType.COMMENT;
     }
 

@@ -4,7 +4,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Loads {@link PropertyFileActiveRecord} from a file.
+ * Loads {@link PFActiveRecord} from a file.
  */
 public class PropertyFileLoader {
 
@@ -15,7 +15,7 @@ public class PropertyFileLoader {
      * @return Returns properties {@link PropertyFileActiveRecord} or null if file not exists.
      * @throws IOException error when reading the file
      */
-    public PropertyFileActiveRecord loadPropertiesFromFile(String fileNamePath) throws IOException {
+    public PFActiveRecord loadPropertiesFromFile(String fileNamePath) throws IOException {
         if (!new File(fileNamePath).exists()) {
             return null;
         }
@@ -30,7 +30,7 @@ public class PropertyFileLoader {
      * @return Returns loaded file {@link PropertyFileActiveRecord}
      * @throws IOException error when reading the stream
      */
-    public PropertyFileActiveRecord loadProperties(InputStream propertyFile) throws IOException {
+    public PFActiveRecord loadProperties(InputStream propertyFile) throws IOException {
         PropertyFileActiveRecord propertyFileActiveRecord = new PropertyFileActiveRecord();
         try (InputStreamReader inputStreamReader = new InputStreamReader(propertyFile, StandardCharsets.UTF_8)) {
             propertyFileActiveRecord.load(inputStreamReader);
