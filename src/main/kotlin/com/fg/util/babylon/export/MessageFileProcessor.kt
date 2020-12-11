@@ -107,15 +107,14 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
      */
     private fun determineMissingTranslatedMsgs(primaryMsgs: Messages,
                                                translations: Collection<Messages>): Set<MessageKey> {
-        /** keys of messages that are not empty */
-        val nonEmptyMsgKeys = translations.map { msgs ->
-            msgs.filterValues { !it.isNullOrEmpty() }.keys
+        val translationMsgKeys = translations.map { msgs ->
+            msgs.keys
         }
-        val keysInEveryTranslationBundle = if (nonEmptyMsgKeys.isEmpty())
+        val keysInEveryTranslationBundle = if (translationMsgKeys.isEmpty())
         // reduce doesn't work on empty collection, fold doesn't play well with intersection operation
             emptySet()
         else
-            nonEmptyMsgKeys.reduce { acc: Set<MessageKey>, messageKeys ->
+            translationMsgKeys.reduce { acc: Set<MessageKey>, messageKeys ->
                 acc.intersect(messageKeys)
             }
 
