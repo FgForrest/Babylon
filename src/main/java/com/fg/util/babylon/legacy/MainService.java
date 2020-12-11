@@ -42,7 +42,7 @@ public class MainService {
         this.configuration = configuration;
         this.action = arguments.getAction();
 
-        MessageLoader ml = new OldMessageLoaderAdaptor(propertyFileLoader);
+        MessageLoader ml = new ApronMessageLoader();
         Snapshot snapshot = sm.getOrCreateDataFile();
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
