@@ -1,5 +1,6 @@
 package com.fg.util.babylon.export
 
+import com.fg.util.babylon.SheetConstants
 import com.fg.util.babylon.export.stats.MessageFileExportStats
 import com.fg.util.babylon.snapshot.TranslationSnapshotReadContract
 import java.util.*
@@ -175,7 +176,7 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
 
 
     private fun createSheetHeader(targetLangs: List<String>): List<String> =
-            listOf("key", "primary") + targetLangs
+            listOf(SheetConstants.COL_KEY, SheetConstants.COL_PRIMARY) + targetLangs
 
     private fun createExportStats(msgFilePath: String,
                                   newMsgKeys: Set<MessageKey>,
