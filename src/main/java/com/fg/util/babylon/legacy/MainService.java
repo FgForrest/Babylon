@@ -37,12 +37,12 @@ public class MainService {
     public MainService(GoogleSheetApi gsApi, Arguments arguments, TranslationConfiguration configuration) throws IOException {
         SnapshotManager sm = new SnapshotManager(configuration.getSnapshotPath());
         AntPathResourceLoader springResLoader = new SpringResourceLoader();
-        PropertyFileLoader i18FileManager = new PropertyFileLoader();
-        importProcessor = new ImportProcessor(gsApi, sm, i18FileManager, arguments.getGoogleSheetId(), configuration);
+        PropertyFileLoader propertyFileLoader = new PropertyFileLoader();
+        importProcessor = new ImportProcessor(gsApi, sm, propertyFileLoader, arguments.getGoogleSheetId(), configuration);
         this.configuration = configuration;
         this.action = arguments.getAction();
 
-        MessageLoader ml = new OldMessageLoaderAdaptor(i18FileManager);
+        MessageLoader ml = new OldMessageLoaderAdaptor(propertyFileLoader);
         Snapshot snapshot = sm.getOrCreateDataFile();
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
