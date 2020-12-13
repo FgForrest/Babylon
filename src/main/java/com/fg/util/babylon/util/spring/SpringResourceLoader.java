@@ -1,6 +1,6 @@
-package com.fg.util.babylon.processor.spring;
+package com.fg.util.babylon.util.spring;
 
-import com.fg.util.babylon.processor.AntPathResourceLoader;
+import com.fg.util.babylon.util.AntPathResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 

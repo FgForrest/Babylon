@@ -1,4 +1,4 @@
-package com.fg.util.babylon.processor;
+package com.fg.util.babylon.util;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.Resource;
