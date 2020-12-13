@@ -41,7 +41,7 @@ public class MainService {
         SnapshotManager sm = new SnapshotManager(configuration.getSnapshotPath());
         AntPathResourceLoader springResLoader = new com.fg.util.babylon.util.spring.SpringResourceLoader();
         PropertyFileLoader propertyFileLoader = new PropertyFileLoader();
-        importProcessor = new ImportProcessor(lgss, sm, propertyFileLoader, arguments.getGoogleSheetId(), configuration);
+        importProcessor = new ImportProcessor(lgss, sm, propertyFileLoader, configuration);
         this.configuration = configuration;
         this.action = arguments.getAction();
 
@@ -62,7 +62,7 @@ public class MainService {
                 newExporter.walkPathsAndWriteSheets(configuration.getPath(), spreadsheetId, configuration);
                 break;
             case IMPORT:
-                importProcessor.doImport();
+                importProcessor.doImport(spreadsheetId);
                 break;
         }
         log.info("Translation done in: " + (System.currentTimeMillis() - stTime) + "ms");
