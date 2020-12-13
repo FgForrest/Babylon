@@ -43,6 +43,18 @@ public class LightGSheetService {
     }
 
     /**
+     * Lists all sheets of a spreadsheet also fetching their cell data.
+     *
+     * @param spreadsheetId id of spreadsheet
+     * @return all sheets of spreadsheet {@code spreadSheetId}
+     */
+    public List<Sheet> listSheetsEagerly(final String spreadsheetId) throws GeneralSecurityException, IOException {
+        Sheets.Spreadsheets.Get listRequest = getSheetsClient().spreadsheets().get(spreadsheetId).setIncludeGridData(true);
+        Spreadsheet spreadSheet = listRequest.execute();
+        return spreadSheet.getSheets();
+    }
+
+    /**
      * Loads sheet from given spreadsheet, if exists.
      *
      * @param spreadsheetId id of spreadsheet to find in
