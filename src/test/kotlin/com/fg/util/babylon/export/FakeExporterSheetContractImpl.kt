@@ -3,9 +3,9 @@ package com.fg.util.babylon.export
 import com.fg.util.babylon.sheets.gsheets.model.ASheet
 
 /**
- * Fake implementation of [ExporterSheetContract] for testing only.
+ * Fake implementation of [NewExporter.SheetContract] for testing only.
  */
-class FakeExporterSheetContractImpl : ExporterSheetContract {
+class FakeExporterSheetContractImpl : NewExporter.SheetContract {
 
     private val sheets: MutableMap<String, List<ASheet>> = mutableMapOf()
     private var nextId = 1;

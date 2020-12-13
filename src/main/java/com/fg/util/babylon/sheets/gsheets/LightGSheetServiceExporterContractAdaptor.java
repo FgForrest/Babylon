@@ -1,8 +1,8 @@
 package com.fg.util.babylon.sheets.gsheets;
 
+import com.fg.util.babylon.export.NewExporter;
 import com.fg.util.babylon.sheets.gsheets.model.ASheet;
 import com.fg.util.babylon.sheets.gsheets.model.SheetAdaptor;
-import com.fg.util.babylon.export.ExporterSheetContract;
 import com.fg.util.babylon.sheets.SheetsException;
 import com.google.api.services.sheets.v4.model.Sheet;
 
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * Implements contract for translation export using {@link LightGSheetService} without exposing its details.
  */
-public class LightGSheetServiceExporterContractAdaptor implements ExporterSheetContract {
+public class LightGSheetServiceExporterContractAdaptor implements NewExporter.SheetContract {
 
     private final LightGSheetService lightGSheetService;
 
