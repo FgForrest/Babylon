@@ -50,7 +50,7 @@ public class MainService {
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
         TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
-        ExporterSheetContract esc = new LightGSheetServiceExporterContractAdaptor(lgss);
+        NewExporter.SheetContract esc = new LightGSheetServiceExporterContractAdaptor(lgss);
         newExporter = new NewExporter(translationCollector, sm, esc, springResLoader);
     }
 

@@ -24,14 +24,14 @@ public class NewExporter {
 
     private final TranslationCollector translationCollector;
     private final SnapshotManager dfm;
-    private final ExporterSheetContract gsc;
+    private final SheetContract gsc;
     private final AntPathResourceLoader resourceLoader;
     private final PathUtils pu;
 
     //FIXME: move to config
     private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz", "kamenik@fg.cz");
 
-    public NewExporter(TranslationCollector translationCollector, SnapshotManager dfm, ExporterSheetContract gsc, AntPathResourceLoader resourceLoader) {
+    public NewExporter(TranslationCollector translationCollector, SnapshotManager dfm, SheetContract gsc, AntPathResourceLoader resourceLoader) {
         this.translationCollector = translationCollector;
         this.dfm = dfm;
         this.gsc = gsc;
@@ -151,6 +151,42 @@ public class NewExporter {
             String errMsg = "Error when deleting sheets '" + sheetIds + "'";
             throw new RuntimeException(errMsg, e);
         }
+    }
+
+    /**
+     * Defines sheet operations required by {@link NewExporter}.
+     */
+    public interface SheetContract {
+
+        /**
+         * Lists all sheets of spreadsheet {@code spreadsheetId}. Does not fetch actual cells of the sheets.
+         *
+         * @param spreadsheetId id of spreadsheet
+         * @return sheets from {@code spreadsheetId}
+         * @throws SheetsException when unable to list sheets
+         */
+        List<ASheet> listSheets(String spreadsheetId) throws SheetsException;
+
+        /**
+         * Deletes specified sheets from given spreadsheet.
+         *
+         * @param spreadsheetId spreadsheet to delete sheets from
+         * @param sheetIds ids of sheets to delete
+         * @throws SheetsException when unable to delete sheets
+         */
+        void deleteSheets(String spreadsheetId, Collection<Integer> sheetIds) throws SheetsException;
+
+        /**
+         * Creates a new sheet a fills it with provided data.
+         *
+         * @param spreadsheetId id of spreadsheet where new sheet should be created
+         * @param sheetTitle name to use for the new sheet
+         * @param sheetRows rows with data cells to fill the sheet with
+         * @param lockedCellEditors list of email accounts that will be able to edit locked cells
+         * @throws SheetsException when unable to upload sheets
+         */
+        void createSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors) throws SheetsException;
+
     }
 
 }

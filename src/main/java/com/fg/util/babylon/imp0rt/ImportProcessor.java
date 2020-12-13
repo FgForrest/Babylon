@@ -7,7 +7,9 @@ import com.fg.util.babylon.db.SnapshotManager;
 import com.fg.util.babylon.entity.*;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.properties.*;
+import com.fg.util.babylon.sheets.SheetsException;
 import com.fg.util.babylon.sheets.gsheets.LightGSheetService;
+import com.fg.util.babylon.sheets.gsheets.model.ASheet;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfImport;
@@ -187,6 +189,22 @@ public class ImportProcessor {
         propertyFileActiveRecord.save(outputStreamWriter);
 
         gitAdd.gitAddFile(pathFileName);
+    }
+
+    /**
+     * Defines sheet operations required by {@link ImportProcessor}.
+     */
+    public interface SheetContract {
+
+        /**
+         * Lists all sheets of spreadsheet {@code spreadsheetId}. Also fetches cell data of the sheets.
+         *
+         * @param spreadsheetId id of spreadsheet
+         * @return sheets from {@code spreadsheetId}
+         * @throws SheetsException when unable to list sheets
+         */
+        List<ASheet> loadSheets(String spreadsheetId) throws SheetsException;
+
     }
 
 }
