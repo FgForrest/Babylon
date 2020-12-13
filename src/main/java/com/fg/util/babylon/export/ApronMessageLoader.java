@@ -1,6 +1,6 @@
 package com.fg.util.babylon.export;
 
-import com.fg.util.babylon.todo.TranslationFileUtils;
+import com.fg.util.babylon.msgfile.TranslationFileUtils;
 import de.poiu.apron.PropertyFile;
 import de.poiu.apron.entry.PropertyEntry;
 
