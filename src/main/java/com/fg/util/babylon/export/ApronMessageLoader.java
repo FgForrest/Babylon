@@ -1,6 +1,7 @@
 package com.fg.util.babylon.export;
 
 import com.fg.util.babylon.msgfile.TranslationFileUtils;
+import com.fg.util.babylon.util.FileUtils;
 import de.poiu.apron.PropertyFile;
 import de.poiu.apron.entry.PropertyEntry;
 
@@ -63,11 +64,7 @@ public class ApronMessageLoader implements MessageLoader {
     }
 
     private File fileFromPath(String path) {
-        File propFile = new File(path);
-        if (!propFile.exists()) {
-            throw new IllegalArgumentException("Message file '" + path + "' could not be found.");
-        }
-        return propFile;
+        return FileUtils.fileFromPathOrThrow(path);
     }
 
 }

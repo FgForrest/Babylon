@@ -1,6 +1,7 @@
 package com.fg.util.babylon.imp0rt;
 
 import com.fg.util.babylon.entity.MessageFileContent;
+import com.fg.util.babylon.imp0rt.legacy.MessageFileContentMessageWriter;
 import com.fg.util.babylon.snapshot.Snapshot;
 import com.google.api.services.sheets.v4.model.CellData;
 import com.google.api.services.sheets.v4.model.GridData;
@@ -22,7 +23,7 @@ public class ImportSheetProcessor {
         String sheetTitle = sheet.getProperties().getTitle();
         log.info("Processing sheet \"" + sheetTitle + "\"...");
         Integer fileId = parseFileIdFromSheetTitle(sheetTitle);
-        MessageFileContent propFile = getPropFileById(fileId, snapshot);
+        MessageWriter messageWriter = new MessageFileContentMessageWriter(getPropFileById(fileId, snapshot));
 
         List<GridData> sheetData = sheet.getData();
         if (sheetData == null || sheetData.isEmpty()) {
@@ -30,7 +31,7 @@ public class ImportSheetProcessor {
             return;
         }
         for (GridData gridData : sheetData) {
-            processGridDataOfSheet(sheetTitle, gridData, propFile, snapshot);
+            processGridDataOfSheet(sheetTitle, gridData, messageWriter);
         }
     }
 
@@ -38,9 +39,8 @@ public class ImportSheetProcessor {
      * Gets {@link MessageFileContent} object for one properties file by your unique id in json DataFile.
      * @param fileId unique file ID
      * @return Found {@link MessageFileContent} object or null if not found.
-     * @throws IOException some exception derived from {@link IOException}
      */
-    private MessageFileContent getPropFileById(Integer fileId, Snapshot snapshot) throws IOException {
+    private MessageFileContent getPropFileById(Integer fileId, Snapshot snapshot) {
         MessageFileContent propFile = snapshot.getPropFileById(fileId);
         if (propFile == null) {
             String msg = "No record found by id='" + fileId + "' in DB file";
@@ -49,7 +49,7 @@ public class ImportSheetProcessor {
         return propFile;
     }
 
-    private void processGridDataOfSheet(String sheetTitle, GridData gridData, MessageFileContent propFile, Snapshot snapshot) throws IOException {
+    private void processGridDataOfSheet(String sheetTitle, GridData gridData, MessageWriter messageWriter) throws IOException {
         List<RowData> rowsData = gridData.getRowData();
         if (rowsData == null) {
             log.warn("Sheet \"" + sheetTitle + " \" is empty");
@@ -59,7 +59,7 @@ public class ImportSheetProcessor {
         Map<Integer,String> header = createHeader(rowsData.get(0));
         for (RowData rowData : rowsData.subList(1, rowsData.size())) {
             if (rowData.getValues().stream().anyMatch(i-> i.getFormattedValue() != null && !Objects.equals(i.getFormattedValue(), "null"))){
-                processRowData(sheetTitle, header, rowData, propFile, snapshot);
+                processRowData(header, rowData, messageWriter);
             }
         }
     }
@@ -76,12 +76,11 @@ public class ImportSheetProcessor {
 
     /**
      * Processes data of the one row in google sheet.
-     * @param sheetTitle Sheet title for target file identification
      * @param header header values with column numbers as keys
      * @param rowData data of the one row
      * @throws IOException some exception derived from {@link IOException}
      */
-    private void processRowData(String sheetTitle, Map<Integer,String> header, RowData rowData, MessageFileContent propFile, Snapshot snapshot) {
+    private void processRowData(Map<Integer,String> header, RowData rowData, MessageWriter messageWriter) {
         int col = 0;
         List<CellData> values = rowData.getValues();
         String propKey = "";
@@ -89,20 +88,16 @@ public class ImportSheetProcessor {
             String colTitle = header.get(col);
             String propValue = cellData.getFormattedValue();
 
-            // Double quotes in case of variable in property
-//            if (propValue != null && propValue.matches(".*\\{.}.*")){
-//                propValue = propValue.replace("'","''");
-//            }
             if (col == 0) {
                 // First column contains properties keys.
                 propKey = propValue;
             } else if (col == 1) {
                 // Second column contains text value of primary mutation.
-                propFile.putProperty(propKey, propValue);
+                messageWriter.storePrimaryMessage(propKey, propValue);
             } else {
                 // Next columns contains text values of secondary mutations. Column title contains name of the mutation.
                 String mutation = colTitle;
-                propFile.putMutationProperty(mutation, propKey, propValue);
+                messageWriter.storeTranslation(mutation, propKey, propValue);
             }
             col++;
         }
