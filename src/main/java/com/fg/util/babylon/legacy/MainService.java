@@ -9,12 +9,11 @@ import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.export.*;
-import com.fg.util.babylon.sheets.export.ExporterSheetContract;
+import com.fg.util.babylon.export.ExporterSheetContract;
 import com.fg.util.babylon.sheets.gsheets.LightGSheetServiceExporterContractAdaptor;
 import com.fg.util.babylon.util.AntPathResourceLoader;
 import com.fg.util.babylon.properties.PropertyFileLoader;
 import com.fg.util.babylon.imp0rt.ImportProcessor;
-import com.fg.util.babylon.util.spring.SpringResourceLoader;
 import com.fg.util.babylon.snapshot.SnapshotAdapter;
 import lombok.extern.apachecommons.CommonsLog;
 
@@ -35,10 +34,13 @@ public class MainService {
     private final NewExporter newExporter;
 
     public MainService(GoogleSheetApi gsApi, Arguments arguments, TranslationConfiguration configuration) throws IOException {
+        GSheetsClient gsClient = new LegacyGoogleServiceClientAdaptor(gsApi);
+        LightGSheetService lgss = new LightGSheetService(new GSheetApiRequestFactory(), gsClient);
+
         SnapshotManager sm = new SnapshotManager(configuration.getSnapshotPath());
-        AntPathResourceLoader springResLoader = new SpringResourceLoader();
+        AntPathResourceLoader springResLoader = new com.fg.util.babylon.util.spring.SpringResourceLoader();
         PropertyFileLoader propertyFileLoader = new PropertyFileLoader();
-        importProcessor = new ImportProcessor(gsApi, sm, propertyFileLoader, arguments.getGoogleSheetId(), configuration);
+        importProcessor = new ImportProcessor(lgss, sm, propertyFileLoader, arguments.getGoogleSheetId(), configuration);
         this.configuration = configuration;
         this.action = arguments.getAction();
 
@@ -47,8 +49,6 @@ public class MainService {
         SnapshotAdapter snapshotAdapter = new SnapshotAdapter(snapshot);
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
         TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
-        GSheetsClient gsClient = new LegacyGoogleServiceClientAdaptor(gsApi);
-        LightGSheetService lgss = new LightGSheetService(new GSheetApiRequestFactory(), gsClient);
         ExporterSheetContract esc = new LightGSheetServiceExporterContractAdaptor(lgss);
         newExporter = new NewExporter(translationCollector, sm, esc, springResLoader);
     }

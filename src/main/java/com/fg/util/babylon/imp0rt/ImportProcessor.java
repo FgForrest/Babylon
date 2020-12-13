@@ -1,12 +1,14 @@
 package com.fg.util.babylon.imp0rt;
 
+import com.fg.util.babylon.git.GitAdd;
+import com.fg.util.babylon.git.RuntimeExecGitAdd;
 import com.fg.util.babylon.sheets.SheetConstants;
 import com.fg.util.babylon.db.SnapshotManager;
 import com.fg.util.babylon.entity.*;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.properties.*;
+import com.fg.util.babylon.sheets.gsheets.LightGSheetService;
 import com.fg.util.babylon.snapshot.Snapshot;
-import com.fg.util.babylon.legacy.GoogleSheetApi;
 import com.fg.util.babylon.statistics.ImportFileStatistic;
 import com.fg.util.babylon.statistics.TranslationStatisticsOfImport;
 import com.fg.util.babylon.msgfile.TranslationFileUtils;
@@ -19,7 +21,6 @@ import lombok.extern.apachecommons.CommonsLog;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
@@ -34,30 +35,33 @@ public class ImportProcessor {
 
     private final SnapshotManager snapshotManager;
     private final PropertyFileLoader propertyFileLoader;
-    private final GoogleSheetApi googleSheetApi;
+    private final LightGSheetService lightGSheetService;
 
     private final String googleSheetId;
     private final TranslationConfiguration configuration;
 
-    public ImportProcessor(GoogleSheetApi googleSheetApi,
+    private final GitAdd gitAdd;
+
+    public ImportProcessor(LightGSheetService lightGSheetService,
                            SnapshotManager snapshotManager,
                            PropertyFileLoader propertyFileLoader,
                            String googleSheetId,
                            TranslationConfiguration configuration) {
         this.snapshotManager = snapshotManager;
         this.propertyFileLoader = propertyFileLoader;
-        this.googleSheetApi = googleSheetApi;
+        this.lightGSheetService = lightGSheetService;
         this.googleSheetId = googleSheetId;
         this.configuration = configuration;
+        this.gitAdd = new RuntimeExecGitAdd();
     }
 
     public void doImport() throws IOException, GeneralSecurityException, InterruptedException {
         log.info("Started translation IMPORT with Google sheet id: '" + googleSheetId +"'");
         TranslationStatisticsOfImport statistics = new TranslationStatisticsOfImport();
         statistics.setAction(Action.IMPORT);
-        List<Sheet> sheets = googleSheetApi.getAllSheetsWithData(googleSheetId);
+        List<Sheet> sheets = lightGSheetService.listSheetsEagerly(googleSheetId);
         if (sheets == null || sheets.isEmpty()) {
-            throw new NoSheetsException("Source spreadsheet " + googleSheetId + " not contains any sheets.");
+            throw new IllegalArgumentException("Source spreadsheet " + googleSheetId + " not contains any sheets.");
         }
         // Using "for" loop to propagating of IOException.
         for (Sheet sheet : sheets) {
@@ -77,7 +81,7 @@ public class ImportProcessor {
         if (!snapshot.getDataPropFiles().isEmpty()) {
             JsonUtils.objToJsonFile(new File(configuration.getDataFileName()), snapshot, true);
         } else {
-            throw new EmptyDataFileException("Cannot save empty DataFile object to file \"" + configuration.getDataFileName() + "\"");
+            throw new IllegalArgumentException("Cannot save empty DataFile object to file \"" + configuration.getDataFileName() + "\"");
         }
     }
 
@@ -166,7 +170,7 @@ public class ImportProcessor {
         MessageFileContent propFile = snapshotManager.getOrCreateDataFile().getPropFileById(fileId);
         if (propFile == null) {
             String msg = "No record found by id=\"" + fileId + "\" in \"" + configuration.getDataFileName() + "\"";
-            throw new PropIdNotFoundException(msg);
+            throw new IllegalArgumentException(msg);
         }
         return propFile;
     }
@@ -175,17 +179,16 @@ public class ImportProcessor {
      * Parse unique id of the target properties file from sheet title (title format is "FileName" + "#" + "UniqueId")
      * @param sheetTitle title of the sheet.
      * @return File ID parsed from sheet title.
-     * @throws ParsePropIdException If unique id cannot be parse from title.
      */
-    private Integer parseFileIdFromSheetTitle(String sheetTitle) throws ParsePropIdException {
+    private Integer parseFileIdFromSheetTitle(String sheetTitle) {
         try {
             String[] split = sheetTitle.split("#");
             if (split.length != 2) {
-                throw new ParsePropIdException("Cannot parse unique id from string \"" + sheetTitle + "\"");
+                throw new IllegalArgumentException("Cannot parse unique id from string \"" + sheetTitle + "\"");
             }
             return Integer.parseInt(split[1]);
         } catch (PatternSyntaxException | NumberFormatException e) {
-            throw new ParsePropIdException(e.getMessage());
+            throw new IllegalArgumentException(e.getMessage());
         }
     }
 
@@ -292,30 +295,7 @@ public class ImportProcessor {
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(pathFileName), StandardCharsets.UTF_8);
         propertyFileActiveRecord.save(outputStreamWriter);
 
-        gitAddFile(pathFileName);
-
-    }
-
-    private void gitAddFile(String pathFileName) throws IOException, InterruptedException {
-        /* Doesn't matter whether it is already added or existing */
-        log.info(FileSystems.getDefault().getPath(".").toAbsolutePath());
-        int exdCode = Runtime.getRuntime().exec("git add " + pathFileName).waitFor();
-        log.info("file git add ended with code : " + exdCode + " for file : " + pathFileName);
-        // Try it again
-        if (exdCode != 0){
-            Process p  = Runtime.getRuntime().exec("git add " + pathFileName);
-            exdCode=p.waitFor();
-            if (exdCode != 0){
-                log.info("Process exit code: " + exdCode);
-                log.info("Result:");
-                BufferedReader reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-                String line = "";
-                while ((line = reader.readLine()) != null) {
-                    log.warn(line);
-                }
-            }
-        }
+        gitAdd.gitAddFile(pathFileName);
     }
 
 }
