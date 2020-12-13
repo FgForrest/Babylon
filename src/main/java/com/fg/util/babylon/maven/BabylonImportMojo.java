@@ -1,4 +1,4 @@
-package com.fg.util.babylon.maven.plugin;
+package com.fg.util.babylon.maven;
 
 import com.fg.util.babylon.enums.Action;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
