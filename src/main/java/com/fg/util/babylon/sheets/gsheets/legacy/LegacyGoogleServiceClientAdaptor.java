@@ -1,4 +1,4 @@
-package com.fg.util.babylon.legacy;
+package com.fg.util.babylon.sheets.gsheets.legacy;
 
 import com.fg.util.babylon.sheets.gsheets.GSheetsClient;
 import com.google.api.services.sheets.v4.Sheets;
