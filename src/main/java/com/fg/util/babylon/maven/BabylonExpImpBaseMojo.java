@@ -1,4 +1,4 @@
-package com.fg.util.babylon.maven.plugin;
+package com.fg.util.babylon.maven;
 
 import com.fg.util.babylon.SpringBootConsoleApplication;
 import com.fg.util.babylon.enums.Action;
