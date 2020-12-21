@@ -51,7 +51,8 @@ public class MainService {
         MessageFileProcessor mfp = new MessageFileProcessor(snapshotAdapter);
         TranslationCollector translationCollector = new TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter);
         NewExporter.SheetContract esc = new LightGSheetServiceExporterContractAdaptor(lgss);
-        newExporter = new NewExporter(translationCollector, sm, esc, springResLoader);
+        Snapshot originalSnapshot = sm.getOriginalDataFile();
+        newExporter = new NewExporter(translationCollector, new SnapshotAdapter(originalSnapshot), esc, springResLoader);
     }
 
     public void startTranslation(String spreadsheetId) throws IOException, GeneralSecurityException, InterruptedException {

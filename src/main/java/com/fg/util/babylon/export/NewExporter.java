@@ -1,13 +1,12 @@
 package com.fg.util.babylon.export;
 
-import com.fg.util.babylon.db.SnapshotManager;
 import com.fg.util.babylon.entity.MessageFileContent;
 import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.export.dto.ExportResult;
 import com.fg.util.babylon.sheets.gsheets.model.ASheet;
+import com.fg.util.babylon.snapshot.TranslationSnapshotWriteContract;
 import com.fg.util.babylon.util.AntPathResourceLoader;
 import com.fg.util.babylon.sheets.SheetsException;
-import com.fg.util.babylon.snapshot.Snapshot;
 import com.fg.util.babylon.util.JsonUtils;
 import com.fg.util.babylon.util.PathUtils;
 import lombok.extern.apachecommons.CommonsLog;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 public class NewExporter {
 
     private final TranslationCollector translationCollector;
-    private final SnapshotManager dfm;
+    private final TranslationSnapshotWriteContract snapshot;
     private final SheetContract gsc;
     private final AntPathResourceLoader resourceLoader;
     private final PathUtils pu;
@@ -31,9 +30,9 @@ public class NewExporter {
     //FIXME: move to config
     private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz", "kamenik@fg.cz");
 
-    public NewExporter(TranslationCollector translationCollector, SnapshotManager dfm, SheetContract gsc, AntPathResourceLoader resourceLoader) {
+    public NewExporter(TranslationCollector translationCollector, TranslationSnapshotWriteContract snapshot, SheetContract gsc, AntPathResourceLoader resourceLoader) {
         this.translationCollector = translationCollector;
-        this.dfm = dfm;
+        this.snapshot = snapshot;
         this.gsc = gsc;
         this.resourceLoader = resourceLoader;
         this.pu = new PathUtils();
@@ -56,8 +55,7 @@ public class NewExporter {
 
         uploadTranslations(result, spreadsheetId, lockedCellEditors);
 
-        Snapshot originalSnapshot = dfm.getOriginalDataFile();
-        updateSnapshotAndWriteToDisk(originalSnapshot, result, config.getDataFileName());
+        updateSnapshotAndWriteToDisk(snapshot, result, config.getDataFileName());
 
         List<Integer> prevSheetIds = prevSheets.stream().map(sheet -> sheet.getId()).collect(Collectors.toList());
         deleteOldSheets(prevSheetIds, spreadsheetId);
@@ -130,14 +128,14 @@ public class NewExporter {
                 });
     }
 
-    private void updateSnapshotAndWriteToDisk(Snapshot originalSnapshot, ExportResult exportResult, String snapshotFilename) {
+    private void updateSnapshotAndWriteToDisk(TranslationSnapshotWriteContract snapshot, ExportResult exportResult, String snapshotFilename) {
         try {
             Iterable<String> newMsgFiles = exportResult.getPathsOfNewMsgFiles();
             newMsgFiles.forEach(newMsgFile ->
-                    originalSnapshot.putPropFile(newMsgFile, new MessageFileContent())
+                    snapshot.registerMsgFile(newMsgFile)
             );
             File snapshotFileName = new File(snapshotFilename);
-            JsonUtils.objToJsonFile(snapshotFileName, originalSnapshot, true);
+            JsonUtils.objToJsonFile(snapshotFileName, snapshot, true);
         } catch (IOException e) {
             String errMsg = "Error when updating translation snapshot '" + snapshotFilename + "' with new message file paths.";
             throw new RuntimeException(errMsg, e);
