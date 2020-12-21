@@ -6,7 +6,7 @@ import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
 import com.fg.util.babylon.export.*;
 import com.fg.util.babylon.imp0rt.ImportProcessor;
-import com.fg.util.babylon.sheets.gsheets.legacy.GoogleSheetApi;
+import com.fg.util.babylon.sheets.gsheets.legacy.GoogleSheetService;
 import com.fg.util.babylon.sheets.gsheets.legacy.LegacyGoogleServiceClientAdaptor;
 import com.fg.util.babylon.properties.PropertyFileLoader;
 import com.fg.util.babylon.sheets.gsheets.GSheetApiRequestFactory;
@@ -34,7 +34,7 @@ public class MainService {
 
     private final NewExporter newExporter;
 
-    public MainService(GoogleSheetApi gsApi, Arguments arguments, TranslationConfiguration configuration) throws IOException {
+    public MainService(GoogleSheetService gsApi, Arguments arguments, TranslationConfiguration configuration) throws IOException {
         GSheetsClient gsClient = new LegacyGoogleServiceClientAdaptor(gsApi);
         LightGSheetService lgss = new LightGSheetService(new GSheetApiRequestFactory(), gsClient);
 
