@@ -1,13 +1,12 @@
 package com.fg.util.babylon.service;
 
-import com.fg.util.babylon.entity.TranslationConfiguration;
+import com.fg.util.babylon.config.TranslationConfiguration;
 import com.fg.util.babylon.util.JsonUtils;
 import com.fg.util.babylon.util.TestUtils;
 import lombok.extern.apachecommons.CommonsLog;
 import org.junit.Test;
 import org.springframework.util.StringUtils;
 
-import java.io.File;
 import java.io.IOException;
 
 import static org.junit.Assert.*;

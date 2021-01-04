@@ -1,5 +1,6 @@
 package com.fg.util.babylon.imp0rt;
 
+import com.fg.util.babylon.config.TranslationConfiguration;
 import com.fg.util.babylon.git.GitAdd;
 import com.fg.util.babylon.git.RuntimeExecGitAdd;
 import com.fg.util.babylon.sheets.SheetConstants;

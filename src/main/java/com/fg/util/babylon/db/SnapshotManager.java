@@ -1,7 +1,7 @@
 package com.fg.util.babylon.db;
 
 import com.fg.util.babylon.snapshot.Snapshot;
-import com.fg.util.babylon.entity.TranslationConfiguration;
+import com.fg.util.babylon.config.TranslationConfiguration;
 import com.fg.util.babylon.util.JsonUtils;
 import lombok.extern.apachecommons.CommonsLog;
 
@@ -55,7 +55,7 @@ public class SnapshotManager {
 
     /**
      * Gets existing {@link Snapshot} object (from Json file on disk) or create new {@link Snapshot} object,
-     * according to file name specified by  {@link TranslationConfiguration#getDataFileName()}
+     * according to file name specified by  {@link TranslationConfiguration#getSnapshotName()}
      * @return {@link Snapshot}
      * @throws IOException some exception derived from {@link IOException}
      */

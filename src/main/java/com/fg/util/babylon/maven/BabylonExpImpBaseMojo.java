@@ -11,16 +11,19 @@ import org.apache.maven.plugins.annotations.Parameter;
  */
 public abstract class BabylonExpImpBaseMojo extends AbstractMojo {
 
+    public static final String CONFIG_FILE_PARAM = "config.file";
+    public static final String GOOGLE_SHEET_ID_PARAM = "google.sheet.id";
+
     /**
      * File name and relative path to the Json configuration file.
      */
-    @Parameter(property = "config.file", required = true)
+    @Parameter(property = CONFIG_FILE_PARAM, required = true)
     private String configFileName;
 
     /**
      * Id of the target google spreadsheet.
      */
-    @Parameter(property = "google.sheet.id", required = true)
+    @Parameter(property = GOOGLE_SHEET_ID_PARAM, required = true)
     private String googleSheetId;
 
     @Override

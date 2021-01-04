@@ -1,7 +1,5 @@
 package com.fg.util.babylon.export;
 
-import com.fg.util.babylon.entity.MessageFileContent;
-import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.export.dto.ExportResult;
 import com.fg.util.babylon.sheets.gsheets.model.ASheet;
 import com.fg.util.babylon.snapshot.TranslationSnapshotWriteContract;
@@ -39,8 +37,9 @@ public class NewExporter {
     }
 
     public void walkPathsAndWriteSheets(List<String> patternPaths,
+                                        List<String> translationLangs,
                                         String spreadsheetId,
-                                        TranslationConfiguration config) {
+                                        String snapshotName) {
         warnDuplicatePaths(patternPaths);
 
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
@@ -51,11 +50,11 @@ public class NewExporter {
             throw new IllegalArgumentException("Please fix the message file paths in the configuration file.");
         }
 
-        ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, config.getMutations());
+        ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, translationLangs);
 
         uploadTranslations(result, spreadsheetId, lockedCellEditors);
 
-        updateSnapshotAndWriteToDisk(snapshot, result, config.getDataFileName());
+        updateSnapshotAndWriteToDisk(snapshot, result, snapshotName);
 
         List<Integer> prevSheetIds = prevSheets.stream().map(sheet -> sheet.getId()).collect(Collectors.toList());
         deleteOldSheets(prevSheetIds, spreadsheetId);
