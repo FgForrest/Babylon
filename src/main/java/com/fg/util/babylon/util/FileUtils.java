@@ -6,6 +6,17 @@ import java.io.IOException;
 public class FileUtils {
 
     /**
+     * Checks if file exists.
+     *
+     * @param path path to file
+     * @return true if exists
+     */
+    public static boolean exists(String path) {
+        File propFile = new File(path);
+        return propFile.exists();
+    }
+
+    /**
      * Opens file if exists, throws exception otherwise.
      *
      * @param path path to file
