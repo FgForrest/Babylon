@@ -18,9 +18,9 @@ public class ExporterConfiguration {
 
     @Bean
     NewExporter exporter(TranslationCollector translationCollector,
-                         TranslationSnapshotWriteContract snapshot,
-                         NewExporter.SheetContract sheetContract,
-                         AntPathResourceLoader resourceLoader) {
+                                   TranslationSnapshotWriteContract snapshot,
+                                   NewExporter.SheetContract sheetContract,
+                                   AntPathResourceLoader resourceLoader) {
         return new NewExporter(translationCollector, snapshot, sheetContract, resourceLoader);
     }
 
@@ -49,7 +49,7 @@ public class ExporterConfiguration {
     }
 
     @Bean
-    NewExporter.SheetContract sheetContract(LightGSheetService lightGSheetService) {
+    protected NewExporter.SheetContract sheetContract(LightGSheetService lightGSheetService) {
         return new LightGSheetServiceExporterContractAdaptor(lightGSheetService);
     }
 
