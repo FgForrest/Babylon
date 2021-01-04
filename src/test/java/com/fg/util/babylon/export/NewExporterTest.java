@@ -8,6 +8,11 @@ import com.fg.util.babylon.spring.CommonConfiguration;
 import com.fg.util.babylon.spring.ExporterConfiguration;
 import com.fg.util.babylon.util.AntPathResourceLoader;
 import lombok.val;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +20,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassRelativeResourceLoader;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -36,16 +47,43 @@ public class NewExporterTest {
 
     @Autowired
     private NewExporter exporter;
-    
+
+    private Path tempDir;
+
+    @Before
+    public void createTmpDir() throws IOException {
+        tempDir = Files.createTempDirectory(NewExporterTest.class.getSimpleName());
+    }
+
+    @After
+    public void deleteTmpDir() {
+        FileUtils.deleteQuietly(tempDir.toFile());
+    }
+
     @Test
-    public void when_empty_sheets_then_HOVNO() throws IOException {
-        val snapshotOutput = Files.createTempFile("translation-output-db", ".properties");
-        val langs = Arrays.asList("sk", "en");
-        val paths = Arrays.asList("TODO", "TODO", "TODO");
+    public void when_translation_file_does_not_exists_then_does_not_blow_up() throws IOException {
+        Path snapshotOutput = Files.createTempFile(tempDir, "translation-output", ".db");
+        List<String> langs = Arrays.asList("sk", "en");
+        File msgFile = loadRelativeResourceAsFile("foo.properties");
+        List<String> paths = Arrays.asList(msgFile.toString());
 
         exporter.walkPathsAndWriteSheets(paths, langs, "N/A", snapshotOutput);
 
         assertThat(fakeSheets.getSheets().size(), equalTo(3));
+    }
+
+    private File loadRelativeResourceAsFile(String resourceName) throws IOException {
+        Resource msgFileResource = new ClassRelativeResourceLoader(this.getClass()).getResource(resourceName);
+        return resourceToFile(msgFileResource, tempDir);
+    }
+
+    private File resourceToFile(Resource resource, Path tempDir) throws IOException {
+        File tempFile = File.createTempFile(resource.getFilename(), ".tmp", tempDir.toFile());
+        tempFile.deleteOnExit();
+        try (FileOutputStream out = new FileOutputStream(tempFile)) {
+            IOUtils.copy(resource.getInputStream(), out);
+        }
+        return tempFile;
     }
 
     @Configuration
@@ -76,6 +114,5 @@ public class NewExporterTest {
         }
 
     }
-
 
 }

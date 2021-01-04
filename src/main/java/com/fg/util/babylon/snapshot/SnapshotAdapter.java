@@ -18,6 +18,11 @@ public class SnapshotAdapter implements TranslationSnapshotReadContract, Transla
     }
 
     @Override
+    public Snapshot getUnderlyingSnapshot() {
+        return snapshot;
+    }
+
+    @Override
     public boolean includesMsgFile(String msgFile) {
         return snapshot.getPropFileByFileName(msgFile) != null;
     }

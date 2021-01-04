@@ -135,7 +135,7 @@ public class NewExporter {
                     snapshot.registerMsgFile(newMsgFile)
             );
             File snapshotFileName = snapshotFile.toFile();
-            JsonUtils.objToJsonFile(snapshotFileName, snapshot, true);
+            JsonUtils.objToJsonFile(snapshotFileName, snapshot.getUnderlyingSnapshot(), true);
         } catch (IOException e) {
             String errMsg = "Error when updating translation snapshot '" + snapshotFile + "' with new message file paths.";
             throw new RuntimeException(errMsg, e);

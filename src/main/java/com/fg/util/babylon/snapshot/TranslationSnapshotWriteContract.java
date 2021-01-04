@@ -22,4 +22,6 @@ public interface TranslationSnapshotWriteContract {
      */
     void removeMsgFilePaths(Collection<String> msgFilePaths);
 
+    Snapshot getUnderlyingSnapshot();
+
 }
