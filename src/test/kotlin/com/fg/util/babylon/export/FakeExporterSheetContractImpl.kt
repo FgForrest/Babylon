@@ -7,7 +7,7 @@ import com.fg.util.babylon.sheets.gsheets.model.ASheet
  */
 class FakeExporterSheetContractImpl : NewExporter.SheetContract {
 
-    private val sheets: MutableMap<String, List<ASheet>> = mutableMapOf()
+    val sheets: MutableMap<String, List<ASheet>> = mutableMapOf()
     private var nextId = 1;
 
     override fun listSheets(spreadsheetId: String?): List<ASheet> =

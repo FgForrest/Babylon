@@ -1,23 +1,42 @@
 package com.fg.util.babylon.export
 
+import com.fg.util.babylon.db.SnapshotManager
+import com.fg.util.babylon.entity.TranslationConfiguration
+import com.fg.util.babylon.snapshot.SnapshotAdapter
+import com.fg.util.babylon.util.spring.SpringResourceLoader
+import org.hamcrest.CoreMatchers.equalTo
+import org.junit.Assert.assertThat
+import org.junit.Test
+import java.nio.file.Files
+
 class NewExporterTest {
 
-    //FIXME: tady neco jako File?
-//    var sm = SnapshotManager(configuration.getDataFileName())
-//    val ml: MessageLoader = OldMessageLoaderAdaptor(PropertyFileLoader())
-//    var springResLoader: AntPathResourceLoader = SpringResourceLoader()
-//    val snapshot: Snapshot = sm.getOrCreateDataFile()
-//    val snapshotAdapter = SnapshotAdapter(snapshot)
-//    val mfp = MessageFileProcessor(snapshotAdapter)
-//    val translationCollector = TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter)
-//    val esc = FakeExporterSheetContractImpl()
-//
-//    val exporter = NewExporter(translationCollector, sm, esc, springResLoader)
+    val tempFile = Files.createTempFile("translation-test-db", ".properties");
 
-//    @Test
-//    fun `foo`() {
-//        val config = TranslationConfiguration()
-//        exporter.walkPathsAndWriteSheets(paths, "test_spreadsheet", config)
-//    }
+    val sm = SnapshotManager(tempFile)
+    val snapshot = sm.getOrCreateDataFile()
+    val snapshotAdapter = SnapshotAdapter(snapshot)
+
+    val fesci = FakeExporterSheetContractImpl()
+
+    val ml = ApronMessageLoader()
+    var springResLoader = SpringResourceLoader()
+
+    val mfp = MessageFileProcessor(snapshotAdapter)
+    val translationCollector = TranslationCollector(ml, mfp, snapshotAdapter, snapshotAdapter)
+
+    val exporter = NewExporter(translationCollector, snapshotAdapter, fesci, springResLoader)
+
+    @Test
+    fun `when empty sheets then `() {
+        val config = TranslationConfiguration()
+        config.mutations = listOf("TODO", "TODO")
+
+        val paths = listOf("TODO", "TODO", "TODO")
+
+        exporter.walkPathsAndWriteSheets(paths, "test_spreadsheet", config)
+
+        assertThat(fesci.sheets.size, equalTo(3))
+    }
 
 }

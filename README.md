@@ -3,10 +3,13 @@
 ## Project that provides support for Java property file translation.
 
 ### Description and usage 
-Babylon is standalone console application in basic. Conditions for usage is: 
+Babylon is a tool to gather messages and their translations from property files. Id performs a roundtrip consisting where the
+messages are written in a Google Sheets spreadsheet for a translation agency to fill in the translations. La
+
+Babylon is a standalone console application. Conditions for usage is: 
 1. You must run it in root directory of your project.
 2. You must have prepared your Json configuration file (see "Configuration" section).
-3. You must have prepared target Google spreadsheet.
+3. An empty Google Sheets spreadsheet must exist.
 
 But primary use case is to run Babylon as Maven plugin "babylon-maven-plugin". For this case you must configure them as 
 described below (see "Run Babylon as Maven plugin" section).
