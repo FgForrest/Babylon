@@ -19,7 +19,7 @@ public class TranslationConfigurationReader {
         if (!file.exists()) {
             throw new FileNotFoundException("Cannot find configuration file: " + file.getAbsolutePath());
         }
-        TranslationConfiguration configuration = JsonUtils.jsonObjFromFile(file, TranslationConfiguration.class);
+        TranslationConfiguration configuration = readConfiguration(file);
         if (configuration.getMutations().isEmpty()) {
             throw new IllegalArgumentException("No primary mutations defined in configuration file \"" + configFileName + "\"");
         }
@@ -27,6 +27,8 @@ public class TranslationConfigurationReader {
         return configuration;
     }
 
-
+    private TranslationConfiguration readConfiguration(File file) throws IOException {
+        return JsonUtils.jsonObjFromFile(file, TranslationConfiguration.class);
+    }
 
 }

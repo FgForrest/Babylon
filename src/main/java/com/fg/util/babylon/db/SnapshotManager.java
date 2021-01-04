@@ -55,7 +55,7 @@ public class SnapshotManager {
 
     /**
      * Gets existing {@link Snapshot} object (from Json file on disk) or create new {@link Snapshot} object,
-     * according to file name specified by  {@link TranslationConfiguration#getSnapshotName()}
+     * according to file name specified by  {@link TranslationConfiguration#getDataFileName()}
      * @return {@link Snapshot}
      * @throws IOException some exception derived from {@link IOException}
      */
@@ -72,7 +72,7 @@ public class SnapshotManager {
     private Snapshot getExistingDataFileFromDisk(Path snapshotFile) throws IOException {
         File file = snapshotFile.toFile();
         if (file.exists() && file.length() != 0) {
-            Snapshot df = JsonUtils.jsonObjFromFile(file, Snapshot.class);
+            Snapshot df = SnapshotUtils.readSnapshot(file);
             loadDataPropFilesIds(df);
             return df;
         } else {

@@ -1,5 +1,6 @@
 package com.fg.util.babylon.export;
 
+import com.fg.util.babylon.db.SnapshotUtils;
 import com.fg.util.babylon.export.dto.ExportResult;
 import com.fg.util.babylon.sheets.gsheets.model.ASheet;
 import com.fg.util.babylon.snapshot.TranslationSnapshotWriteContract;
@@ -96,7 +97,7 @@ public class NewExporter {
     private boolean checkPathsExist(Collection<String> paths) {
         boolean pathsOk = true;
         for (String path : paths) {
-            if (! new File(path).exists()) {
+            if (!new File(path).exists()) {
                 log.error("File '" + path + "' could not be found.");
                 pathsOk = false;
             }
@@ -135,7 +136,7 @@ public class NewExporter {
                     snapshot.registerMsgFile(newMsgFile)
             );
             File snapshotFileName = snapshotFile.toFile();
-            JsonUtils.objToJsonFile(snapshotFileName, snapshot.getUnderlyingSnapshot(), true);
+            SnapshotUtils.writeSnapshot(snapshot.getUnderlyingSnapshot(), snapshotFileName);
         } catch (IOException e) {
             String errMsg = "Error when updating translation snapshot '" + snapshotFile + "' with new message file paths.";
             throw new RuntimeException(errMsg, e);
@@ -169,7 +170,7 @@ public class NewExporter {
          * Deletes specified sheets from given spreadsheet.
          *
          * @param spreadsheetId spreadsheet to delete sheets from
-         * @param sheetIds ids of sheets to delete
+         * @param sheetIds      ids of sheets to delete
          * @throws SheetsException when unable to delete sheets
          */
         void deleteSheets(String spreadsheetId, Collection<Integer> sheetIds) throws SheetsException;
@@ -177,9 +178,9 @@ public class NewExporter {
         /**
          * Creates a new sheet a fills it with provided data.
          *
-         * @param spreadsheetId id of spreadsheet where new sheet should be created
-         * @param sheetTitle name to use for the new sheet
-         * @param sheetRows rows with data cells to fill the sheet with
+         * @param spreadsheetId     id of spreadsheet where new sheet should be created
+         * @param sheetTitle        name to use for the new sheet
+         * @param sheetRows         rows with data cells to fill the sheet with
          * @param lockedCellEditors list of email accounts that will be able to edit locked cells
          * @throws SheetsException when unable to upload sheets
          */

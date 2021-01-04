@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @CommonsLog
-public class MainServiceTest {
+public class TranslationConfigurationSerializationTest {
 
     /**
      * Checks of {@link TranslationConfiguration} serialization from object to string and back.
