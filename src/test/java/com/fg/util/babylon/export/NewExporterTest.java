@@ -7,6 +7,7 @@ import com.fg.util.babylon.snapshot.TranslationSnapshotWriteContract;
 import com.fg.util.babylon.spring.CommonConfiguration;
 import com.fg.util.babylon.spring.ExporterConfiguration;
 import com.fg.util.babylon.util.AntPathResourceLoader;
+import com.fg.util.babylon.util.ResourceUtils;
 import lombok.val;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -62,28 +63,14 @@ public class NewExporterTest {
 
     @Test
     public void when_translation_file_does_not_exists_then_does_not_blow_up() throws IOException {
-        Path snapshotOutput = Files.createTempFile(tempDir, "translation-output", ".db");
+        Path snapshotOutput = Files.createTempFile(tempDir, "translation-test-output-db", ".json");
         List<String> langs = Arrays.asList("sk", "en");
-        File msgFile = loadRelativeResourceAsFile("foo.properties");
+        File msgFile = ResourceUtils.loadRelativeResourceAsFile("foo.properties", tempDir, this.getClass());
         List<String> paths = Arrays.asList(msgFile.toString());
 
         exporter.walkPathsAndWriteSheets(paths, langs, "N/A", snapshotOutput);
 
-        assertThat(fakeSheets.getSheets().size(), equalTo(3));
-    }
-
-    private File loadRelativeResourceAsFile(String resourceName) throws IOException {
-        Resource msgFileResource = new ClassRelativeResourceLoader(this.getClass()).getResource(resourceName);
-        return resourceToFile(msgFileResource, tempDir);
-    }
-
-    private File resourceToFile(Resource resource, Path tempDir) throws IOException {
-        File tempFile = File.createTempFile(resource.getFilename(), ".tmp", tempDir.toFile());
-        tempFile.deleteOnExit();
-        try (FileOutputStream out = new FileOutputStream(tempFile)) {
-            IOUtils.copy(resource.getInputStream(), out);
-        }
-        return tempFile;
+        assertThat(fakeSheets.getSheets().size(), equalTo(1));
     }
 
     @Configuration
@@ -92,7 +79,8 @@ public class NewExporterTest {
         @Bean
         @Override
         protected SnapshotManager snapshotManager(TranslationConfiguration configuration) throws IOException {
-            val tempFile = Files.createTempFile("translation-test-db", ".properties");
+            Path tempFile = Files.createTempFile("translation-test-db", ".json");
+            tempFile.toFile().deleteOnExit();
             return new SnapshotManager(tempFile);
         }
 

@@ -1,6 +1,7 @@
 package com.fg.util.babylon.imp0rt;
 
 import com.fg.util.babylon.config.TranslationConfiguration;
+import com.fg.util.babylon.db.SnapshotUtils;
 import com.fg.util.babylon.git.GitAdd;
 import com.fg.util.babylon.git.RuntimeExecGitAdd;
 import com.fg.util.babylon.sheets.SheetConstants;
@@ -82,7 +83,8 @@ public class ImportProcessor {
      */
     private void saveDataFile(Snapshot snapshot, String dbFileName) throws IOException {
         if (!snapshot.getDataPropFiles().isEmpty()) {
-            JsonUtils.objToJsonFile(new File(dbFileName), snapshot, true);
+            File toFile = new File(dbFileName);
+            SnapshotUtils.writeSnapshot(snapshot, toFile);
         } else {
             throw new IllegalArgumentException("Cannot save empty DataFile object to file \"" + dbFileName + "\"");
         }
