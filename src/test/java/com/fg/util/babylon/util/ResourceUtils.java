@@ -46,7 +46,7 @@ public class ResourceUtils {
         String fileName = resourceNameAndSuffix[0];
         String suffix;
         if (resourceNameAndSuffix.length > 1) {
-            suffix = resourceNameAndSuffix[1];
+            suffix = "." + resourceNameAndSuffix[1];
         } else {
             suffix = null;
         }
