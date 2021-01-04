@@ -39,7 +39,12 @@ public class ApronMessageLoader implements MessageLoader {
     }
 
     private Map<String, String> dumpPropertyFile(String filePath) {
-        PropertyFile primaryMsgs = PropertyFile.from(fileFromPath(filePath));
+        PropertyFile primaryMsgs;
+        if (FileUtils.exists(filePath)) {
+            primaryMsgs = PropertyFile.from(fileFromPath(filePath));
+        } else {
+            primaryMsgs = new PropertyFile();
+        }
         return dumpPropertyFile(primaryMsgs);
     }
 
