@@ -1,6 +1,5 @@
 package com.fg.util.babylon.config;
 
-import com.fg.util.babylon.entity.TranslationConfiguration;
 import com.fg.util.babylon.util.JsonUtils;
 import lombok.extern.apachecommons.CommonsLog;
 

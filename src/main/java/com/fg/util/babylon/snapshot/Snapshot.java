@@ -2,9 +2,8 @@ package com.fg.util.babylon.snapshot;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fg.util.babylon.entity.MessageFileContent;
-import com.fg.util.babylon.entity.TranslationConfiguration;
+import com.fg.util.babylon.config.TranslationConfiguration;
 import lombok.Data;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.*;

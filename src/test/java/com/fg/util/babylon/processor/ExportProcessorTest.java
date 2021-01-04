@@ -2,7 +2,7 @@
 //
 //import com.fg.util.babylon.db.DataFileManager;
 //import com.fg.util.babylon.entity.Arguments;
-//import com.fg.util.babylon.entity.TranslationConfiguration;
+//import com.fg.util.babylon.config.TranslationConfiguration;
 //import com.fg.util.babylon.entity.DataFile;
 //import com.fg.util.babylon.entity.DataPropFile;
 //import com.fg.util.babylon.enums.Action;

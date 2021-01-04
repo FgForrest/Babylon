@@ -1,11 +1,11 @@
 package com.fg.util.babylon;
 
 import com.fg.util.babylon.config.TranslationConfigurationReader;
-import com.fg.util.babylon.entity.Arguments;
-import com.fg.util.babylon.entity.TranslationConfiguration;
+import com.fg.util.babylon.config.TranslationConfiguration;
 import com.fg.util.babylon.enums.Action;
-import com.fg.util.babylon.sheets.gsheets.legacy.GoogleSheetService;
+import lombok.Data;
 import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,11 +21,11 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class SpringBootConsoleApplication implements CommandLineRunner {
 
-    private GoogleSheetService googleSheetService;
+    @Autowired
+    private MainService mainService;
     private TranslationConfigurationReader configurationReader;
 
     public SpringBootConsoleApplication() {
-        googleSheetService = new GoogleSheetService();
         configurationReader = new TranslationConfigurationReader();
     }
 
@@ -44,8 +44,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         try {
             log.info("Loading config file: '" + arguments.getConfigFileName() + "'");
             TranslationConfiguration configuration = configurationReader.readAndCheckConfiguration(arguments.getConfigFileName());
-            MainService ts = new MainService(googleSheetService, arguments, configuration);
-            ts.startTranslation(arguments.getGoogleSheetId());
+            mainService.startTranslation(arguments.getAction(), configuration, arguments.getGoogleSheetId());
         } catch (Exception e) {
             log.error("BABYLON ERROR: ", e);
             System.exit(-1);
@@ -83,4 +82,28 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         log.info("2 - path to translator-config.json file");
         log.info("3 - ID of the google sheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc)");
     }
+
+    /**
+     * Crate for program arguments.
+     * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
+     */
+    @Data
+    static class Arguments {
+
+        /**
+         * See {@link Action}
+         */
+        private Action action;
+
+        /**
+         * FileName and relative path to the Json configuration file.
+         */
+        private String configFileName;
+
+        /**
+         * Id of the target google spreadsheet.
+         */
+        private String googleSheetId;
+    }
+
 }

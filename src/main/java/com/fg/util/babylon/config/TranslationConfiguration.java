@@ -1,4 +1,4 @@
-package com.fg.util.babylon.entity;
+package com.fg.util.babylon.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;

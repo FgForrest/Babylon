@@ -7,13 +7,13 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 /**
- * Uses deprecated {@link GoogleSheetService} to implement {@link GSheetsClient} client interface.
+ * Uses legacy {@link SheetsFactory} to implement {@link GSheetsClient} client interface.
  */
 public class LegacyGoogleServiceClientAdaptor implements GSheetsClient {
 
-    private final GoogleSheetService legacyApi;
+    private final SheetsFactory legacyApi;
 
-    public LegacyGoogleServiceClientAdaptor(GoogleSheetService legacyApi) {
+    public LegacyGoogleServiceClientAdaptor(SheetsFactory legacyApi) {
         this.legacyApi = legacyApi;
     }
 
