@@ -28,13 +28,13 @@ public class MainService {
         this.newExporter = exporter;
         this.importProcessor = importProcessor;
     }
-    
+
     public void startTranslation(Action action, TranslationConfiguration configuration, String spreadsheetId) throws IOException, GeneralSecurityException, InterruptedException {
         long stTime = System.currentTimeMillis();
         switch (action) {
             case EXPORT:
                 log.info("New Babylon starting...");
-                newExporter.walkPathsAndWriteSheets(configuration.getPath(), configuration.getMutations(), spreadsheetId, configuration.getDataFileName());
+                newExporter.walkPathsAndWriteSheets(configuration.getPath(), configuration.getMutations(), spreadsheetId, configuration.getSnapshotPath());
                 break;
             case IMPORT:
                 importProcessor.doImport(spreadsheetId);

@@ -22,7 +22,7 @@ import static com.fg.util.babylon.maven.BabylonExpImpBaseMojo.CONFIG_FILE_PARAM;
 public class CommonConfiguration {
 
     @Bean
-    SnapshotManager snapshotManager(TranslationConfiguration configuration) throws IOException {
+    protected SnapshotManager snapshotManager(TranslationConfiguration configuration) throws IOException {
         return new SnapshotManager(configuration.getSnapshotPath());
     }
 
@@ -52,7 +52,7 @@ public class CommonConfiguration {
     }
 
     @Bean
-    TranslationConfiguration translationConfiguration(Environment environment) throws IOException {
+    protected TranslationConfiguration translationConfiguration(Environment environment) throws IOException {
         String configFileName = environment.getProperty(CONFIG_FILE_PARAM);
         TranslationConfigurationReader configReader = new TranslationConfigurationReader();
         return configReader.readAndCheckConfiguration(configFileName);

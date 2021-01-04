@@ -11,6 +11,7 @@ import lombok.extern.apachecommons.CommonsLog;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ public class NewExporter {
     public void walkPathsAndWriteSheets(List<String> patternPaths,
                                         List<String> translationLangs,
                                         String spreadsheetId,
-                                        String snapshotName) {
+                                        Path snapshotPath) {
         warnDuplicatePaths(patternPaths);
 
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
@@ -54,7 +55,7 @@ public class NewExporter {
 
         uploadTranslations(result, spreadsheetId, lockedCellEditors);
 
-        updateSnapshotAndWriteToDisk(snapshot, result, snapshotName);
+        updateSnapshotAndWriteToDisk(this.snapshot, result, snapshotPath);
 
         List<Integer> prevSheetIds = prevSheets.stream().map(sheet -> sheet.getId()).collect(Collectors.toList());
         deleteOldSheets(prevSheetIds, spreadsheetId);
@@ -127,16 +128,16 @@ public class NewExporter {
                 });
     }
 
-    private void updateSnapshotAndWriteToDisk(TranslationSnapshotWriteContract snapshot, ExportResult exportResult, String snapshotFilename) {
+    private void updateSnapshotAndWriteToDisk(TranslationSnapshotWriteContract snapshot, ExportResult exportResult, Path snapshotFile) {
         try {
             Iterable<String> newMsgFiles = exportResult.getPathsOfNewMsgFiles();
             newMsgFiles.forEach(newMsgFile ->
                     snapshot.registerMsgFile(newMsgFile)
             );
-            File snapshotFileName = new File(snapshotFilename);
+            File snapshotFileName = snapshotFile.toFile();
             JsonUtils.objToJsonFile(snapshotFileName, snapshot, true);
         } catch (IOException e) {
-            String errMsg = "Error when updating translation snapshot '" + snapshotFilename + "' with new message file paths.";
+            String errMsg = "Error when updating translation snapshot '" + snapshotFile + "' with new message file paths.";
             throw new RuntimeException(errMsg, e);
         }
     }
