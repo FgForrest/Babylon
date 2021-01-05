@@ -44,7 +44,6 @@ public class ExporterConfiguration {
 
     @Bean
     SnapshotAdapter snapshotAdapter(SnapshotManager snapshotManager) throws IOException {
-        //FIXME: this needs to go
         return new SnapshotAdapter(snapshotManager.getOrCreateDataFile());
     }
 

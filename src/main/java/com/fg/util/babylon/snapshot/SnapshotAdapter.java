@@ -35,7 +35,7 @@ public class SnapshotAdapter implements TranslationSnapshotReadContract, Transla
     @Override
     public Integer registerMsgFile(String msgFilePath) {
         MessageFileContent messageFileContent = snapshot.getOrPutNewPropFileByFileName(msgFilePath);
-        return messageFileContent.id;
+        return messageFileContent.getId();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class SnapshotAdapter implements TranslationSnapshotReadContract, Transla
             // caller should have asked before
             throw new NoSuchElementException("Translation snapshot doesn't contain message file '$msgFile'.");
         }
-        return snapshot.getPropFileByFileName(msgFile).properties;
+        return snapshot.getPropFileByFileName(msgFile).getProperties();
     }
 
     @Override

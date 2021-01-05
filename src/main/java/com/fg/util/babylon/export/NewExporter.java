@@ -6,7 +6,6 @@ import com.fg.util.babylon.sheets.gsheets.model.ASheet;
 import com.fg.util.babylon.snapshot.TranslationSnapshotWriteContract;
 import com.fg.util.babylon.util.AntPathResourceLoader;
 import com.fg.util.babylon.sheets.SheetsException;
-import com.fg.util.babylon.util.JsonUtils;
 import com.fg.util.babylon.util.PathUtils;
 import lombok.extern.apachecommons.CommonsLog;
 
@@ -17,7 +16,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-//FIXME: should throw unchecked or checked exceptions?
 @CommonsLog
 public class NewExporter {
 
@@ -27,7 +25,7 @@ public class NewExporter {
     private final AntPathResourceLoader resourceLoader;
     private final PathUtils pu;
 
-    //FIXME: move to config
+    //FIXME VKR: move to config
     private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz", "kamenik@fg.cz");
 
     public NewExporter(TranslationCollector translationCollector, TranslationSnapshotWriteContract snapshot, SheetContract gsc, AntPathResourceLoader resourceLoader) {

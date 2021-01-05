@@ -72,16 +72,38 @@ public class LightGSheetService {
                 .findFirst().orElse(null);
     }
 
-    //FIXME javadoc
+
+    /**
+     * Stores data in a new sheet in given spreadsheet.
+     *
+     * @param spreadsheetId id of spreadsheet to create sheet in
+     * @param sheetTitle name of the new sheet
+     * @param sheetRows sheet data to store
+     * @throws GeneralSecurityException
+     * @throws IOException
+     */
     public void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows) throws GeneralSecurityException, IOException {
+        uploadDataToGoogleSheet(spreadsheetId, sheetTitle, sheetRows, 0, 0);
+    }
+
+    /**
+     * Stores data in a new sheet in given spreadsheet.
+     *
+     * @param spreadsheetId id of spreadsheet to create sheet in
+     * @param sheetTitle name of the new sheet
+     * @param sheetRows sheet data to store
+     * @param rowsToFreeze number of rows to freeze
+     * @param colsToFreeze number of cols to freeze
+     * @throws GeneralSecurityException
+     * @throws IOException
+     */
+    public void uploadDataToGoogleSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, int rowsToFreeze, int colsToFreeze) throws GeneralSecurityException, IOException {
         Integer rows = sheetRows.size();
         Integer cols = sheetRows.size() > 0
                 ? sheetRows.get(0).size()
                 : 0;
-        // FIXME: do not create sheet at all in case of 0 rows, 0 cols?
 
-        // FIXME: magic numbers
-        Request addSheet = gSheetsRequestFactory.addSheet(sheetTitle, rows, cols, 1, 2);
+        Request addSheet = gSheetsRequestFactory.addSheet(sheetTitle, rows, cols, rowsToFreeze, colsToFreeze);
         executeRequests(spreadsheetId, addSheet);
 
         writeDataToGoogleSheet(spreadsheetId, sheetTitle, sheetRows);
@@ -90,7 +112,7 @@ public class LightGSheetService {
     private void writeDataToGoogleSheet(String spreadsheetId, String range, List<? extends List<? extends Object>> values) throws GeneralSecurityException, IOException {
         // casting to List<List<Object>> is safe here, the Sheets API could have accepted List<? extends List<? extends Object>> in setValues()
         // convert nulls to empty strings, GSheet API skips null values
-        List<List<Object>> convertedValues = convertNullsToEmptyString((List)values);
+        List<List<Object>> convertedValues = convertNullsToEmptyString((List) values);
 
         ValueRange valueRange = new ValueRange()
                 .setValues(convertedValues)
@@ -103,13 +125,22 @@ public class LightGSheetService {
         log.info(String.format("%d cells written.", result.getTotalUpdatedCells()));
     }
 
-    private List<? extends List<? extends Object>> convertNullsToEmptyString(List<? extends List<?extends Object>> values) {
+    private List<? extends List<? extends Object>> convertNullsToEmptyString(List<? extends List<? extends Object>> values) {
         return values.stream().map(row ->
                 row.stream().map(cell -> (cell == null) ? "" : cell).collect(Collectors.toList())
         ).collect(Collectors.toList());
     }
 
-    //FIXME javadoc
+    /**
+     * Updates style of an existing sheet.
+     * Sets wrapping strategy, resizes columns, protects firs two columns, hides first column.
+     *
+     * @param spreadsheetId id of spreadsheet to find sheet to update style
+     * @param sheetId id of sheet to update
+     * @param lockedCellEditors list of account emails to receive edit permissions on locked cells
+     * @throws GeneralSecurityException
+     * @throws IOException
+     */
     public void updateSheetStyle(String spreadsheetId, Integer sheetId, List<String> lockedCellEditors) throws GeneralSecurityException, IOException {
         Request setWrappingStrategy = gSheetsRequestFactory.setWrapWrappingStrategyForAllCells(sheetId);
         Request resizeColumns = gSheetsRequestFactory.resizeAllColumns(sheetId, COLUMN_WIDTH);

@@ -16,7 +16,9 @@ public class GSheetApiRequestFactory {
                 .setAddSheet(doAddSheet(newSheetTitle, rowCount, colCount, rowsToFreeze, colsToFreeze));
     }
 
-    //TODO: neresim, co se ma stat, pokud uz existuje sheet
+    /**
+     * Adds a new sheet. A sheet with this name should not exist in the spreadsheet!
+     */
     private AddSheetRequest doAddSheet(String newSheetTitle,
                                        Integer rowCount, Integer colCount,
                                        Integer rowsToFreeze, Integer colsToFreeze) {

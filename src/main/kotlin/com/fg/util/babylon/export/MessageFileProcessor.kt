@@ -165,9 +165,7 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
         val translatedMsgs = translationLangs.map { lang ->
             translations[lang]?.get(messageKey)
          }
-        // TODO this should not happen, these keys are filtered out - exception? asi jo
         // if the primary message is missing, there is nothing to translate
-        // TODO log.warn("Primary language message file 'msgFile' contains message key '$messageKey' with no value. Message key will be ignored.")
         return if (primaryMsg != null) createRow(messageKey, primaryMsg, translatedMsgs) else listOf(messageKey)
     }
 
