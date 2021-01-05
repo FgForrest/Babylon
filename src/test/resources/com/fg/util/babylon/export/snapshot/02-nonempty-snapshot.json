@@ -1,6 +1,6 @@
 {
   "dataPropFiles": {
-    "XXX.properties": {
+    "XXX": {
       "id": 0,
       "properties": {
         "foo.bar": "Baz"
