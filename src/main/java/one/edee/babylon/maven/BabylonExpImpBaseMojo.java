@@ -32,7 +32,7 @@ public abstract class BabylonExpImpBaseMojo extends AbstractMojo {
     }
 
     private String[] getArguments() {
-        String arg[] = new String[3];
+        String[] arg = new String[3];
         arg[0] = getAction().name();
         arg[1] = this.configFileName;
         arg[2] = this.googleSheetId;

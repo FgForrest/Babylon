@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
 
+/**
+ * TODO VKR get rid of interface with single implementation ... merge it with PropertyFileActiveRecord class please
+ *  * or is there an expectation that someone will need to exchange this?
+ */
 public interface PFActiveRecord extends Map<String, IProperty> {
 
     /**

@@ -18,6 +18,9 @@ import java.io.IOException;
 
 import static one.edee.babylon.maven.BabylonExpImpBaseMojo.CONFIG_FILE_PARAM;
 
+/**
+ * TODO VKR why some methods are protected and other friendly?!
+ */
 @Configuration
 public class CommonConfiguration {
 

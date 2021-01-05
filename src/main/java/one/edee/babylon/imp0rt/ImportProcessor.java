@@ -1,28 +1,36 @@
 package one.edee.babylon.imp0rt;
 
+import com.google.api.services.sheets.v4.model.Sheet;
+import lombok.extern.apachecommons.CommonsLog;
 import one.edee.babylon.config.TranslationConfiguration;
+import one.edee.babylon.db.SnapshotManager;
 import one.edee.babylon.db.SnapshotUtils;
+import one.edee.babylon.entity.MessageFileContent;
+import one.edee.babylon.entity.PropertiesMap;
+import one.edee.babylon.enums.Action;
 import one.edee.babylon.git.GitAdd;
 import one.edee.babylon.git.RuntimeExecGitAdd;
+import one.edee.babylon.msgfile.TranslationFileUtils;
+import one.edee.babylon.properties.IProperty;
+import one.edee.babylon.properties.PFActiveRecord;
+import one.edee.babylon.properties.PropertyFileActiveRecord;
+import one.edee.babylon.properties.PropertyFileLoader;
 import one.edee.babylon.sheets.SheetConstants;
-import one.edee.babylon.db.SnapshotManager;
-import one.edee.babylon.entity.*;
-import one.edee.babylon.enums.Action;
-import one.edee.babylon.properties.*;
-import one.edee.babylon.sheets.SheetsException;
 import one.edee.babylon.sheets.gsheets.LightGSheetService;
-import one.edee.babylon.sheets.gsheets.model.ASheet;
 import one.edee.babylon.snapshot.Snapshot;
 import one.edee.babylon.statistics.ImportFileStatistic;
 import one.edee.babylon.statistics.TranslationStatisticsOfImport;
-import one.edee.babylon.msgfile.TranslationFileUtils;
-import com.google.api.services.sheets.v4.model.Sheet;
-import lombok.extern.apachecommons.CommonsLog;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -187,26 +195,11 @@ public class ImportProcessor {
     }
 
     private void savePropertiesToFile(PFActiveRecord propertyFileActiveRecord, String pathFileName) throws IOException {
+        /* TODO VKR - writer is not closed anywhere?! why try (open) {} is not used here? */
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(pathFileName), StandardCharsets.UTF_8);
         propertyFileActiveRecord.save(outputStreamWriter);
 
         gitAdd.gitAddFile(pathFileName);
-    }
-
-    /**
-     * Defines sheet operations required by {@link ImportProcessor}.
-     */
-    public interface SheetContract {
-
-        /**
-         * Lists all sheets of spreadsheet {@code spreadsheetId}. Also fetches cell data of the sheets.
-         *
-         * @param spreadsheetId id of spreadsheet
-         * @return sheets from {@code spreadsheetId}
-         * @throws SheetsException when unable to list sheets
-         */
-        List<ASheet> loadSheets(String spreadsheetId) throws SheetsException;
-
     }
 
 }

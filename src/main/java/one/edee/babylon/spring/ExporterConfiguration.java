@@ -13,6 +13,9 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 
+/**
+ * TODO VKR why some methods are protected and other friendly?!
+ */
 @Configuration
 public class ExporterConfiguration {
 

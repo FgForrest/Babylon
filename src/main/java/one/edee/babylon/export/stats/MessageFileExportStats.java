@@ -2,6 +2,9 @@ package one.edee.babylon.export.stats;
 
 import lombok.Data;
 
+/**
+ * TODO VKR - document (also properties)
+ */
 @Data
 public class MessageFileExportStats {
 

@@ -19,6 +19,7 @@ public class PropertyFileLoader {
         if (!new File(fileNamePath).exists()) {
             return null;
         }
+        /* TODO VKR where is input stream closed? Shouldn't be it here?!?! */
         InputStream propertyFile = new FileInputStream(fileNamePath);
         return loadProperties(propertyFile);
     }

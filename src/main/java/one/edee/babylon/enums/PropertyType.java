@@ -24,5 +24,6 @@ public enum PropertyType {
      * Comment in property file.
      */
     COMMENT,
+    /* TODO VKR - document */
     UNKNOWN
 }

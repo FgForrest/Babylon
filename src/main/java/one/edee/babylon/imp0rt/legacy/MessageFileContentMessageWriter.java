@@ -3,6 +3,9 @@ package one.edee.babylon.imp0rt.legacy;
 import one.edee.babylon.entity.MessageFileContent;
 import one.edee.babylon.imp0rt.MessageWriter;
 
+/**
+ * TODO VKR - do we need legacy things any more?
+ */
 public class MessageFileContentMessageWriter implements MessageWriter {
 
     private final MessageFileContent messageFiles;

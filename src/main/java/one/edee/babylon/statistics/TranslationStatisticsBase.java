@@ -37,7 +37,7 @@ public class TranslationStatisticsBase {
         try {
             // Collections is not necessary to be annotated with @StatisticsField.
             if (Collection.class.isAssignableFrom(field.getType())) {
-                Collection collection = (Collection) field.get(instance);
+                Collection<Object> collection = (Collection<Object>) field.get(instance);
                 // Using of basic "for" loop to highlight recursive call.
                 for (Object item : collection) {
                     for (Field itemField : item.getClass().getDeclaredFields()) {
@@ -48,7 +48,7 @@ public class TranslationStatisticsBase {
             }
             // Map key is printed as value of first row in [] followed by values from map value object.
             if (Map.class.isAssignableFrom(field.getType())) {
-                Map map = (Map) field.get(instance);
+                Map<Object, Object> map = (Map<Object, Object>) field.get(instance);
                 for (Object key : map.keySet()) {
                     sb.append("[").append(key.toString()).append("]").append(System.lineSeparator());
                     Object item = map.get(key);

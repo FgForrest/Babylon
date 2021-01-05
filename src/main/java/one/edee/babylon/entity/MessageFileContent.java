@@ -19,7 +19,6 @@ import java.util.Map;
 @NoArgsConstructor
 @JsonFilter("MessageFileFilter")
 public class MessageFileContent implements Serializable {
-
     private static final long serialVersionUID = 2426359297082283380L;
 
     /**

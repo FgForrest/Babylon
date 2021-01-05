@@ -96,8 +96,7 @@ public class ImportSheetProcessor {
                 messageWriter.storePrimaryMessage(propKey, propValue);
             } else {
                 // Next columns contains text values of secondary mutations. Column title contains name of the mutation.
-                String mutation = colTitle;
-                messageWriter.storeTranslation(mutation, propKey, propValue);
+                messageWriter.storeTranslation(colTitle, propKey, propValue);
             }
             col++;
         }
