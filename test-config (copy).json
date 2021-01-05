@@ -1,0 +1,8 @@
+{
+  "path" : [
+    "/home/vladimir/fg/i18n/common.properties",
+    "/home/vladimir/fg/i18n/country.properties"
+  ],
+  "dataFileName" : "translate-test-db.json",
+  "mutations" : [ "sk", "en" ]
+}

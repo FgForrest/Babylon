@@ -18,21 +18,30 @@ public class SnapshotManager {
     /**
      * Name of the DataFile in Json format which serves as working database for translation process.
      */
-    private final Path snapshotFile;
+    private Path snapshotFile;
 
     /**
      * Working DataFile object that changing during the export process. Initial state is given from existing json DataFile.
      * If DataFile not exists then new object DataFile is created.
      */
-    private Snapshot snapshot; //FIXME nullable annotation
+    private Snapshot snapshot;
 
-    //FIXME: OMG why is this needed?
     /** Original untouched DataFile loaded from json file on disk while configuration reading phase. */
     private Snapshot originalSnapshotOnDisk;
 
     public SnapshotManager(Path snapshotFile) throws IOException {
         this.snapshotFile = snapshotFile;
         loadOriginalDataFile();
+    }
+
+    /**
+     * Should not be needed in production.
+     */
+    @Deprecated
+    protected void forceSetSnapshotFile(Path snapshotFile) throws IOException {
+        this.snapshotFile = snapshotFile;
+        loadOriginalDataFile();
+        snapshot = getExistingDataFileFromDisk(snapshotFile);
     }
 
     /**
