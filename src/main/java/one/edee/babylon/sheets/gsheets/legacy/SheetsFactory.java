@@ -32,6 +32,9 @@ public class SheetsFactory {
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final List<String> SCOPES = singletonList(SheetsScopes.SPREADSHEETS);
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
+    /* TODO VKR - this is a problem, when we would like to open source, this would leak our private tokens! */
+    /* TODO VKR - we need to get rid of this even from Git history, is it possible? */
+    /* TODO VKR - this needs call */
     private static final String GOOGLE_CREDENTIALS_JSON = "credentials.json";
 
     /** Use only by cached and null safe access by {@link #getCredentials(NetHttpTransport)} method. */

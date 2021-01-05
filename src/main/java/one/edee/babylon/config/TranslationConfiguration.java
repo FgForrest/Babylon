@@ -36,15 +36,15 @@ public class TranslationConfiguration implements Serializable {
     @NonNull
     private String dataFileName;
 
-    @JsonIgnore
-    public Path getSnapshotPath() {
-        return Paths.get(dataFileName);
-    }
-
     /**
      * List of all mutations to translate (e.g. CZ,EN,...).
      */
     private List<String> mutations = new ArrayList<>();
+
+    @JsonIgnore
+    public Path getSnapshotPath() {
+        return Paths.get(dataFileName);
+    }
 
     public void addFileToPath(String fileName) {
         path.add(fileName);

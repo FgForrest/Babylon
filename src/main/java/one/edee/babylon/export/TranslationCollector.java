@@ -1,5 +1,6 @@
 package one.edee.babylon.export;
 
+import lombok.RequiredArgsConstructor;
 import one.edee.babylon.export.dto.ExportResult;
 import one.edee.babylon.export.dto.MessageFileExportResult;
 import one.edee.babylon.export.dto.TranslationSheet;
@@ -17,22 +18,12 @@ import java.util.stream.Collectors;
  * Collects messages from primary language message files and from translation message files.
  */
 @CommonsLog
+@RequiredArgsConstructor
 public class TranslationCollector {
-
-    private MessageLoader messageLoader;
-    private MessageFileProcessor messageFileProcessor;
-    private TranslationSnapshotReadContract snapshotReadContract;
-    private TranslationSnapshotWriteContract snapshotWriteContract;
-
-    public TranslationCollector(MessageLoader messageLoader,
-                                MessageFileProcessor messageFileProcessor,
-                                TranslationSnapshotReadContract snapshotReadContract,
-                                TranslationSnapshotWriteContract snapshotWriteContract) {
-        this.messageLoader = messageLoader;
-        this.messageFileProcessor = messageFileProcessor;
-        this.snapshotReadContract = snapshotReadContract;
-        this.snapshotWriteContract = snapshotWriteContract;
-    }
+    private final MessageLoader messageLoader;
+    private final MessageFileProcessor messageFileProcessor;
+    private final TranslationSnapshotReadContract snapshotReadContract;
+    private final TranslationSnapshotWriteContract snapshotWriteContract;
 
     /**
      * Collects message files and given a list of languages to translate to, generates a translation sheet
@@ -103,7 +94,7 @@ public class TranslationCollector {
     }
 
     private void logMsgFileStats(Iterable<MessageFileExportStats> exportStats) {
-        exportStats.forEach(msgFileStats -> logMsgFileStats(msgFileStats));
+        exportStats.forEach(this::logMsgFileStats);
     }
 
     private void logMsgFileStats(MessageFileExportStats msgFileStats) {

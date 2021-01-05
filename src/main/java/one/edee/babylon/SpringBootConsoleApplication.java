@@ -23,7 +23,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
 
     @Autowired
     private MainService mainService;
-    private TranslationConfigurationReader configurationReader;
+    private final TranslationConfigurationReader configurationReader;
 
     public SpringBootConsoleApplication() {
         configurationReader = new TranslationConfigurationReader();

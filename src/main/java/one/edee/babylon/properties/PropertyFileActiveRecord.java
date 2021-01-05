@@ -24,6 +24,7 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, IProperty> i
      * @throws IOException some exception derived from {@link IOException}
     */
     public void load(Reader reader) throws IOException {
+        /* TODO VKR Java 8 has similar implementation, do we need to use unstable Google class? */
         loadByLineReader(new LineReader(reader));
     }
 
@@ -33,6 +34,7 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, IProperty> i
      * @throws IOException some exception derived from {@link IOException}
     */
     public void save(Writer writer) throws IOException {
+        /* TODO VKR - where the writer is closed? Is it closed safely in some finally block? */
         saveByBufferedWriter((writer instanceof BufferedWriter) ? (BufferedWriter)writer : new BufferedWriter(writer));
     }
 

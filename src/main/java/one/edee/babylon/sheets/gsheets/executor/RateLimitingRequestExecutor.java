@@ -33,7 +33,7 @@ public abstract class RateLimitingRequestExecutor<T extends GenericJson, U exten
 
     public RateLimitingRequestExecutor(GSheetsClient gsClient,
                                        String spreadsheetId,
-                                       T request) {
+                                       @Nullable T request) {
         this.gsClient = gsClient;
         this.request = request;
         this.spreadsheetId = spreadsheetId;

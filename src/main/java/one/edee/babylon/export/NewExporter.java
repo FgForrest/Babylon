@@ -13,9 +13,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * TODO VKR - do we need to name it NewExporter? This leads to NewNewExporter and so on ...
+ */
 @CommonsLog
 public class NewExporter {
 
@@ -26,6 +30,7 @@ public class NewExporter {
     private final PathUtils pu;
 
     //FIXME VKR: move to config
+    /* TODO VKR - avoid personal data in code, please */
     private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz", "kamenik@fg.cz");
 
     public NewExporter(TranslationCollector translationCollector, TranslationSnapshotWriteContract snapshot, SheetContract gsc, AntPathResourceLoader resourceLoader) {
@@ -56,7 +61,7 @@ public class NewExporter {
 
         updateSnapshotAndWriteToDisk(this.snapshot, result, snapshotPath);
 
-        List<Integer> prevSheetIds = prevSheets.stream().map(sheet -> sheet.getId()).collect(Collectors.toList());
+        List<Integer> prevSheetIds = prevSheets.stream().map(ASheet::getId).collect(Collectors.toList());
         deleteOldSheets(prevSheetIds, spreadsheetId);
     }
 
@@ -73,13 +78,13 @@ public class NewExporter {
                 .collect(Collectors.groupingBy(Function.identity()))
                 .entrySet().stream()
                 .filter(e -> e.getValue().size() > 1)
-                .map(e -> e.getKey())
+                .map(Entry::getKey)
                 .collect(Collectors.toList());
     }
 
     private Collection<String> expandsToUniquePaths(List<String> patternPaths) {
         return patternPaths.stream()
-                .map(path -> expandPath(path))
+                .map(this::expandPath)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -113,7 +118,6 @@ public class NewExporter {
     }
 
     private void uploadTranslations(ExportResult exportResult, String spreadsheetId, List<String> lockedCellEditors) {
-        int remaining = exportResult.getSheets().size();
         exportResult.getSheets().stream()
                 .filter(sheet -> !sheet.getDataRows().isEmpty())
                 .forEach(sheet -> {
@@ -130,9 +134,7 @@ public class NewExporter {
     private void updateSnapshotAndWriteToDisk(TranslationSnapshotWriteContract snapshot, ExportResult exportResult, Path snapshotFile) {
         try {
             Iterable<String> newMsgFiles = exportResult.getPathsOfNewMsgFiles();
-            newMsgFiles.forEach(newMsgFile ->
-                    snapshot.registerMsgFile(newMsgFile)
-            );
+            newMsgFiles.forEach(snapshot::registerMsgFile);
             File snapshotFileName = snapshotFile.toFile();
             SnapshotUtils.writeSnapshot(snapshot.getUnderlyingSnapshot(), snapshotFileName);
         } catch (IOException e) {

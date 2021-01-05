@@ -22,6 +22,7 @@ public interface TranslationSnapshotWriteContract {
      */
     void removeMsgFilePaths(Collection<String> msgFilePaths);
 
+    /* TODO VKR document */
     Snapshot getUnderlyingSnapshot();
 
 }

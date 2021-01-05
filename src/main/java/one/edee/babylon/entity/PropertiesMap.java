@@ -14,12 +14,13 @@ import java.util.Map;
  */
 @CommonsLog
 public class PropertiesMap extends LinkedHashMap<String, String> {
+    private static final long serialVersionUID = -9182848589118944788L;
 
     /**
      * Statuses of all properties. Property isn't serialized to Json file.
      */
     @JsonIgnore
-    private Map<String, PropertyStatus> propertiesStatus = new HashMap<>();
+    private final Map<String, PropertyStatus> propertiesStatus = new HashMap<>();
 
     @Override
     public String put(String key, String value) {

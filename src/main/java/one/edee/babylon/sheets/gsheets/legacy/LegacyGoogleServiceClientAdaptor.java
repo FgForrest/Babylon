@@ -8,6 +8,7 @@ import java.security.GeneralSecurityException;
 
 /**
  * Uses legacy {@link SheetsFactory} to implement {@link GSheetsClient} client interface.
+ * TODO VKR do we need factory at all when we have Spring context?
  */
 public class LegacyGoogleServiceClientAdaptor implements GSheetsClient {
 
@@ -19,6 +20,7 @@ public class LegacyGoogleServiceClientAdaptor implements GSheetsClient {
 
     @Override
     public Sheets getSheetService() throws GeneralSecurityException, IOException {
+        /* TODO VKR - do we need to call it legacy when we use it? we don't need to maintain backward compatibility so why legacy? */
         return legacyApi.getSheetService();
     }
 

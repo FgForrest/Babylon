@@ -18,7 +18,7 @@ public class Property implements IProperty {
     private String value;
 
     /* Only for PropertyType#MULTILINE */
-    private List<String> lines = new LinkedList<>();
+    private final List<String> lines = new LinkedList<>();
 
     public Property(PropertyType type, String value) {
         this.value = value;
@@ -52,9 +52,6 @@ public class Property implements IProperty {
             setMultilineValue(value);
             return;
         }
-//        if (isPropEmptyLine()) {
-//            return;
-//        }
         this.value = value;
     }
 

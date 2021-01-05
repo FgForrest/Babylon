@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -119,7 +120,7 @@ public class LightGSheetService {
                 .setRange(range);
         BatchUpdateValuesRequest update = new BatchUpdateValuesRequest()
                 .setValueInputOption("RAW")
-                .setData(Arrays.asList(valueRange));
+                .setData(Collections.singletonList(valueRange));
 
         BatchUpdateValuesResponse result = executeRequest(spreadsheetId, update);
         log.info(String.format("%d cells written.", result.getTotalUpdatedCells()));

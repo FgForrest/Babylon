@@ -33,7 +33,7 @@ public class MainService {
         long stTime = System.currentTimeMillis();
         switch (action) {
             case EXPORT:
-                log.info("New Babylon starting...");
+                log.info("Babylon starting...");
                 newExporter.walkPathsAndWriteSheets(configuration.getPath(), configuration.getMutations(), spreadsheetId, configuration.getSnapshotPath());
                 break;
             case IMPORT:
