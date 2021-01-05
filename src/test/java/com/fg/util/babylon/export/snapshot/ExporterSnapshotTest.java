@@ -105,8 +105,8 @@ public class ExporterSnapshotTest {
         String msgFilePath = msgFile.getAbsolutePath();
         assertThat("When single message file is exported and the snapshot is empty, then the snapshot must contain exactly one record", msgFiles, is(aMapWithSize(1)));
         assertThat("...then the snapshot must contain the message file", msgFiles, hasKey(msgFilePath));
-        assertThat("...then the message file must must be stored under id=0", msgFiles.get(msgFilePath).id, equalTo(0));
-        assertThat("...then the content of the message file in snapshot must be empty (until it is imported back)", msgFiles.get(msgFilePath).properties, is(anEmptyMap()));
+        assertThat("...then the message file must must be stored under id=0", msgFiles.get(msgFilePath).getId(), equalTo(0));
+        assertThat("...then the content of the message file in snapshot must be empty (until it is imported back)", msgFiles.get(msgFilePath).getProperties(), is(anEmptyMap()));
     }
 
     private Path getSnapshotAndReplacePlaceholder(String snapshotPath, String placeholder, String replaceWith) throws IOException {
@@ -142,9 +142,9 @@ public class ExporterSnapshotTest {
         String msgFilePath = msgFile.getAbsolutePath();
         assertThat("When a message file is exported and snapshot already contains it, then the snapshot must contain exactly one record", msgFiles, is(aMapWithSize(1)));
         assertThat("...then the snapshot must contain the message file", msgFiles, hasKey(msgFilePath));
-        assertThat("...then the id of the stored message file must not change", msgFiles.get(msgFilePath).id, equalTo(0));
+        assertThat("...then the id of the stored message file must not change", msgFiles.get(msgFilePath).getId(), equalTo(0));
         // this is the "exported" snapshot
-        assertThat("...then the content of the message remains empty)", msgFiles.get(msgFilePath).properties, is(anEmptyMap()));
+        assertThat("...then the content of the message remains empty)", msgFiles.get(msgFilePath).getProperties(), is(anEmptyMap()));
     }
 
     @Configuration

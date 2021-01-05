@@ -26,13 +26,12 @@ public class MessageFileContent implements Serializable {
      * Unique id of relative path to source/destination properties file. This code is used like the short unique identifier
      * of the path in google sheet.
      */
-    /* private */ public Integer id; //FIXME
+    private Integer id;
 
     /**
      * Properties like {@link PropertiesMap}
-     * FIXME: put back private access modifier?
      */
-    public PropertiesMap properties = new PropertiesMap();
+    private PropertiesMap properties = new PropertiesMap();
 
     /**
      * Secondary mutations properties data like {@link Map&lt;String, PropertiesMap&gt;}. Property isn't serialized to Json file.<br>

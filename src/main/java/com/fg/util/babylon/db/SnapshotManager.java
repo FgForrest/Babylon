@@ -55,7 +55,7 @@ public class SnapshotManager {
     }
 
     /**
-     * Gets original {@link Snapshot} object (before modification). God knows why this is needed. FIXME
+     * Gets original {@link Snapshot} object (before modification).
      */
     @Deprecated
     public Snapshot getOriginalDataFile() {

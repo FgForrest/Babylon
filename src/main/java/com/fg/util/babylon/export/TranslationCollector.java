@@ -57,7 +57,6 @@ public class TranslationCollector {
 
         logMsgFileStats(exportStats);
 
-        //FIXME: move up?
         List<String> obsoleteFilePaths = snapshotReadContract.listMsgFiles().stream()
                 .filter(msgFilePath -> !allPaths.contains(msgFilePath))
                 .collect(Collectors.toList());
