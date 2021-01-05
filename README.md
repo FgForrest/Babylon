@@ -1,32 +1,36 @@
 # Babylon
 
-## Project that provides support for Java property file translation.
+## Tool to automate Java property file translation.
 
 ### Description and usage 
-Babylon is a tool to gather messages and their translations from property files. Id performs a roundtrip consisting where the
-messages are written in a Google Sheets spreadsheet for a translation agency to fill in the translations. La
+Babylon is a tool to gather messages and their translations from property files. Id performs a roundtrip consisting of 
+two phases. In the export phase the messages are written to a Google Sheets spreadsheet. A translation agency 
+will fill in the missing translations. In the import phase, the filled out spreadsheet is examined and the newly 
+translated messages are written to respective translation property files. Also, the state of the translation is written 
+out to a disk in the form of JSON file. This is called a snapshot as it contains the snapshot of the translated messages.
 
-Babylon is a standalone console application. Conditions for usage is: 
-1. You must run it in root directory of your project.
-2. You must have prepared your Json configuration file (see "Configuration" section).
-3. An empty Google Sheets spreadsheet must exist.
+Babylon can be run as a Maven plugin or a standalone console application. 
 
-But primary use case is to run Babylon as Maven plugin "babylon-maven-plugin". For this case you must configure them as 
-described below (see "Run Babylon as Maven plugin" section).
+To run Babylon: 
+1. It must be run in the root directory of the project to perform translation on.
+2. A Json configuration file must exist (see the "Configuration" section).
+3. A Google Sheets spreadsheet must exist (empty for the export phase).
 
 ### Configuration
-Configuration file is in Json format and have this structure: 
+Configuration is a Json file wit h following structure: 
 ```json
 {
   "path" : [ 
-  "src\\test\\resources\\META-INF\\lib_eshop_edee\\country.properties",
-  "src\\test\\resources\\META-INF\\09_mail_form\\messages.properties",
-  "src\\test\\resources\\META-INF\\goPayGate\\*.properties" ],
+  "src/test/resources/META-INF/lib_eshop_edee/country.properties",
+  "src/test/resources/META-INF/09_mail_form/messages.properties",
+  "src/test/resources/META-INF/goPayGate/*.properties" ],
   "dataFileName" : "translation-db.json",
   "mutations" : [ "en", "de" ]
 }
 ```
-You can use * convention to specify multiple files on path.
+You can use the * wildcard to specify multiple files/directories on path.
+
+Forward slashes in paths(`/`) are preferred to double backslashes (`\ \`) as it works on both Windows and Unix platforms.
 
 ### Parameterization and running of application
 
@@ -47,8 +51,33 @@ followed by link. Please click on this link and login into correct google accoun
 This action ensure access to Google spreadsheets. This is a one-time action only, and will not need to be repeated next time, 
 until you not delete created "tokens" folder.
 
-#### Run Babylon as console application
-Application needs this arguments: 1.action 2.config.json 3.google sheet id
+
+
+### Running Babylon as a Maven plugin
+Add babylon to the `plugins` section of your POM.xml file.
+```xml
+<plugin>
+    <groupId>com.fg.util</groupId>
+    <artifactId>babylon-maven-plugin</artifactId>
+    <version>1.0.3</version>
+</plugin>
+```
+The two translation phases are run by invoking the respective Maven goals:
+- "mvn babylon::export" for export translations from properties file to google spreadsheet
+- "mvn babylon::import" for import translations from google spreadsheet back to properties files
+
+Parameters are:
+- config.file - path to translator-config.json file.
+- google.sheet.id - ID of the google spreadsheet to write translations when exporting
+  or to load translation from when importing (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc)
+
+e.g.
+``` 
+mvn babylon:import -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc
+```
+
+### Running Babylon as console application
+Application needs the following arguments: 1.action 2.config.json 3.google sheet id
 1. expected action (export, import)
 * export - takes all properties files specified in configuration file and export their properties into specified google spreadsheet. Each properties 
   bundle (primary properties file and its mutation) is exported into sheet labeled with primary properties file name + # + unique number of file.
@@ -58,48 +87,8 @@ Application needs this arguments: 1.action 2.config.json 3.google sheet id
 2. path to translator-config.json file. This file serves as database for translation process.
 3. ID of the google spreadsheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc) 
 
-Cmd line examples:
+Command line line examples:
 
 java -jar babylon-1.0-SNAPSHOT.jar export test-config.json 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc 
 
 java -jar babylon-1.0-SNAPSHOT.jar import test-config.json 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc
-
-#### Run Babylon as Maven plugin
-To get it work put this XML structure into your build->plugins section of your POM.xml file: 
-```xml
-<plugin>
-    <groupId>com.fg.util</groupId>
-    <artifactId>babylon-maven-plugin</artifactId>
-    <version>1.0.3</version>
-</plugin>
-```
-After that this configured plugin is possible to use from terminal by this way:
-- "mvn babylon::export" for export translations from properties file to google spreadsheet
-- "mvn babylon::import" for import translations from google spreadsheet back to properties files
-
-Parameters is: 
-- config.file - path to translator-config.json file. This file serves as database for translation process.
-- google.sheet.id - ID of the google spreadsheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc) 
-
-e.g.
-``` 
-mvn babylon:import -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc
-```
-Detailed description of this actions is provided in section above (see "Run Babylon as console application" section)
-
-###### Another use case
-Parameters can be also set in POM.xml this way, if it is your use case:
-```xml
-<plugin>
-    <groupId>com.fg.util</groupId>
-    <artifactId>babylon-maven-plugin</artifactId>
-    <version>1.0.3</version>
-    <configuration>
-        <configFileName>{FILL ME UP}</configFileName>
-        <googleSheetId>{FILL ME UP}</googleSheetId>
-    </configuration>
-</plugin>
-```
-Replace {FILL ME UP} placeholders by your values: 
-- configFileName is same as parameter "config.file" described above.
-- googleSheetId is same as parameter "google.sheet.id" described above.
