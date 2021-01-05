@@ -10,9 +10,7 @@ import com.fg.util.babylon.spring.CommonConfiguration;
 import com.fg.util.babylon.spring.ExporterConfiguration;
 import com.fg.util.babylon.util.ResourceUtils;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,15 +43,15 @@ public class ExporterSnapshotTest {
     @Autowired
     private NewExporter exporter;
 
-    private Path tempDir;
+    private static Path tempDir;
 
-    @Before
-    public void createTmpDir() throws IOException {
+    @BeforeClass
+    public static void createTmpDir() throws IOException {
         tempDir = Files.createTempDirectory(ExporterSnapshotTest.class.getSimpleName());
     }
 
-    @After
-    public void deleteTmpDir() {
+    @AfterClass
+    public static void deleteTmpDir() {
         FileUtils.deleteQuietly(tempDir.toFile());
     }
 
@@ -61,7 +59,7 @@ public class ExporterSnapshotTest {
     public void when_snapshot_does_not_exist_yet__then_new_snapshot_contains_empty_content_of_message_files() throws IOException {
         Path snapshotOutput = Files.createTempFile(tempDir, "translation-test-output-db", ".json");
         List<String> langs = Arrays.asList("sk", "en");
-        File msgFile = ResourceUtils.loadRelativeResourceAsFile("foo.properties", tempDir, this.getClass());
+        File msgFile = ResourceUtils.loadRelativeResourceAsFile("single.properties", tempDir, this.getClass());
         List<String> paths = Arrays.asList(msgFile.toString());
 
         exporter.walkPathsAndWriteSheets(paths, langs, "N/A", snapshotOutput);
@@ -78,21 +76,25 @@ public class ExporterSnapshotTest {
         assertThat("When a file is exported for the first time, the content of stored message file must be empty", msgFiles.get(msgFilePath).properties, is(anEmptyMap()));
     }
 
+    @Test
+    public void when_snapshot_exists_and_new_content_in_message_file__then_snapshot_content_of_message_file_is_preserved() throws IOException {
+        //FIXME: potreboval bych nejak podat existujici snapshot ty spring konfiguraci nebo to udelat jinak
+    }
+
     @Configuration
     static class CommonTestConfiguration extends CommonConfiguration {
 
         @Bean
         @Override
         protected SnapshotManager snapshotManager(TranslationConfiguration configuration) throws IOException {
-            Path tempFile = Files.createTempFile("translation-test-db", ".json");
-            tempFile.toFile().deleteOnExit();
+            Path tempFile = Files.createTempFile(tempDir, "translation-test-db", ".json");
             return new SnapshotManager(tempFile);
         }
 
         @Bean
         @Override
         protected TranslationConfiguration translationConfiguration(Environment environment) {
-            // empty configuration is OK for tests
+            // empty configuration is OK for tests, path to snapshot is  explicitly
             return new TranslationConfiguration();
         }
 
