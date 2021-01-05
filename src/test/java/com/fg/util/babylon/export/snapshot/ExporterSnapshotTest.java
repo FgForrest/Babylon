@@ -89,7 +89,7 @@ public class ExporterSnapshotTest {
 
     @Test
     public void when_snapshot_does_not_exist_yet__then_new_snapshot_contains_empty_content_of_message_files__01() throws IOException {
-        Path newSnapshot = Paths.get("empty-snapshot.json");
+        Path newSnapshot = Files.createTempFile(testDir, "empty-snapshot", ".json");
         File msgFile = ResourceUtils.loadRelativeResourceAsFile("01-single.properties", testDir, this.getClass());
         List<String> paths = Arrays.asList(msgFile.toString());
         List<String> langs = Arrays.asList("sk", "en");
