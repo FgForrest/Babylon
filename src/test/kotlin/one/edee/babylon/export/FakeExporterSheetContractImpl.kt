@@ -3,9 +3,9 @@ package one.edee.babylon.export
 import one.edee.babylon.sheets.gsheets.model.ASheet
 
 /**
- * Fake implementation of [NewExporter.SheetContract] for testing only.
+ * Fake implementation of [Exporter.SheetContract] for testing only.
  */
-class FakeExporterSheetContractImpl : NewExporter.SheetContract {
+class FakeExporterSheetContractImpl : Exporter.SheetContract {
 
     val sheets: MutableMap<String, List<ASheet>> = mutableMapOf()
     private var nextId = 1;

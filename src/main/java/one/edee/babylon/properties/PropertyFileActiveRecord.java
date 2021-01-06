@@ -16,7 +16,7 @@ import java.util.Map;
  * Keeps information about row number for each row which represents values: key and value, empty lines or comments
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-public class PropertyFileActiveRecord extends LinkedHashMap<String, IProperty> implements PFActiveRecord {
+public class PropertyFileActiveRecord extends LinkedHashMap<String, Property> {
 
     /**
      * Loads properties from file by specified reader.
@@ -24,7 +24,6 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, IProperty> i
      * @throws IOException some exception derived from {@link IOException}
     */
     public void load(Reader reader) throws IOException {
-        /* TODO VKR Java 8 has similar implementation, do we need to use unstable Google class? */
         loadByLineReader(new LineReader(reader));
     }
 
@@ -34,7 +33,6 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, IProperty> i
      * @throws IOException some exception derived from {@link IOException}
     */
     public void save(Writer writer) throws IOException {
-        /* TODO VKR - where the writer is closed? Is it closed safely in some finally block? */
         saveByBufferedWriter((writer instanceof BufferedWriter) ? (BufferedWriter)writer : new BufferedWriter(writer));
     }
 
@@ -46,7 +44,7 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, IProperty> i
                 if (line == null) {
                     break;
                 }
-                Map.Entry<String, IProperty> entry = parseProperty(line, row, lr);
+                Map.Entry<String, Property> entry = parseProperty(line, row, lr);
                 put(entry.getKey(), entry.getValue());
                 // In case of PropValueMultiLine row number must be incremented by lines count of PropValueMultiLine.
                 if (entry.getValue().isPropValueMultiLine()) {
@@ -60,10 +58,10 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, IProperty> i
 
     private void saveByBufferedWriter(BufferedWriter bw) throws IOException {
         synchronized (this) {
-            for (Iterator<Map.Entry<String, IProperty>> iterator = entrySet().iterator(); iterator.hasNext(); ) {
-                Map.Entry<String, IProperty> e = iterator.next();
+            for (Iterator<Map.Entry<String, Property>> iterator = entrySet().iterator(); iterator.hasNext(); ) {
+                Map.Entry<String, Property> e = iterator.next();
                 String key = e.getKey();
-                IProperty value = e.getValue();
+                Property value = e.getValue();
                 if (value.isPropValue() || value.isPropValueMultiLine()) {
                     bw.write(key + "=" + e.getValue().getValue());
                     // Break line on all rows except last one.
@@ -93,20 +91,20 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, IProperty> i
      * @param lr line reader is used for reading multi-line properties values escaped by '\'
      * @return map entry with key and value.
      */
-    private Map.Entry<String, IProperty> parseProperty(String line, int row, LineReader lr) throws IOException {
+    private Map.Entry<String, Property> parseProperty(String line, int row, LineReader lr) throws IOException {
         line = line.trim();
         if (line.contains("=")) {
             // key=value
             String[] keyAndVal = line.split("=",2);
             return createPropValueEntry(keyAndVal, lr);
         } else if (line.isEmpty()) {
-            IProperty propEmptyLine = new Property(PropertyType.EMPTY, "");
+            Property propEmptyLine = new Property(PropertyType.EMPTY, "");
             return new SimpleEntry<>("" + row, propEmptyLine);
         } else if (line.startsWith("#") || line.startsWith("!")) {
-            IProperty propComment = new Property(PropertyType.COMMENT, line);
+            Property propComment = new Property(PropertyType.COMMENT, line);
             return new SimpleEntry<>("" + row, propComment);
         } else {
-            IProperty propUnknown = new Property(PropertyType.UNKNOWN, line);
+            Property propUnknown = new Property(PropertyType.UNKNOWN, line);
             return new SimpleEntry<>("" + row, propUnknown);
         }
     }
@@ -118,7 +116,7 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, IProperty> i
      * @param lr line reader is used for reading multi-line properties values escaped by '\'
      * @return map entry with key and value.
      */
-    private Map.Entry<String, IProperty> createPropValueEntry(String[] keyAndVal, LineReader lr) throws IOException {
+    private Map.Entry<String, Property> createPropValueEntry(String[] keyAndVal, LineReader lr) throws IOException {
         Property propValue;
         String key = keyAndVal[0].trim();
         String value = keyAndVal.length > 1 ? keyAndVal[1].trim() : "";

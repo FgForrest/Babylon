@@ -20,12 +20,12 @@ import java.security.GeneralSecurityException;
 public class MainService {
 
     private final ImportProcessor importProcessor;
-    private final NewExporter newExporter;
+    private final Exporter exporter;
 
     @Autowired
-    public MainService(NewExporter exporter,
+    public MainService(Exporter exporter,
                        ImportProcessor importProcessor) {
-        this.newExporter = exporter;
+        this.exporter = exporter;
         this.importProcessor = importProcessor;
     }
 
@@ -34,7 +34,7 @@ public class MainService {
         switch (action) {
             case EXPORT:
                 log.info("Babylon starting...");
-                newExporter.walkPathsAndWriteSheets(configuration.getPath(), configuration.getMutations(), spreadsheetId, configuration.getSnapshotPath());
+                exporter.walkPathsAndWriteSheets(configuration.getPath(), configuration.getMutations(), spreadsheetId, configuration.getSnapshotPath(), configuration.getLockedCellEditor());
                 break;
             case IMPORT:
                 importProcessor.doImport(spreadsheetId);

@@ -10,7 +10,7 @@ import java.util.List;
  * Common class for property values of all types by {@link PropertyType}
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-public class Property implements IProperty {
+public class Property {
 
     static final String MULTILINE_SEPARATOR = "\\";
 

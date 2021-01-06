@@ -74,18 +74,6 @@ class MessageFileProcessor(private val snapshotReadContract: TranslationSnapshot
                 .toSet()
     }
 
-    // if message file is not present in snapshot, it is a new message file and all its messages are new
-    private fun determineNewPrimaryMessagesUsingSnapshot(msgFile: MsgFilePath,
-                                                         primaryMsgs: Messages): Set<MessageKey> =
-            if (!snapshotReadContract.includesMsgFile(msgFile)) {
-                primaryMsgs.keys
-            } else {
-                primaryMsgs.keys.filter { msgKey ->
-                    // if message is not present in snapshot, it is a new message
-                    !snapshotReadContract.containsMessage(msgKey, msgFile)
-                }.toSet()
-            }
-
     /**
      * @return set of keys of messaged that changed since last translation
      */

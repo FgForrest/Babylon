@@ -1,10 +1,12 @@
 package one.edee.babylon.imp0rt.legacy;
 
 import one.edee.babylon.entity.MessageFileContent;
+import one.edee.babylon.imp0rt.ApronMessageWriter;
 import one.edee.babylon.imp0rt.MessageWriter;
 
 /**
- * TODO VKR - do we need legacy things any more?
+ * Legacy implemetation of {@link MessageWriter}. This should be replaced with {@link ApronMessageWriter} eventually.
+ *
  */
 public class MessageFileContentMessageWriter implements MessageWriter {
 
