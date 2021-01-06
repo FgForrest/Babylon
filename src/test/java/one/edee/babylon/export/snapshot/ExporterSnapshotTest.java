@@ -5,8 +5,8 @@ import one.edee.babylon.db.SnapshotManager;
 import one.edee.babylon.db.SnapshotManagerTestUtils;
 import one.edee.babylon.db.SnapshotUtils;
 import one.edee.babylon.entity.MessageFileContent;
+import one.edee.babylon.export.Exporter;
 import one.edee.babylon.export.FakeExporterSheetContractImpl;
-import one.edee.babylon.export.NewExporter;
 import one.edee.babylon.sheets.gsheets.LightGSheetService;
 import one.edee.babylon.snapshot.Snapshot;
 import one.edee.babylon.spring.CommonConfiguration;
@@ -48,7 +48,7 @@ public class ExporterSnapshotTest {
     private FakeExporterSheetContractImpl fakeSheets;
 
     @Autowired
-    private NewExporter exporter;
+    private Exporter exporter;
 
     /**
      * we need to change paths of snapshot in tests, unlike in production
@@ -151,14 +151,14 @@ public class ExporterSnapshotTest {
 
         @Bean
         @Override
-        protected SnapshotManager snapshotManager(TranslationConfiguration configuration) throws IOException {
+        public SnapshotManager snapshotManager(TranslationConfiguration configuration) throws IOException {
             Path tempFile = Files.createTempFile(testRootDir, "translation-test-db", ".json");
             return new SnapshotManager(tempFile);
         }
 
         @Bean
         @Override
-        protected TranslationConfiguration translationConfiguration(Environment environment) {
+        public TranslationConfiguration translationConfiguration(Environment environment) {
             // empty configuration is OK for tests, path to snapshot is  explicitly
             return new TranslationConfiguration();
         }
@@ -169,7 +169,7 @@ public class ExporterSnapshotTest {
     static class ExporterTestConfiguration extends ExporterConfiguration {
 
         @Override
-        protected NewExporter.SheetContract sheetContract(LightGSheetService lightGSheetService) {
+        public Exporter.SheetContract sheetContract(LightGSheetService lightGSheetService) {
             return new FakeExporterSheetContractImpl();
         }
 

@@ -11,10 +11,7 @@ import one.edee.babylon.enums.Action;
 import one.edee.babylon.git.GitAdd;
 import one.edee.babylon.git.RuntimeExecGitAdd;
 import one.edee.babylon.msgfile.TranslationFileUtils;
-import one.edee.babylon.properties.IProperty;
-import one.edee.babylon.properties.PFActiveRecord;
-import one.edee.babylon.properties.PropertyFileActiveRecord;
-import one.edee.babylon.properties.PropertyFileLoader;
+import one.edee.babylon.properties.*;
 import one.edee.babylon.sheets.SheetConstants;
 import one.edee.babylon.sheets.gsheets.LightGSheetService;
 import one.edee.babylon.snapshot.Snapshot;
@@ -35,6 +32,7 @@ import java.util.stream.Collectors;
 
 /**
  * Processor for {@link Action#IMPORT} action.
+ *
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @CommonsLog
@@ -62,7 +60,7 @@ public class ImportProcessor {
     }
 
     public void doImport(String googleSheetId) throws IOException, GeneralSecurityException, InterruptedException {
-        log.info("Started translation IMPORT with Google sheet id: '" + googleSheetId +"'");
+        log.info("Started translation IMPORT with Google sheet id: '" + googleSheetId + "'");
         TranslationStatisticsOfImport statistics = new TranslationStatisticsOfImport();
         statistics.setAction(Action.IMPORT);
 
@@ -86,6 +84,7 @@ public class ImportProcessor {
 
     /**
      * Saves BaseProcessor#dataFile with all set primary mutation properties values into file on disk.
+     *
      * @throws IOException some exception derived from {@link IOException}
      */
     private void saveDataFile(Snapshot snapshot, String dbFileName) throws IOException {
@@ -114,10 +113,11 @@ public class ImportProcessor {
     /**
      * Save all translated properties into target mutation file. Uses {@link PropertyFileActiveRecord} to ensure to that
      * file is stored in same format and keys is placed on same row numbers.
-     * @param mutation mutation to save
+     *
+     * @param mutation           mutation to save
      * @param messageFileContent {@link MessageFileContent} object with data for target properties file
      * @throws IOException some exception derived from {@link IOException}
-    */
+     */
     private void saveMutationPropertiesToFile(String primaryPropFilePath, String mutation, MessageFileContent messageFileContent, TranslationStatisticsOfImport statistics) throws IOException, InterruptedException {
         PropertiesMap mutationProperties = messageFileContent.getMutationProperties(mutation);
         String mutationPropFilePath = TranslationFileUtils.getFileNameForTranslation(primaryPropFilePath, mutation);
@@ -134,9 +134,9 @@ public class ImportProcessor {
         }
         final ImportFileStatistic fileStatistic = fs;
         // Load target properties file to get formatting and row numbers of all its properties.
-        PFActiveRecord originalMutationFileProps = Optional.ofNullable(propertyFileLoader.loadPropertiesFromFile(mutationPropFilePath)).orElse(new PropertyFileActiveRecord());
+        PropertyFileActiveRecord originalMutationFileProps = Optional.ofNullable(propertyFileLoader.loadPropertiesFromFile(mutationPropFilePath)).orElse(new PropertyFileActiveRecord());
         // Load also properties of primary mutation file to get format from it.
-        PFActiveRecord updatedFileProps = propertyFileLoader.loadPropertiesFromFile(primaryPropFilePath);
+        PropertyFileActiveRecord updatedFileProps = propertyFileLoader.loadPropertiesFromFile(primaryPropFilePath);
         // Clears all keys values in loaded primaryFileProps to create template for making of mutation properties file.
         // In this point we have clear format, this means each key and value on correct row,
         // empty rows and comments from primary mutation file is also on correct rows.
@@ -145,7 +145,7 @@ public class ImportProcessor {
                 property.setValue(SheetConstants.EMPTY_VAL);
             }
         });
-        PFActiveRecord propsOnlyInMutation = new PropertyFileActiveRecord();
+        PropertyFileActiveRecord propsOnlyInMutation = new PropertyFileActiveRecord();
         // Sets values of all keys from mutation properties file into updatedFileProps. Properties which exists only
         // in secondary mutation file is added to another map and append at end of mutation property file.
         originalMutationFileProps.forEach((key, sourceProp) -> {
@@ -153,7 +153,7 @@ public class ImportProcessor {
             if (!sourceProp.isPropValue() && !sourceProp.isPropValueMultiLine()) {
                 return;
             }
-            IProperty targetProp = updatedFileProps.get(key);
+            Property targetProp = updatedFileProps.get(key);
             // Set values only for keys existing in primary mutation file.
             if (targetProp != null) {
                 targetProp.setValue(sourceProp.getValue());
@@ -166,7 +166,7 @@ public class ImportProcessor {
         });
         // Sets all values for keys from properties map (data from google sheet filled up by translation agency).
         mutationProperties.forEach((key, value) -> {
-            IProperty property = updatedFileProps.get(key);
+            Property property = updatedFileProps.get(key);
             if (property != null && !Objects.equals(value, property.getValue())) {
                 property.setValue(value);
                 updatedFileProps.put(key, property);
@@ -194,10 +194,12 @@ public class ImportProcessor {
         savePropertiesToFile(updatedFileProps, mutationPropFilePath);
     }
 
-    private void savePropertiesToFile(PFActiveRecord propertyFileActiveRecord, String pathFileName) throws IOException {
-        /* TODO VKR - writer is not closed anywhere?! why try (open) {} is not used here? */
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(pathFileName), StandardCharsets.UTF_8);
-        propertyFileActiveRecord.save(outputStreamWriter);
+    private void savePropertiesToFile(PropertyFileActiveRecord propertyFileActiveRecord, String pathFileName) {
+        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(pathFileName), StandardCharsets.UTF_8)) {
+            propertyFileActiveRecord.save(outputStreamWriter);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not close the file " + pathFileName, e);
+        }
 
         gitAdd.gitAddFile(pathFileName);
     }

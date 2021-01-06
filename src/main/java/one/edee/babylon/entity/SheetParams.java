@@ -24,10 +24,10 @@ public class SheetParams {
     @NonNull
     private Integer rowCount;
 
-    /* TODO VKR document me */
+    /** Number of rows to freeze */
     private Integer frozenRowCount;
 
-    /* TODO VKR document me */
+    /** Number of cols to freeze */
     private Integer frozenColumnCount;
 
 }

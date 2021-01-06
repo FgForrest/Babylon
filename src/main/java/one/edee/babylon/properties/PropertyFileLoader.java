@@ -4,7 +4,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Loads {@link PFActiveRecord} from a file.
+ * Loads {@link PropertyFileLoader} from a file.
  */
 public class PropertyFileLoader {
 
@@ -15,13 +15,15 @@ public class PropertyFileLoader {
      * @return Returns properties {@link PropertyFileActiveRecord} or null if file not exists.
      * @throws IOException error when reading the file
      */
-    public PFActiveRecord loadPropertiesFromFile(String fileNamePath) throws IOException {
+    public PropertyFileActiveRecord loadPropertiesFromFile(String fileNamePath) {
         if (!new File(fileNamePath).exists()) {
             return null;
         }
-        /* TODO VKR where is input stream closed? Shouldn't be it here?!?! */
-        InputStream propertyFile = new FileInputStream(fileNamePath);
-        return loadProperties(propertyFile);
+        try (InputStream propertyFile = new FileInputStream(fileNamePath)) {
+            return loadProperties(propertyFile);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not close file " + fileNamePath, e);
+        }
     }
 
     /**
@@ -31,7 +33,7 @@ public class PropertyFileLoader {
      * @return Returns loaded file {@link PropertyFileActiveRecord}
      * @throws IOException error when reading the stream
      */
-    public PFActiveRecord loadProperties(InputStream propertyFile) throws IOException {
+    public PropertyFileActiveRecord loadProperties(InputStream propertyFile) throws IOException {
         PropertyFileActiveRecord propertyFileActiveRecord = new PropertyFileActiveRecord();
         try (InputStreamReader inputStreamReader = new InputStreamReader(propertyFile, StandardCharsets.UTF_8)) {
             propertyFileActiveRecord.load(inputStreamReader);

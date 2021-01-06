@@ -18,10 +18,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * TODO VKR - do we need to name it NewExporter? This leads to NewNewExporter and so on ...
+ * Performs the export phase that generates translation sheets.
  */
 @CommonsLog
-public class NewExporter {
+public class Exporter {
 
     private final TranslationCollector translationCollector;
     private final TranslationSnapshotWriteContract snapshot;
@@ -29,11 +29,7 @@ public class NewExporter {
     private final AntPathResourceLoader resourceLoader;
     private final PathUtils pu;
 
-    //FIXME VKR: move to config
-    /* TODO VKR - avoid personal data in code, please */
-    private static final List<String> lockedCellEditors = Arrays.asList("kosar@fg.cz", "kamenik@fg.cz");
-
-    public NewExporter(TranslationCollector translationCollector, TranslationSnapshotWriteContract snapshot, SheetContract gsc, AntPathResourceLoader resourceLoader) {
+    public Exporter(TranslationCollector translationCollector, TranslationSnapshotWriteContract snapshot, SheetContract gsc, AntPathResourceLoader resourceLoader) {
         this.translationCollector = translationCollector;
         this.snapshot = snapshot;
         this.gsc = gsc;
@@ -41,10 +37,35 @@ public class NewExporter {
         this.pu = new PathUtils();
     }
 
+    /**
+     * Walks message file paths, gathering messages and translations, producing translation sheets in given GSheet spreadsheet.
+     *
+     * @param patternPaths paths of message files to export
+     * @param translationLangs languages to translate messages to
+     * @param spreadsheetId id of GSheets spreadsheet, must be empty
+     * @param snapshotPath path to the translation snapshot file
+     */
     public void walkPathsAndWriteSheets(List<String> patternPaths,
                                         List<String> translationLangs,
                                         String spreadsheetId,
                                         Path snapshotPath) {
+        walkPathsAndWriteSheets(patternPaths, translationLangs, spreadsheetId, snapshotPath, Collections.emptyList());
+    }
+
+    /**
+     * Walks message file paths, gathering messages and translations, producing translation sheets in given GSheet spreadsheet.
+     *
+     * @param patternPaths paths of message files to export
+     * @param translationLangs languages to translate messages to
+     * @param spreadsheetId id of GSheets spreadsheet, must be empty
+     * @param snapshotPath path to the translation snapshot file
+     * @param lockedCellEditors list of Google account emails, these account will have the permission to edit locked cells
+     */
+    public void walkPathsAndWriteSheets(List<String> patternPaths,
+                                        List<String> translationLangs,
+                                        String spreadsheetId,
+                                        Path snapshotPath,
+                                        List<String> lockedCellEditors) {
         warnDuplicatePaths(patternPaths);
 
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
@@ -153,7 +174,7 @@ public class NewExporter {
     }
 
     /**
-     * Defines sheet operations required by {@link NewExporter}.
+     * Defines sheet operations required by {@link Exporter}.
      */
     public interface SheetContract {
 

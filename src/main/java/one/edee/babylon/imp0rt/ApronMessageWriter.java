@@ -1,6 +1,7 @@
 package one.edee.babylon.imp0rt;
 
 import one.edee.babylon.msgfile.TranslationFileUtils;
+import one.edee.babylon.snapshot.Snapshot;
 import one.edee.babylon.util.FileUtils;
 import de.poiu.apron.PropertyFile;
 import de.poiu.apron.entry.PropertyEntry;
@@ -12,6 +13,11 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Implements {@link MessageWriter} using Apron library.
+ * This should replace {@link one.edee.babylon.imp0rt.legacy.MessageFileContentMessageWriter} after
+ * {@link one.edee.babylon.db.SnapshotManager} is refactored so that it doesn't need two instances of {@link Snapshot}.
+ */
 public class ApronMessageWriter implements MessageWriter {
 
     private final PropertyFile primaryMessageFile;

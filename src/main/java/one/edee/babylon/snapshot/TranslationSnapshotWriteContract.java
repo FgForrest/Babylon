@@ -22,7 +22,11 @@ public interface TranslationSnapshotWriteContract {
      */
     void removeMsgFilePaths(Collection<String> msgFilePaths);
 
-    /* TODO VKR document */
+    /**
+     * Gives access to underlying {@link Snapshot}, mainly for use in tests.
+     *
+     * @return underlying snapshot
+     */
     Snapshot getUnderlyingSnapshot();
 
 }

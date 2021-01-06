@@ -13,6 +13,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import lombok.extern.apachecommons.CommonsLog;
+import one.edee.babylon.sheets.gsheets.GSheetsClient;
 import org.springframework.lang.NonNull;
 
 import java.io.*;
@@ -26,15 +27,12 @@ import static java.util.Collections.singletonList;
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 @CommonsLog
-public class SheetsFactory {
+public class AuthorizedGSheetsClient implements GSheetsClient {
 
     private static final String APPLICATION_NAME = "Google Sheets API for Babylon";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final List<String> SCOPES = singletonList(SheetsScopes.SPREADSHEETS);
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
-    /* TODO VKR - this is a problem, when we would like to open source, this would leak our private tokens! */
-    /* TODO VKR - we need to get rid of this even from Git history, is it possible? */
-    /* TODO VKR - this needs call */
     private static final String GOOGLE_CREDENTIALS_JSON = "credentials.json";
 
     /** Use only by cached and null safe access by {@link #getCredentials(NetHttpTransport)} method. */

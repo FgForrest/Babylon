@@ -1,6 +1,6 @@
 package one.edee.babylon.sheets.gsheets;
 
-import one.edee.babylon.export.NewExporter;
+import one.edee.babylon.export.Exporter;
 import one.edee.babylon.sheets.gsheets.model.ASheet;
 import one.edee.babylon.sheets.gsheets.model.SheetAdaptor;
 import one.edee.babylon.sheets.SheetsException;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * Implements contract for translation export using {@link LightGSheetService} without exposing its details.
  */
-public class LightGSheetServiceExporterContractAdaptor implements NewExporter.SheetContract {
+public class LightGSheetServiceExporterContractAdaptor implements Exporter.SheetContract {
 
     private final LightGSheetService lightGSheetService;
 

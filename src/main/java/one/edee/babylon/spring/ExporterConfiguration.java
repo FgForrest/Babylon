@@ -13,22 +13,19 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 
-/**
- * TODO VKR why some methods are protected and other friendly?!
- */
 @Configuration
 public class ExporterConfiguration {
 
     @Bean
-    NewExporter exporter(TranslationCollector translationCollector,
-                                   TranslationSnapshotWriteContract snapshot,
-                                   NewExporter.SheetContract sheetContract,
-                                   AntPathResourceLoader resourceLoader) {
-        return new NewExporter(translationCollector, snapshot, sheetContract, resourceLoader);
+    public Exporter exporter(TranslationCollector translationCollector,
+                             TranslationSnapshotWriteContract snapshot,
+                             Exporter.SheetContract sheetContract,
+                             AntPathResourceLoader resourceLoader) {
+        return new Exporter(translationCollector, snapshot, sheetContract, resourceLoader);
     }
 
     @Bean
-    TranslationCollector translationCollector(MessageLoader messageLoader,
+    public TranslationCollector translationCollector(MessageLoader messageLoader,
                                               MessageFileProcessor messageFileProcessor,
                                               TranslationSnapshotReadContract snapshotReadContract,
                                               TranslationSnapshotWriteContract snapshotWriteContract) {
@@ -36,22 +33,22 @@ public class ExporterConfiguration {
     }
 
     @Bean
-    MessageLoader messageLoader() {
+    public MessageLoader messageLoader() {
         return new ApronMessageLoader();
     }
 
     @Bean
-    MessageFileProcessor messageFileProcessor(TranslationSnapshotReadContract snapshotReadContract) {
+    public MessageFileProcessor messageFileProcessor(TranslationSnapshotReadContract snapshotReadContract) {
         return new MessageFileProcessor(snapshotReadContract);
     }
 
     @Bean
-    SnapshotAdapter snapshotAdapter(SnapshotManager snapshotManager) throws IOException {
+    public SnapshotAdapter snapshotAdapter(SnapshotManager snapshotManager) throws IOException {
         return new SnapshotAdapter(snapshotManager.getOrCreateDataFile());
     }
 
     @Bean
-    protected NewExporter.SheetContract sheetContract(LightGSheetService lightGSheetService) {
+    public Exporter.SheetContract sheetContract(LightGSheetService lightGSheetService) {
         return new LightGSheetServiceExporterContractAdaptor(lightGSheetService);
     }
 

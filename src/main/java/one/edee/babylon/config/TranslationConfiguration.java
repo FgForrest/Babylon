@@ -41,6 +41,8 @@ public class TranslationConfiguration implements Serializable {
      */
     private List<String> mutations = new ArrayList<>();
 
+    private List<String> lockedCellEditor = new ArrayList<>();
+
     @JsonIgnore
     public Path getSnapshotPath() {
         return Paths.get(dataFileName);

@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class ImporterConfiguration {
 
     @Bean
-    ImportProcessor importProcessor(LightGSheetService lightGSheetService,
+    public ImportProcessor importProcessor(LightGSheetService lightGSheetService,
                                     SnapshotManager snapshotManager,
                                     PropertyFileLoader propertyFileLoader,
                                     TranslationConfiguration configuration) {
@@ -20,7 +20,7 @@ public class ImporterConfiguration {
     }
 
     @Bean
-    PropertyFileLoader propertyFileLoader() {
+    public PropertyFileLoader propertyFileLoader() {
         return new PropertyFileLoader();
     }
 

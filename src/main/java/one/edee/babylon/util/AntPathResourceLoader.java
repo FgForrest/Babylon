@@ -1,5 +1,6 @@
 package one.edee.babylon.util;
 
+import one.edee.babylon.export.Exporter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -15,7 +16,7 @@ import java.io.IOException;
  * classpath:com/mycompany/**&#47;applicationContext.xml
  * </pre>
  *
- * Specifies the resource loading contract of {@link one.edee.babylon.export.NewExporter}.
+ * Specifies the resource loading contract of {@link Exporter}.
  *
  * @see PathMatchingResourcePatternResolver
  */
