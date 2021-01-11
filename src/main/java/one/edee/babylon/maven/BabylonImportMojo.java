@@ -13,7 +13,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 public class BabylonImportMojo extends BabylonExpImpBaseMojo {
 
     @Override
-    Action getAction() {
+    protected Action getAction() {
         return Action.IMPORT;
     }
 }

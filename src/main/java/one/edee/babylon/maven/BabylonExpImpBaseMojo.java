@@ -39,5 +39,6 @@ public abstract class BabylonExpImpBaseMojo extends AbstractMojo {
         return arg;
     }
 
-    abstract Action getAction();
+    protected abstract Action getAction();
+
 }
