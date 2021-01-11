@@ -17,13 +17,9 @@
         <tag>HEAD</tag>
     </scm>
 
-    <parent>
-        <groupId>com.fg</groupId>
-        <artifactId>fg-default-jdk18</artifactId>
-        <version>3.3</version>
-    </parent>
-
     <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <java.version>1.8</java.version>
         <kotlin.version>1.4.20</kotlin.version>
     </properties>
