@@ -8,7 +8,16 @@
     <packaging>maven-plugin</packaging>
     <version>2.0.0-SNAPSHOT</version>
     <name>Babylon - translation utility</name>
-    <url>http://maven.apache.org</url>
+	<url>https://github.com/FgForrest/Babylon/</url>
+	<description>
+		Babylon is a tool to gather messages, and their translations from property files. It performs a round-trip
+		consisting of two phases: export phase and import phase. In the export phase the messages are written to a
+		Google Sheets spreadsheet. A translator will then fill in the missing translations. In the import phase,
+		the spreadsheet (with the missing translations filled out by a translator) is examined, and the newly translated
+		messages are used to update the respective translation property files. Also, the state of the translation,
+		snapshot, is written out to a disk in the form of JSON file. Babylon can be run as a Maven plugin
+		or as a standalone console application.
+	</description>
 
 	<developers>
 		<developer>
