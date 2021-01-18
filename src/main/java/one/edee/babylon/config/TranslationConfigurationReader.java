@@ -6,6 +6,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Objects;
 
 
 /**
@@ -15,6 +16,7 @@ import java.io.IOException;
 public class TranslationConfigurationReader {
 
     public TranslationConfiguration readAndCheckConfiguration(String configFileName) throws IOException {
+        Objects.requireNonNull(configFileName, "Config file name must not be null");
         File file = new File(configFileName);
         if (!file.exists()) {
             throw new FileNotFoundException("Cannot find configuration file: " + file.getAbsolutePath());
