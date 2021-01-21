@@ -1,9 +1,9 @@
 package one.edee.babylon.export;
 
+import de.poiu.apron.java.util.Properties;
 import one.edee.babylon.msgfile.TranslationFileUtils;
 import one.edee.babylon.util.FileUtils;
 import de.poiu.apron.PropertyFile;
-import de.poiu.apron.entry.PropertyEntry;
 
 import java.io.File;
 import java.util.AbstractMap;
@@ -45,18 +45,16 @@ public class ApronMessageLoader implements MessageLoader {
         } else {
             primaryMsgs = new PropertyFile();
         }
-        return dumpPropertyFile(primaryMsgs);
+        return dumpPropertyFile(new Properties(primaryMsgs));
     }
 
-    private Map<String, String> dumpPropertyFile(PropertyFile propertyFile) {
-        return propertyFile.getAllEntries()
+    private Map<String, String> dumpPropertyFile(Properties properties) {
+        return properties
+                .entrySet()
                 .stream()
-                .filter(entry -> entry instanceof PropertyEntry)
-                .map(propEntry -> new AbstractMap.SimpleEntry<>(
-                                ((PropertyEntry) propEntry).getKey().toString(),
-                                cleanPropertyValue(
-                                        ((PropertyEntry) propEntry).getValue().toString()
-                                )
+                .map(entry -> new AbstractMap.SimpleEntry<>(
+                                (String) entry.getKey(),
+                                cleanPropertyValue((String) entry.getValue())
                         )
                 ).collect(Collectors.toMap(
                         AbstractMap.SimpleEntry::getKey,
