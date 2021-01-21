@@ -8,7 +8,6 @@ import de.poiu.apron.entry.PropertyEntry;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Map;
@@ -64,7 +63,7 @@ public class ApronMessageWriter implements MessageWriter {
         String translationPath = TranslationFileUtils.getFileNameForTranslation(path, language);
         try {
             File existingOrNewFile = FileUtils.fileFromPathOrCreate(translationPath);
-            return PropertyFile.from(existingOrNewFile, Charset.defaultCharset());
+            return PropertyFile.from(existingOrNewFile);
         } catch (IOException e) {
             throw new RuntimeException("Could not create file '" + path + "'", e);
         }
@@ -72,7 +71,7 @@ public class ApronMessageWriter implements MessageWriter {
 
     private PropertyFile primaryMsgFileFromPath(String path) {
         File existingFile = FileUtils.fileFromPathOrThrow(path);
-        return PropertyFile.from(existingFile, Charset.defaultCharset());
+        return PropertyFile.from(existingFile);
     }
 
 }
