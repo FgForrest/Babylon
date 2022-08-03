@@ -181,11 +181,13 @@ public class ImportProcessor {
             propsOnlyInMutation.forEach(updatedFileProps::put);
             log.info("Property keys only in mutation file \"" + String.join(",", propsOnlyInMutation.keySet()) + "\"");
         }
+
+        PropertiesMap primaryProperties = messageFileContent.getProperties();
         // Removes all properties, that does not occur in sheet and was not in mutation properties file before - e.g. loaded from original props..
         List<String> propsToRemove = updatedFileProps
                 .entrySet()
                 .stream()
-                .filter(k -> k.getValue().getValue().equals(SheetConstants.EMPTY_VAL) && !mutationProperties.containsKey(k.getKey()))
+                .filter(k -> k.getValue().getValue().equals(SheetConstants.EMPTY_VAL) && !primaryProperties.containsKey(k.getKey()))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
         propsToRemove.forEach(updatedFileProps::remove);
