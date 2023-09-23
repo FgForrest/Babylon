@@ -1,17 +1,17 @@
 # Babylon
 
-## Tool to automate Java property file translation.
+## Tool to automate translation files.
 
 ### Description and usage
 
-Babylon is a tool to gather messages, and their translations from property files. It performs a round-trip consisting of 
+Babylon is a tool to gather messages, and their translations from translation files. It performs a round-trip consisting of 
 two phases: *export* phase and *import* phase. 
 
 In the export phase the messages are written to a [Google Sheets](https://www.google.com/sheets/about/) spreadsheet. 
 A translator will then fill in the missing translations. 
 
 In the import phase, the spreadsheet (with the missing translations filled out by a translator) is examined, and the 
-newly translated messages are used to update the respective translation property files. Also, the state of the translation,
+newly translated messages are used to update the respective translation files. Also, the state of the translation,
 *snapshot*,  is written out to a disk in the form of JSON file.
 
 Babylon can be run as a Maven plugin or as a standalone console application. 
@@ -24,6 +24,8 @@ To run Babylon:
 - Sheets API must be enabled for your Google account.
 - A Json configuration file must exist (see the "Configuration" section).
 - A Google Sheets spreadsheet must exist (empty for the export phase).
+
+Currently only supported file types are **.properties** and **.ts**
 
 ### Google Cloud user credentials
 
