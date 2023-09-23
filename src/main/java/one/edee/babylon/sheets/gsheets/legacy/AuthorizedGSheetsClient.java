@@ -17,6 +17,7 @@ import one.edee.babylon.sheets.gsheets.GSheetsClient;
 import org.springframework.lang.NonNull;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.util.*;
 
@@ -72,7 +73,7 @@ public class AuthorizedGSheetsClient implements GSheetsClient {
             InputStreamReader credentialsReader = null;
             try {
                 if (credentialsFile.exists()) {
-                    credentialsStream = new FileInputStream(credentialsFile);
+                    credentialsStream = Files.newInputStream(credentialsFile.toPath());
                 } else {
                     // If not exists then fallback into default credentials.json for FG Forest company in resources.
                     credentialsStream = getClass().getClassLoader().getResourceAsStream(GOOGLE_CREDENTIALS_JSON);

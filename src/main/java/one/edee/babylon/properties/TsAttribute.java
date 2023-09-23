@@ -14,7 +14,7 @@ import one.edee.babylon.enums.PropertyType;
 @EqualsAndHashCode(callSuper = false)
 public class TsAttribute extends AbstractProperty {
     public static final String MULTI_LINE_DELIMITER = "`";
-    public static final String SINGLE_LINE_DELIMITER = "`";
+    public static final String SINGLE_LINE_DELIMITER = "'";
 
     @Setter
     private String value;

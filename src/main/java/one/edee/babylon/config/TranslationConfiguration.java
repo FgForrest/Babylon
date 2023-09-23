@@ -41,7 +41,7 @@ public class TranslationConfiguration implements Serializable {
      */
     private List<String> mutations = new ArrayList<>();
 
-    private List<String> lockedCellEditor = new ArrayList<>();
+    private List<String> lockedCellEditors = new ArrayList<>();
 
     @JsonIgnore
     public Path getSnapshotPath() {

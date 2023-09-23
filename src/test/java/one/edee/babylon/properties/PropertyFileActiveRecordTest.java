@@ -49,7 +49,7 @@ public class PropertyFileActiveRecordTest {
 
     @Test
     public void checkLoadAndSaveTsFileWithArgs() throws IOException {
-        testTs("META-INF/09_mail_form/addresses.ts", "addresses-out.ts");
+        testTs("META-INF/addresses/addresses.ts", "addresses-out.ts");
     }
 
 
