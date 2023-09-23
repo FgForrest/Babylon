@@ -10,19 +10,18 @@ import java.util.List;
  * Common class for property values of all types by {@link PropertyType}
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-public class Property {
+public class Property extends AbstractProperty {
 
     static final String MULTILINE_SEPARATOR = "\\";
 
-    private PropertyType type;
     private String value;
 
     /* Only for PropertyType#MULTILINE */
     private final List<String> lines = new LinkedList<>();
 
     public Property(PropertyType type, String value) {
+        super(type);
         this.value = value;
-        this.type = type;
     }
 
     void addLine(String line) {
@@ -31,10 +30,6 @@ public class Property {
 
     public Integer getRowCount() {
         return lines.size();
-    }
-
-    public PropertyType getType() {
-        return type;
     }
 
     public String getValue() {
@@ -53,22 +48,6 @@ public class Property {
             return;
         }
         this.value = value;
-    }
-
-    public boolean isPropValue() {
-        return type == PropertyType.VALUE;
-    }
-
-    public  boolean isPropValueMultiLine() {
-        return type == PropertyType.MULTILINE;
-    }
-
-    public boolean isPropEmptyLine() {
-        return type == PropertyType.EMPTY;
-    }
-
-    public boolean isPropComment() {
-        return type == PropertyType.COMMENT;
     }
 
     private void setMultilineValue(String value) {
@@ -97,13 +76,5 @@ public class Property {
             }
         }
         return sb.toString();
-    }
-
-    @Override
-    public String toString() {
-        return "Property{" +
-                "type=" + type +
-                ", value='" + value + '\'' +
-                '}';
     }
 }

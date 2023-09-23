@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.util.List;
 
 @Configuration
 public class ExporterConfiguration {
@@ -25,16 +26,20 @@ public class ExporterConfiguration {
     }
 
     @Bean
-    public TranslationCollector translationCollector(MessageLoader messageLoader,
-                                              MessageFileProcessor messageFileProcessor,
-                                              TranslationSnapshotReadContract snapshotReadContract,
-                                              TranslationSnapshotWriteContract snapshotWriteContract) {
-        return new TranslationCollector(messageLoader, messageFileProcessor, snapshotReadContract, snapshotWriteContract);
+    public TranslationCollector translationCollector(List<MessageLoader> messageLoaders,
+                                                     MessageFileProcessor messageFileProcessor,
+                                                     TranslationSnapshotReadContract snapshotReadContract,
+                                                     TranslationSnapshotWriteContract snapshotWriteContract) {
+        return new TranslationCollector(messageLoaders, messageFileProcessor, snapshotReadContract, snapshotWriteContract);
     }
 
     @Bean
-    public MessageLoader messageLoader() {
+    public MessageLoader apronMessageLoader() {
         return new ApronMessageLoader();
+    }
+    @Bean
+    public MessageLoader tsMessageLoader() {
+        return new TsMessageLoader();
     }
 
     @Bean
