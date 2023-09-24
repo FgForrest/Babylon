@@ -56,7 +56,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
      * @param args
      * @return
      */
-    private Arguments parseArguments(String... args) {
+    public static Arguments parseArguments(String... args) {
         if (args.length != 3) {
             log.error("Invalid input arguments, required: ");
             printRequiredArguments();
@@ -77,7 +77,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         return arguments;
     }
 
-    private void printRequiredArguments() {
+    private static void printRequiredArguments() {
         log.info("1 - expected action (import, export)");
         log.info("2 - path to translator-config.json file");
         log.info("3 - ID of the google sheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc)");
@@ -88,7 +88,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
      * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
      */
     @Data
-    static class Arguments {
+    public static class Arguments {
 
         /**
          * See {@link Action}

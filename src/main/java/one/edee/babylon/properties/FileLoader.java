@@ -1,5 +1,7 @@
 package one.edee.babylon.properties;
 
+import lombok.extern.log4j.Log4j2;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +13,7 @@ import java.nio.file.Paths;
 /**
  * Loads {@link FileLoader} from a file.
  */
+@Log4j2
 public abstract class FileLoader {
 
     /**
@@ -23,6 +26,7 @@ public abstract class FileLoader {
         if (!new File(fileNamePath).exists()) {
             return createFileActiveRecord();
         }
+        log.info("Loading file: " + fileNamePath);
         try (InputStream propertyFile = Files.newInputStream(Paths.get(fileNamePath))) {
             return loadProperties(propertyFile);
         } catch (Exception e) {

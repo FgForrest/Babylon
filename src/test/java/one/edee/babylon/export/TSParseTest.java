@@ -1,13 +1,16 @@
 package one.edee.babylon.export;
 
+import lombok.extern.log4j.Log4j2;
 import one.edee.babylon.export.ts.ECMAScript6BaseListener;
 import one.edee.babylon.export.ts.ECMAScript6Lexer;
 import one.edee.babylon.export.ts.ECMAScript6Parser;
+import one.edee.babylon.msgfile.TranslationFileUtils;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -18,6 +21,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Log4j2
 public class TSParseTest {
 
 
@@ -39,6 +43,15 @@ public class TSParseTest {
         System.out.println("/////////////////////////////////////");
         System.out.println(listener.getPropertyDefinitions());
 
+    }
+
+    @Test
+    public void testRename(){
+        String filePath = "some.cs.i18n.ts";
+        log.info(filePath);
+        String translation = TranslationFileUtils.getFileNameForTranslation(filePath, "en");
+        log.info(translation);
+        Assert.assertEquals("some.en.i18n.ts", translation);
     }
 
 

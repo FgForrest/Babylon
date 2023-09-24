@@ -51,6 +51,10 @@ public class PropertyFileActiveRecordTest {
     public void checkLoadAndSaveTsFileWithArgs() throws IOException {
         testTs("META-INF/addresses/addresses.ts", "addresses-out.ts");
     }
+    @Test
+    public void checkLoadAndSaveTsFileWithDefault() throws IOException {
+        testTs("META-INF/goPayGate/Listing.cs.i18n.ts", "Listing-out.cs.i18n.ts");
+    }
 
 
     private void testTs(String primary, String output) throws IOException {

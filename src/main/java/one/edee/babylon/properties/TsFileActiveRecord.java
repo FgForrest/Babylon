@@ -52,7 +52,8 @@ public class TsFileActiveRecord extends FileActiveRecord {
         Assert.notNull(loadedFile,"Cannot load primary file on path:" + primaryPropFilePath);
         List<String> imports = loadedFile.getImports();
 
-        final String baseName = FilenameUtils.getBaseName(primaryPropFilePath)+"I18n";
+        String baseName = FilenameUtils.getBaseName(primaryPropFilePath);
+        baseName = baseName.contains(".") ? baseName.substring(0, baseName.indexOf(".")) : baseName;
 
         BufferedWriter bufferedWriter = (writer instanceof BufferedWriter) ? (BufferedWriter) writer : new BufferedWriter(writer);
 

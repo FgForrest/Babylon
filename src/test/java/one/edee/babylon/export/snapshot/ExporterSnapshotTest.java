@@ -16,6 +16,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +33,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -158,7 +160,7 @@ public class ExporterSnapshotTest {
 
         @Bean
         @Override
-        public TranslationConfiguration translationConfiguration(Environment environment) {
+        public TranslationConfiguration translationConfiguration(Environment environment, Optional<ApplicationArguments> applicationArguments) {
             // empty configuration is OK for tests, path to snapshot is  explicitly
             return new TranslationConfiguration();
         }
