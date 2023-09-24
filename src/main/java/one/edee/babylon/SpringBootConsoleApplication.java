@@ -44,7 +44,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         try {
             log.info("Loading config file: '" + arguments.getConfigFileName() + "'");
             TranslationConfiguration configuration = configurationReader.readAndCheckConfiguration(arguments.getConfigFileName());
-            mainService.startTranslation(arguments.getAction(), configuration, arguments.getGoogleSheetId());
+            mainService.startTranslation(arguments.getAction(), configuration, arguments.getGoogleSheetId(), arguments.isCombineSheets());
         } catch (Exception e) {
             log.error("BABYLON ERROR: ", e);
             System.exit(-1);
@@ -57,7 +57,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
      * @return
      */
     public static Arguments parseArguments(String... args) {
-        if (args.length != 3) {
+        if (!(args.length == 3 || args.length == 4)) {
             log.error("Invalid input arguments, required: ");
             printRequiredArguments();
             System.exit(-1);
@@ -74,6 +74,9 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         }
         arguments.setConfigFileName(args[1]);
         arguments.setGoogleSheetId(args[2]);
+        if (args.length == 4){
+            arguments.setCombineSheets(Boolean.parseBoolean(args[3]));
+        }
         return arguments;
     }
 
@@ -81,6 +84,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         log.info("1 - expected action (import, export)");
         log.info("2 - path to translator-config.json file");
         log.info("3 - ID of the google sheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc)");
+        log.info("4 - arg to specify combineSheets mode");
     }
 
     /**
@@ -104,6 +108,11 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
          * Id of the target google spreadsheet.
          */
         private String googleSheetId;
+        /**
+         * Allows to write only to one sheet with name all.
+         * This mode is useful to correct duplicates etc.
+         */
+        private boolean combineSheets = false;
     }
 
 }

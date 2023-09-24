@@ -2,6 +2,7 @@ package one.edee.babylon.export;
 
 import one.edee.babylon.db.SnapshotUtils;
 import one.edee.babylon.export.dto.ExportResult;
+import one.edee.babylon.export.dto.TranslationSheet;
 import one.edee.babylon.sheets.gsheets.model.ASheet;
 import one.edee.babylon.snapshot.TranslationSnapshotWriteContract;
 import one.edee.babylon.util.AntPathResourceLoader;
@@ -22,6 +23,8 @@ import java.util.stream.Collectors;
  */
 @CommonsLog
 public class Exporter {
+    private static final String COMBINING_SHEET_NAME = "ALL";
+
 
     private final TranslationCollector translationCollector;
     private final TranslationSnapshotWriteContract snapshot;
@@ -48,8 +51,9 @@ public class Exporter {
     public void walkPathsAndWriteSheets(List<String> patternPaths,
                                         List<String> translationLangs,
                                         String spreadsheetId,
-                                        Path snapshotPath) {
-        walkPathsAndWriteSheets(patternPaths, translationLangs, spreadsheetId, snapshotPath, Collections.emptyList());
+                                        Path snapshotPath,
+                                        boolean combineSheets ) {
+        walkPathsAndWriteSheets(patternPaths, translationLangs, spreadsheetId, snapshotPath, Collections.emptyList(), combineSheets);
     }
 
     /**
@@ -65,7 +69,8 @@ public class Exporter {
                                         List<String> translationLangs,
                                         String spreadsheetId,
                                         Path snapshotPath,
-                                        List<String> lockedCellEditors) {
+                                        List<String> lockedCellEditors,
+                                        boolean combineSheets) {
         warnDuplicatePaths(patternPaths);
 
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
@@ -77,6 +82,25 @@ public class Exporter {
         }
 
         ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, translationLangs);
+
+        if (combineSheets) {
+            // only for translation debugging
+            List<TranslationSheet> original = result.getSheets();
+            List<TranslationSheet> sheets = new ArrayList<>(original);
+            original.clear();
+
+            List<List<String>> combine = new LinkedList<>();
+            for (int i = 0; i < sheets.size(); i++) {
+                TranslationSheet sheet = sheets.get(i);
+                List<List<String>> rows = sheet.getRows();
+                if (i != 0){
+                    rows.remove(0);
+                }
+                combine.addAll(rows);
+            }
+
+            original.add(new TranslationSheet(COMBINING_SHEET_NAME,combine));
+        }
 
         uploadTranslations(result, spreadsheetId, lockedCellEditors);
 

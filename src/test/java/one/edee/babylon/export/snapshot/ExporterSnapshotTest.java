@@ -95,7 +95,7 @@ public class ExporterSnapshotTest {
         List<String> paths = Arrays.asList(msgFile.toString());
         List<String> langs = Arrays.asList("sk", "en");
 
-        exporter.walkPathsAndWriteSheets(paths, langs, "N/A", newSnapshot);
+        exporter.walkPathsAndWriteSheets(paths, langs, "N/A", newSnapshot, false);
 
         assertThat("When a single message file was processed, then there should be one sheet created", fakeSheets.getSheets().size(), equalTo(1));
 
@@ -132,7 +132,7 @@ public class ExporterSnapshotTest {
         String existingMsgFilePath = msgFile.getAbsolutePath();
         assumeThat("...it already contains some messages", snapshotManager.getOrCreateDataFile().getDataPropFiles(), hasKey(existingMsgFilePath));
 
-        exporter.walkPathsAndWriteSheets(paths, langs, "N/A", snapshotOutput);
+        exporter.walkPathsAndWriteSheets(paths, langs, "N/A", snapshotOutput, false);
 
         assertThat("When existing snapshot contained the same message file as the message file processed, then there should be exactly one sheet created", fakeSheets.getSheets().size(), equalTo(1));
 
