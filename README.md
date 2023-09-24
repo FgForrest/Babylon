@@ -124,7 +124,7 @@ mvn babylon:import -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9
 
 ### Running Babylon as a console application
 
-Application needs the following arguments: 1.action 2.config.json 3.google sheet id
+Application needs the following arguments: 1.action 2.config.json 3.google sheet id (4. optional combineSheets)
 
 1. expected action (export, import)
 * `export` - takes all properties files specified in configuration file and export their properties into specified the Google spreadsheet. Each property 
@@ -134,6 +134,7 @@ Application needs the following arguments: 1.action 2.config.json 3.google sheet
   properties file (are present only in concrete mutation properties file) is placed at the end of the target mutation file.
 2. path to translator-config.json file. This file serves as database for translation process.
 3. ID of the Google spreadsheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc) 
+4. **Optional** boolean value whether export should be placed into only one sheet (only usable for debugging translations)
 
 Command line examples:
 
@@ -141,3 +142,5 @@ Command line examples:
 java -jar babylon-1.0-SNAPSHOT.jar export test-config.json 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc 
 java -jar babylon-1.0-SNAPSHOT.jar import test-config.json 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc
 ```
+
+
