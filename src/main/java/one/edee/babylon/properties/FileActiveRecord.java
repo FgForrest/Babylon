@@ -24,9 +24,10 @@ public abstract class FileActiveRecord extends LinkedHashMap<String, AbstractPro
     /**
      * Saves properties into file by specified writer.
      *
-     * @param writer Some {@link Writer} implementation.
+     * @param writer   Some {@link Writer} implementation.
+     * @param mutation
      * @throws IOException some exception derived from {@link IOException}
      */
-    public abstract void save(Writer writer, String primaryPropFilePath) throws IOException;
+    public abstract void save(Writer writer, String primaryPropFilePath, String mutation) throws IOException;
 
 }

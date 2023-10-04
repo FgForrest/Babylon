@@ -1,9 +1,9 @@
 package one.edee.babylon.export;
 
 import lombok.extern.log4j.Log4j2;
-import one.edee.babylon.export.ts.ECMAScript6BaseListener;
-import one.edee.babylon.export.ts.ECMAScript6Lexer;
-import one.edee.babylon.export.ts.ECMAScript6Parser;
+import one.edee.babylon.export.ts.TypeScriptBabylonParserListener;
+import one.edee.babylon.export.ts.gen.TypeScriptLexer;
+import one.edee.babylon.export.ts.gen.TypeScriptParser;
 import one.edee.babylon.msgfile.TranslationFileUtils;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -28,13 +28,13 @@ public class TSParseTest {
     @Test
     public void testParseByLex() throws IOException {
         CharStream input = CharStreams.fromFileName("src/test/resources/META-INF/09_mail_form/messages.ts");
-        ECMAScript6Lexer lexer = new ECMAScript6Lexer(input);
+        TypeScriptLexer lexer = new TypeScriptLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        ECMAScript6Parser parser = new ECMAScript6Parser(tokens);
+        TypeScriptParser parser = new TypeScriptParser(tokens);
         ParseTree tree = parser.program();
 
 
-        ECMAScript6BaseListener listener = new ECMAScript6BaseListener();
+        TypeScriptBabylonParserListener listener = new TypeScriptBabylonParserListener();
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(listener, tree);
 

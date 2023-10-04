@@ -37,7 +37,7 @@ public class PropertyFileActiveRecordTest {
         String path = TestUtils.getTempDir() + "messages-out.properties";
         File targetFile = new File(path);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(Files.newOutputStream(targetFile.toPath()), StandardCharsets.UTF_8);
-        propertyFileActiveRecord.save(outputStreamWriter, primary);
+        propertyFileActiveRecord.save(outputStreamWriter, primary, "en");
         log.info("Save time: " + (System.currentTimeMillis() - stTime) + " ms");
         assertTrue("Source and target file is different", FileUtils.contentEquals(sourceFile, targetFile));
 
@@ -70,7 +70,7 @@ public class PropertyFileActiveRecordTest {
         File targetFile = new File(path);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(Files.newOutputStream(targetFile.toPath()), StandardCharsets.UTF_8);
         String absolutePath = sourceFile.getAbsolutePath();
-        propertyFileActiveRecord.save(outputStreamWriter, absolutePath);
+        propertyFileActiveRecord.save(outputStreamWriter, absolutePath, "en");
         log.info("Save time: " + (System.currentTimeMillis() - stTime) + " ms");
 
         Assert.assertEquals(Objects.requireNonNull(TsMessageLoader.loadFile(absolutePath)).getPropertyDefinitions(), Objects.requireNonNull(TsMessageLoader.loadFile(path)).getPropertyDefinitions());

@@ -34,4 +34,10 @@ public class TsAttribute extends AbstractProperty {
         return delimiter + value + delimiter;
     }
 
+    @Override
+    public boolean isPropValueMultiLine() {
+        return getType() == PropertyType.MULTILINE
+                || getValue().contains("\n")
+                || getValue().contains("\r");
+    }
 }

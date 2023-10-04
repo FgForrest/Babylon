@@ -29,11 +29,13 @@ public class PropertyFileActiveRecord extends FileActiveRecord {
 
     /**
      * Saves properties into file by specified writer.
-     * @param writer Some {@link Writer} implementation.
+     *
+     * @param writer   Some {@link Writer} implementation.
+     * @param mutation
      * @throws IOException some exception derived from {@link IOException}
-    */
+     */
     @Override
-    public void save(Writer writer, String baseFileName) throws IOException {
+    public void save(Writer writer, String baseFileName, String mutation) throws IOException {
         saveByBufferedWriter((writer instanceof BufferedWriter) ? (BufferedWriter)writer : new BufferedWriter(writer));
     }
 

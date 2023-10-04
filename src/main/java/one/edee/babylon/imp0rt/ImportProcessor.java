@@ -201,12 +201,12 @@ public class ImportProcessor {
         propsToRemove.forEach(updatedFileProps::remove);
 
         // Save changes into target file on disk.
-        savePropertiesToFile(updatedFileProps, mutationPropFilePath, primaryPropFilePath);
+        savePropertiesToFile(updatedFileProps, mutationPropFilePath, primaryPropFilePath, mutation);
     }
 
-    private void savePropertiesToFile(FileActiveRecord propertyFileActiveRecord, String pathFileName, String primaryPropFilePath) {
+    private void savePropertiesToFile(FileActiveRecord propertyFileActiveRecord, String pathFileName, String primaryPropFilePath, String mutation) {
         try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(Files.newOutputStream(Paths.get(pathFileName)), StandardCharsets.UTF_8)) {
-            propertyFileActiveRecord.save(outputStreamWriter, primaryPropFilePath);
+            propertyFileActiveRecord.save(outputStreamWriter, primaryPropFilePath, mutation);
         } catch (Exception e) {
             throw new RuntimeException("Could not close the file " + pathFileName, e);
         }
