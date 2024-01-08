@@ -21,7 +21,7 @@ public class Property {
     private final List<String> lines = new LinkedList<>();
 
     public Property(PropertyType type, String value) {
-        this.value = value;
+        this.value = clearValue(value);
         this.type = type;
     }
 
@@ -48,6 +48,7 @@ public class Property {
     }
 
     public void setValue(String value) {
+        value = clearValue(value);
         if (isPropValueMultiLine()) {
             setMultilineValue(value);
             return;
@@ -97,6 +98,10 @@ public class Property {
             }
         }
         return sb.toString();
+    }
+
+    public static String clearValue(String value){
+        return value.replace("\n","\\n");
     }
 
     @Override

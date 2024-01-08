@@ -2,6 +2,7 @@ package one.edee.babylon.export;
 
 import de.poiu.apron.java.util.Properties;
 import one.edee.babylon.msgfile.TranslationFileUtils;
+import one.edee.babylon.properties.Property;
 import one.edee.babylon.util.FileUtils;
 import de.poiu.apron.PropertyFile;
 
@@ -63,7 +64,7 @@ public class ApronMessageLoader implements MessageLoader {
     }
 
     String cleanPropertyValue(String rawValue) {
-        return rawValue.trim();
+        return Property.clearValue(rawValue).trim();
     }
 
     private File fileFromPath(String path) {
