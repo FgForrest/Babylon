@@ -44,9 +44,8 @@ jobs:
         minor-identifier: '/feat(?:\\([^)]+\\))?:/'
 
     - name: Setup Java JDK
-      uses: actions/setup-java@v3  # setup JDK 8 for building
+      uses: actions/setup-java@v1  # setup JDK 8 for building
       with:
-         distribution: 'oracle'
          java-version: '8'
          cache: 'maven'
          server-id: ossrh
