@@ -1,17 +1,17 @@
 # Babylon
 
-## Tool to automate Java property file translation.
+## Tool to automate translation files.
 
 ### Description and usage
 
-Babylon is a tool to gather messages, and their translations from property files. It performs a round-trip consisting of 
+Babylon is a tool to gather messages, and their translations from translation files. It performs a round-trip consisting of 
 two phases: *export* phase and *import* phase. 
 
 In the export phase the messages are written to a [Google Sheets](https://www.google.com/sheets/about/) spreadsheet. 
 A translator will then fill in the missing translations. 
 
 In the import phase, the spreadsheet (with the missing translations filled out by a translator) is examined, and the 
-newly translated messages are used to update the respective translation property files. Also, the state of the translation,
+newly translated messages are used to update the respective translation files. Also, the state of the translation,
 *snapshot*,  is written out to a disk in the form of JSON file.
 
 Babylon can be run as a Maven plugin or as a standalone console application. 
@@ -24,6 +24,8 @@ To run Babylon:
 - Sheets API must be enabled for your Google account.
 - A Json configuration file must exist (see the "Configuration" section).
 - A Google Sheets spreadsheet must exist (empty for the export phase).
+
+Currently only supported file types are **.properties** and **.ts**
 
 ### Google Cloud user credentials
 
@@ -122,7 +124,7 @@ mvn babylon:import -Dconfig.file=test-config.json -Dgoogle.sheet.id=1xhnBAOpy8-9
 
 ### Running Babylon as a console application
 
-Application needs the following arguments: 1.action 2.config.json 3.google sheet id
+Application needs the following arguments: 1.action 2.config.json 3.google sheet id (4. optional combineSheets)
 
 1. expected action (export, import)
 * `export` - takes all properties files specified in configuration file and export their properties into specified the Google spreadsheet. Each property 
@@ -132,6 +134,7 @@ Application needs the following arguments: 1.action 2.config.json 3.google sheet
   properties file (are present only in concrete mutation properties file) is placed at the end of the target mutation file.
 2. path to translator-config.json file. This file serves as database for translation process.
 3. ID of the Google spreadsheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc) 
+4. **Optional** boolean value whether export should be placed into only one sheet (only usable for debugging translations)
 
 Command line examples:
 
@@ -139,3 +142,5 @@ Command line examples:
 java -jar babylon-1.0-SNAPSHOT.jar export test-config.json 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc 
 java -jar babylon-1.0-SNAPSHOT.jar import test-config.json 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc
 ```
+
+

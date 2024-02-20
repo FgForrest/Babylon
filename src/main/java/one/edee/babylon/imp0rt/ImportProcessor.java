@@ -19,10 +19,11 @@ import one.edee.babylon.statistics.ImportFileStatistic;
 import one.edee.babylon.statistics.TranslationStatisticsOfImport;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
 public class ImportProcessor {
 
     private final SnapshotManager snapshotManager;
-    private final PropertyFileLoader propertyFileLoader;
+    private final List<FileLoader> propertyFileLoaders;
     private final LightGSheetService lightGSheetService;
 
     private final TranslationConfiguration configuration;
@@ -49,10 +50,10 @@ public class ImportProcessor {
 
     public ImportProcessor(LightGSheetService lightGSheetService,
                            SnapshotManager snapshotManager,
-                           PropertyFileLoader propertyFileLoader,
+                           List<FileLoader> propertyFileLoaders,
                            TranslationConfiguration configuration) {
         this.snapshotManager = snapshotManager;
-        this.propertyFileLoader = propertyFileLoader;
+        this.propertyFileLoaders = propertyFileLoaders;
         this.lightGSheetService = lightGSheetService;
         this.configuration = configuration;
         this.gitAdd = new RuntimeExecGitAdd();
@@ -111,7 +112,7 @@ public class ImportProcessor {
     }
 
     /**
-     * Save all translated properties into target mutation file. Uses {@link PropertyFileActiveRecord} to ensure to that
+     * Save all translated properties into target mutation file. Uses {@link FileActiveRecord} to ensure to that
      * file is stored in same format and keys is placed on same row numbers.
      *
      * @param mutation           mutation to save
@@ -132,11 +133,18 @@ public class ImportProcessor {
             fs = new ImportFileStatistic();
             statistics.putFileStatistic(mutationPropFilePath, fs);
         }
+
+        final FileLoader propertyFileLoader = propertyFileLoaders
+                .stream()
+                .filter(i -> i.canBeLoaded(mutationPropFilePath))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(mutationPropFilePath + " cannot be loaded by any file loader!"));
+
         final ImportFileStatistic fileStatistic = fs;
         // Load target properties file to get formatting and row numbers of all its properties.
-        PropertyFileActiveRecord originalMutationFileProps = Optional.ofNullable(propertyFileLoader.loadPropertiesFromFile(mutationPropFilePath)).orElse(new PropertyFileActiveRecord());
+        FileActiveRecord originalMutationFileProps = Optional.ofNullable(propertyFileLoader.loadPropertiesFromFile(mutationPropFilePath)).orElse(propertyFileLoader.createFileActiveRecord());
         // Load also properties of primary mutation file to get format from it.
-        PropertyFileActiveRecord updatedFileProps = propertyFileLoader.loadPropertiesFromFile(primaryPropFilePath);
+        FileActiveRecord updatedFileProps = propertyFileLoader.loadPropertiesFromFile(primaryPropFilePath);
         // Clears all keys values in loaded primaryFileProps to create template for making of mutation properties file.
         // In this point we have clear format, this means each key and value on correct row,
         // empty rows and comments from primary mutation file is also on correct rows.
@@ -145,7 +153,7 @@ public class ImportProcessor {
                 property.setValue(SheetConstants.EMPTY_VAL);
             }
         });
-        PropertyFileActiveRecord propsOnlyInMutation = new PropertyFileActiveRecord();
+        FileActiveRecord propsOnlyInMutation = propertyFileLoader.createFileActiveRecord();
         // Sets values of all keys from mutation properties file into updatedFileProps. Properties which exists only
         // in secondary mutation file is added to another map and append at end of mutation property file.
         originalMutationFileProps.forEach((key, sourceProp) -> {
@@ -153,7 +161,7 @@ public class ImportProcessor {
             if (!sourceProp.isPropValue() && !sourceProp.isPropValueMultiLine()) {
                 return;
             }
-            Property targetProp = updatedFileProps.get(key);
+            AbstractProperty targetProp = updatedFileProps.get(key);
             // Set values only for keys existing in primary mutation file.
             if (targetProp != null) {
                 targetProp.setValue(sourceProp.getValue());
@@ -166,7 +174,7 @@ public class ImportProcessor {
         });
         // Sets all values for keys from properties map (data from google sheet filled up by translation agency).
         mutationProperties.forEach((key, value) -> {
-            Property property = updatedFileProps.get(key);
+            AbstractProperty property = updatedFileProps.get(key);
             if (property != null && !Objects.equals(value, property.getValue())) {
                 property.setValue(value);
                 updatedFileProps.put(key, property);
@@ -178,7 +186,7 @@ public class ImportProcessor {
         if (!propsOnlyInMutation.isEmpty()) {
             fileStatistic.setNotFoundInPrimaryFile(propsOnlyInMutation.size());
             statistics.incTotalNotFoundInPrimaryFile(propsOnlyInMutation.size());
-            propsOnlyInMutation.forEach(updatedFileProps::put);
+            updatedFileProps.putAll(propsOnlyInMutation);
             log.info("Property keys only in mutation file \"" + String.join(",", propsOnlyInMutation.keySet()) + "\"");
         }
 
@@ -193,12 +201,12 @@ public class ImportProcessor {
         propsToRemove.forEach(updatedFileProps::remove);
 
         // Save changes into target file on disk.
-        savePropertiesToFile(updatedFileProps, mutationPropFilePath);
+        savePropertiesToFile(updatedFileProps, mutationPropFilePath, primaryPropFilePath, mutation);
     }
 
-    private void savePropertiesToFile(PropertyFileActiveRecord propertyFileActiveRecord, String pathFileName) {
-        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(pathFileName), StandardCharsets.UTF_8)) {
-            propertyFileActiveRecord.save(outputStreamWriter);
+    private void savePropertiesToFile(FileActiveRecord propertyFileActiveRecord, String pathFileName, String primaryPropFilePath, String mutation) {
+        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(Files.newOutputStream(Paths.get(pathFileName)), StandardCharsets.UTF_8)) {
+            propertyFileActiveRecord.save(outputStreamWriter, primaryPropFilePath, mutation);
         } catch (Exception e) {
             throw new RuntimeException("Could not close the file " + pathFileName, e);
         }

@@ -13,6 +13,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ApronMessageLoader implements MessageLoader {
+    public static final String PROPERTIES_FILE_EXTENSION = ".properties";
+
+    @Override
+    public boolean canBeLoaded(String filePath) {
+        return filePath.endsWith(PROPERTIES_FILE_EXTENSION);
+    }
 
     @Override
     public Map<String, String> loadPrimaryMessages(String filePath) {
