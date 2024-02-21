@@ -4,7 +4,7 @@ name: CI Master branch
 
 on:
   push:
-    branches: [ "deploy-test" ]         # trap each push to master branch TODO SKA change back to master
+    branches: [ "master" ]         # trap each push to master branch TODO SKA change back to master
     paths:                         # but react only to changes in code or pipeline definition
       - src/**.*
       - .github/**.*
