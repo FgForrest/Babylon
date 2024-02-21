@@ -112,7 +112,7 @@ jobs:
         asset_name: Dist (tar.gz)
         asset_content_type: application/gzip
 
-    - name: Upload evitaDB server artifact   # upload `evita-server.jar` for `docker-latest.yml` to deploy to DockerHub
+    - name: Upload babylon server artifact   # upload `babylon-boot.jar` for `docker-latest.yml` to deploy to DockerHub
       uses: actions/upload-artifact@v2
       if: success()
       with:
