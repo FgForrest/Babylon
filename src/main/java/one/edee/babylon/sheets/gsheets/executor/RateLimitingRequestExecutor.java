@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class RateLimitingRequestExecutor<T extends GenericJson, U extends GenericJson> {
 
     private static final int HTTP_TOO_MANY_REQUESTS = 429;
+    private static final int HTTP_BAD_REQUEST = 400;
     static final int MAX_BACKOFF_TIME_SEC = 64;
     static final int MAX_RETRIES = 50;
 
@@ -62,6 +63,9 @@ public abstract class RateLimitingRequestExecutor<T extends GenericJson, U exten
                     backoffTime *= 2;
                     backoffTime = Math.min(backoffTime, MAX_BACKOFF_TIME_SEC);
                     retries++;
+                }else {
+                    log.warn(gjre.getDetails());
+                    retries = MAX_RETRIES;
                 }
             }
         }

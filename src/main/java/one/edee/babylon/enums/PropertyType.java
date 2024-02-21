@@ -1,9 +1,9 @@
 package one.edee.babylon.enums;
 
-import one.edee.babylon.properties.Property;
+import one.edee.babylon.properties.AbstractProperty;
 
 /**
- * Enum of all types of properties {@link Property}
+ * Enum of all types of properties {@link AbstractProperty}
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
 public enum PropertyType {
@@ -13,7 +13,7 @@ public enum PropertyType {
     VALUE,
     /**
      * Property value (key=value) with multi line value escaped by '\'. *
-     * {@link Property#getValue()} method is overridden to return value as single string separated by '\' + line separator.
+     * {@link AbstractProperty#getValue()} method is overridden to return value as single string separated by '\' + line separator.
      */
     MULTILINE,
     /**

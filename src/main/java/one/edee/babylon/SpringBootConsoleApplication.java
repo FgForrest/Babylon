@@ -44,7 +44,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         try {
             log.info("Loading config file: '" + arguments.getConfigFileName() + "'");
             TranslationConfiguration configuration = configurationReader.readAndCheckConfiguration(arguments.getConfigFileName());
-            mainService.startTranslation(arguments.getAction(), configuration, arguments.getGoogleSheetId());
+            mainService.startTranslation(arguments.getAction(), configuration, arguments.getGoogleSheetId(), arguments.isCombineSheets());
         } catch (Exception e) {
             log.error("BABYLON ERROR: ", e);
             System.exit(-1);
@@ -56,8 +56,8 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
      * @param args
      * @return
      */
-    private Arguments parseArguments(String... args) {
-        if (args.length != 3) {
+    public static Arguments parseArguments(String... args) {
+        if (!(args.length == 3 || args.length == 4)) {
             log.error("Invalid input arguments, required: ");
             printRequiredArguments();
             System.exit(-1);
@@ -74,13 +74,17 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         }
         arguments.setConfigFileName(args[1]);
         arguments.setGoogleSheetId(args[2]);
+        if (args.length == 4){
+            arguments.setCombineSheets(Boolean.parseBoolean(args[3]));
+        }
         return arguments;
     }
 
-    private void printRequiredArguments() {
+    private static void printRequiredArguments() {
         log.info("1 - expected action (import, export)");
         log.info("2 - path to translator-config.json file");
         log.info("3 - ID of the google sheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc)");
+        log.info("4 - arg to specify combineSheets mode");
     }
 
     /**
@@ -88,7 +92,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
      * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
      */
     @Data
-    static class Arguments {
+    public static class Arguments {
 
         /**
          * See {@link Action}
@@ -104,6 +108,11 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
          * Id of the target google spreadsheet.
          */
         private String googleSheetId;
+        /**
+         * Allows to write only to one sheet with name all.
+         * This mode is useful to correct duplicates etc.
+         */
+        private boolean combineSheets = false;
     }
 
 }

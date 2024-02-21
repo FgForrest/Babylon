@@ -1,14 +1,13 @@
 package one.edee.babylon.properties;
 
-import one.edee.babylon.enums.PropertyType;
 import com.google.common.io.LineReader;
+import one.edee.babylon.enums.PropertyType;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -16,23 +15,27 @@ import java.util.Map;
  * Keeps information about row number for each row which represents values: key and value, empty lines or comments
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-public class PropertyFileActiveRecord extends LinkedHashMap<String, Property> {
+public class PropertyFileActiveRecord extends FileActiveRecord {
 
     /**
      * Loads properties from file by specified reader.
      * @param reader Some {@link Reader} implementation.
      * @throws IOException some exception derived from {@link IOException}
     */
+    @Override
     public void load(Reader reader) throws IOException {
         loadByLineReader(new LineReader(reader));
     }
 
     /**
      * Saves properties into file by specified writer.
-     * @param writer Some {@link Writer} implementation.
+     *
+     * @param writer   Some {@link Writer} implementation.
+     * @param mutation
      * @throws IOException some exception derived from {@link IOException}
-    */
-    public void save(Writer writer) throws IOException {
+     */
+    @Override
+    public void save(Writer writer, String baseFileName, String mutation) throws IOException {
         saveByBufferedWriter((writer instanceof BufferedWriter) ? (BufferedWriter)writer : new BufferedWriter(writer));
     }
 
@@ -58,10 +61,10 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, Property> {
 
     private void saveByBufferedWriter(BufferedWriter bw) throws IOException {
         synchronized (this) {
-            for (Iterator<Map.Entry<String, Property>> iterator = entrySet().iterator(); iterator.hasNext(); ) {
-                Map.Entry<String, Property> e = iterator.next();
+            for (Iterator<Map.Entry<String, AbstractProperty>> iterator = entrySet().iterator(); iterator.hasNext(); ) {
+                Map.Entry<String, AbstractProperty> e = iterator.next();
                 String key = e.getKey();
-                Property value = e.getValue();
+                AbstractProperty value = e.getValue();
                 if (value.isPropValue() || value.isPropValueMultiLine()) {
                     bw.write(key + "=" + e.getValue().getValue());
                     // Break line on all rows except last one.
@@ -85,13 +88,14 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, Property> {
     }
 
     /**
-     * Parsing one property into correct map entry with correct subclass of {@link Property} class for one line in properties file.
+     * Parsing one property into correct map entry with correct subclass of {@link AbstractProperty} class for one line in properties file.
      * @param line current line from file, from given row number
      * @param row actual row, in case of PropValueMultiLine can be increment by its row count
      * @param lr line reader is used for reading multi-line properties values escaped by '\'
      * @return map entry with key and value.
      */
     private Map.Entry<String, Property> parseProperty(String line, int row, LineReader lr) throws IOException {
+
         line = line.trim();
         if (line.contains("=")) {
             // key=value
@@ -110,7 +114,7 @@ public class PropertyFileActiveRecord extends LinkedHashMap<String, Property> {
     }
 
     /**
-     * Creates property entry with key and value. Can produce map of {@link Property} instances with type {@link PropertyType#VALUE}
+     * Creates property entry with key and value. Can produce map of {@link AbstractProperty} instances with type {@link PropertyType#VALUE}
      * or {@link PropertyType#MULTILINE}.
      * @param keyAndVal {@link String} array where 0th element is key and 1th element is value.
      * @param lr line reader is used for reading multi-line properties values escaped by '\'

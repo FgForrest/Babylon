@@ -6,6 +6,7 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -16,9 +17,13 @@ import lombok.extern.apachecommons.CommonsLog;
 import one.edee.babylon.sheets.gsheets.GSheetsClient;
 import org.springframework.lang.NonNull;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
-import java.util.*;
+import java.util.List;
 
 import static java.util.Collections.singletonList;
 
@@ -34,6 +39,7 @@ public class AuthorizedGSheetsClient implements GSheetsClient {
     private static final List<String> SCOPES = singletonList(SheetsScopes.SPREADSHEETS);
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
     private static final String GOOGLE_CREDENTIALS_JSON = "credentials.json";
+    private static final int TIMEOUT_MS = 60000;
 
     /** Use only by cached and null safe access by {@link #getCredentials(NetHttpTransport)} method. */
     private Credential credential;
@@ -50,11 +56,23 @@ public class AuthorizedGSheetsClient implements GSheetsClient {
     public Sheets getSheetService() throws GeneralSecurityException, IOException {
         if (sheetService == null) {
             final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-            sheetService = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+
+            sheetService = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, createHttpRequestInitializer(getCredentials(HTTP_TRANSPORT)))
                     .setApplicationName(APPLICATION_NAME)
                     .build();
         }
         return sheetService;
+    }
+
+    /**
+     * Add custom timeouts.
+     */
+    private HttpRequestInitializer createHttpRequestInitializer(final HttpRequestInitializer requestInitializer) {
+        return httpRequest -> {
+            requestInitializer.initialize(httpRequest);
+            httpRequest.setConnectTimeout(3 * 60000); // 3 minutes connect timeout
+            httpRequest.setReadTimeout(3 * 60000); // 3 minutes read timeout
+        };
     }
 
     /**
@@ -72,7 +90,7 @@ public class AuthorizedGSheetsClient implements GSheetsClient {
             InputStreamReader credentialsReader = null;
             try {
                 if (credentialsFile.exists()) {
-                    credentialsStream = new FileInputStream(credentialsFile);
+                    credentialsStream = Files.newInputStream(credentialsFile.toPath());
                 } else {
                     // If not exists then fallback into default credentials.json for FG Forest company in resources.
                     credentialsStream = getClass().getClassLoader().getResourceAsStream(GOOGLE_CREDENTIALS_JSON);
