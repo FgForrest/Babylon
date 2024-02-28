@@ -17,7 +17,13 @@ class FakeExporterSheetContractImpl : Exporter.SheetContract {
         sheets[spreadsheetId!!] = sheets[spreadsheetId]!!.filter { !sheetIds!!.contains(it.id) }
     }
 
-    override fun createSheet(spreadsheetId: String?, sheetTitle: String?, sheetRows: MutableList<MutableList<String>>?, lockedCellEditors: MutableList<String>?) {
+    override fun createSheet(
+        spreadsheetId: String?,
+        sheetTitle: String?,
+        sheetRows: MutableList<MutableList<String>>?,
+        lockedCellEditors: MutableList<String>?,
+        changed: MutableMap<String, MutableList<String>>
+    ) {
         sheets[spreadsheetId!!] = sheets[spreadsheetId] ?: emptyList<ASheet>() + listOf(FakeSheet(getAndIncId()))
     }
 

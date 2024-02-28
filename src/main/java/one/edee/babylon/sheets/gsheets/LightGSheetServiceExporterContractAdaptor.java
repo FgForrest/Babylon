@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +46,7 @@ public class LightGSheetServiceExporterContractAdaptor implements Exporter.Sheet
     }
 
     @Override
-    public void createSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors) throws SheetsException {
+    public void createSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors, Map<String, List<String>> changed) throws SheetsException {
         try {
             Sheet existingSheet = lightGSheetService.loadSheet(spreadsheetId, sheetTitle);
             if (existingSheet != null) {
@@ -54,7 +55,7 @@ public class LightGSheetServiceExporterContractAdaptor implements Exporter.Sheet
             lightGSheetService.uploadDataToGoogleSheet(spreadsheetId, sheetTitle, sheetRows);
             Sheet sheet = lightGSheetService.loadSheet(spreadsheetId, sheetTitle);
             Integer sheetId = sheet.getProperties().getSheetId();
-            lightGSheetService.updateSheetStyle(spreadsheetId, sheetId, lockedCellEditors);
+            lightGSheetService.updateSheetStyle(spreadsheetId, sheetTitle, sheetId, lockedCellEditors, changed);
         } catch (IOException | GeneralSecurityException e) {
             String errMsg = "Error when creating sheet '" + sheetTitle + "' in spreadsheet '" + spreadsheetId + "'";
             throw new SheetsException(errMsg, e);

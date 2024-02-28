@@ -1,14 +1,17 @@
 package one.edee.babylon.export;
 
+import com.deepl.api.TextResult;
+import com.deepl.api.Translator;
+import lombok.extern.apachecommons.CommonsLog;
 import one.edee.babylon.db.SnapshotUtils;
 import one.edee.babylon.export.dto.ExportResult;
 import one.edee.babylon.export.dto.TranslationSheet;
+import one.edee.babylon.sheets.SheetsException;
 import one.edee.babylon.sheets.gsheets.model.ASheet;
 import one.edee.babylon.snapshot.TranslationSnapshotWriteContract;
 import one.edee.babylon.util.AntPathResourceLoader;
-import one.edee.babylon.sheets.SheetsException;
 import one.edee.babylon.util.PathUtils;
-import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,25 +55,28 @@ public class Exporter {
                                         List<String> translationLangs,
                                         String spreadsheetId,
                                         Path snapshotPath,
-                                        boolean combineSheets ) {
-        walkPathsAndWriteSheets(patternPaths, translationLangs, spreadsheetId, snapshotPath, Collections.emptyList(), combineSheets);
+                                        boolean combineSheets,
+                                        String deeplApiKey) {
+        walkPathsAndWriteSheets(patternPaths, translationLangs, spreadsheetId, snapshotPath, Collections.emptyList(), combineSheets, deeplApiKey);
     }
 
     /**
      * Walks message file paths, gathering messages and translations, producing translation sheets in given GSheet spreadsheet.
      *
-     * @param patternPaths paths of message files to export
-     * @param translationLangs languages to translate messages to
-     * @param spreadsheetId id of GSheets spreadsheet, must be empty
-     * @param snapshotPath path to the translation snapshot file
+     * @param patternPaths      paths of message files to export
+     * @param translationLangs  languages to translate messages to
+     * @param spreadsheetId     id of GSheets spreadsheet, must be empty
+     * @param snapshotPath      path to the translation snapshot file
      * @param lockedCellEditors list of Google account emails, these account will have the permission to edit locked cells
+     * @param deeplApiKey
      */
     public void walkPathsAndWriteSheets(List<String> patternPaths,
                                         List<String> translationLangs,
                                         String spreadsheetId,
                                         Path snapshotPath,
                                         List<String> lockedCellEditors,
-                                        boolean combineSheets) {
+                                        boolean combineSheets,
+                                        String deeplApiKey) {
         warnDuplicatePaths(patternPaths);
 
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
@@ -102,7 +108,56 @@ public class Exporter {
             original.add(new TranslationSheet(COMBINING_SHEET_NAME,combine));
         }
 
-        uploadTranslations(result, spreadsheetId, lockedCellEditors);
+        Map<String, List<String>> changed = new HashMap<>();
+
+        if (deeplApiKey != null) {
+            try {
+                Translator translator = new Translator(deeplApiKey);
+                for (TranslationSheet sheet : result.getSheets()) {
+                    log.info("Translating sheet " + sheet.getSheetName());
+
+                    List<List<String>> rows = sheet.getRows();
+                    List<String> header = rows.get(0);
+
+
+                    for (int i = 1; i < rows.size(); i++) {
+                        Map<Integer, String> toChange = new HashMap<>();
+
+                        List<String> cells = rows.get(i);
+                        String original = cells.get(1);
+                        for (int l = 2; l < cells.size(); l++) {
+                            if (StringUtils.isEmpty(cells.get(l))) {
+
+                                String lang = header.get(l);
+
+                                if (lang.equals("en")) {
+                                    lang = "en-GB";
+                                }
+
+                                if (StringUtils.hasText(original)) {
+                                    TextResult translatedText = translator.translateText(original, null, lang);
+                                    toChange.put(l, translatedText.getText());
+
+                                    changed
+                                            .computeIfAbsent(sheet.getSheetName(), key -> new LinkedList<>())
+                                            .add(i + "_" + l);
+                                }
+                            }
+                        }
+
+                        for (Entry<Integer, String> entry : toChange.entrySet()) {
+                            cells.remove((int) entry.getKey());
+                            cells.add(entry.getKey(), entry.getValue());
+                        }
+
+                    }
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+
+        uploadTranslations(result, spreadsheetId, lockedCellEditors, changed);
 
         updateSnapshotAndWriteToDisk(this.snapshot, result, snapshotPath);
 
@@ -162,13 +217,13 @@ public class Exporter {
         }
     }
 
-    private void uploadTranslations(ExportResult exportResult, String spreadsheetId, List<String> lockedCellEditors) {
+    private void uploadTranslations(ExportResult exportResult, String spreadsheetId, List<String> lockedCellEditors, Map<String, List<String>> changed) {
         exportResult.getSheets().stream()
                 .filter(sheet -> !sheet.getDataRows().isEmpty())
                 .forEach(sheet -> {
                     try {
                         log.info("Writing " + sheet.getDataRows().size() + " rows into sheet '" + sheet.getSheetName() + "'.");
-                        gsc.createSheet(spreadsheetId, sheet.getSheetName(), sheet.getRows(), lockedCellEditors);
+                        gsc.createSheet(spreadsheetId, sheet.getSheetName(), sheet.getRows(), lockedCellEditors, changed);
                     } catch (SheetsException e) {
                         String errMsg = "Error when uploading data to spreadsheet '" + spreadsheetId + "'";
                         throw new RuntimeException(errMsg, e);
@@ -227,10 +282,12 @@ public class Exporter {
          * @param sheetTitle        name to use for the new sheet
          * @param sheetRows         rows with data cells to fill the sheet with
          * @param lockedCellEditors list of email accounts that will be able to edit locked cells
+         * @param changed
          * @throws SheetsException when unable to upload sheets
          */
-        void createSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors) throws SheetsException;
+        void createSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors, Map<String, List<String>> changed) throws SheetsException;
 
     }
+
 
 }
