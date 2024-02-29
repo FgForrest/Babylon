@@ -75,10 +75,9 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         arguments.setConfigFileName(args[1]);
         arguments.setGoogleSheetId(args[2]);
         if (args.length > 3){
-            arguments.setCombineSheets(Boolean.parseBoolean(args[3]));
+            arguments.setDeeplApiKey(args[3]);
             if (args.length > 4){
-                arguments.setDeeplApiKey(args[4]);
-
+                arguments.setCombineSheets(Boolean.parseBoolean(args[4]));
             }
         }
         return arguments;
@@ -88,8 +87,8 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         log.info("1 - expected action (import, export)");
         log.info("2 - path to translator-config.json file");
         log.info("3 - ID of the google sheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc)");
-        log.info("4 - arg to specify combineSheets mode");
-        log.info("5 - arg to specify deepl api key");
+        log.info("4 - arg to specify deepl api key");
+        log.info("5 - arg to specify combineSheets mode");
     }
 
     /**

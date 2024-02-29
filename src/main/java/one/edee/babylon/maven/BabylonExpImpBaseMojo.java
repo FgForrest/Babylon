@@ -50,8 +50,9 @@ public abstract class BabylonExpImpBaseMojo extends AbstractMojo {
         arg[0] = getAction().name();
         arg[1] = this.configFileName;
         arg[2] = this.googleSheetId;
-        arg[3] = String.valueOf(this.combineSheets);
-        arg[4] = this.deeplApiKey;
+        arg[3] = this.deeplApiKey;
+        arg[4] = String.valueOf(this.combineSheets);
+
         return arg;
     }
 
