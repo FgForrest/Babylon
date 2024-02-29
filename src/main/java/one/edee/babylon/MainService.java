@@ -34,7 +34,15 @@ public class MainService {
         switch (action) {
             case EXPORT:
                 log.info("Babylon starting...");
-                exporter.walkPathsAndWriteSheets(configuration.getPath(), configuration.getMutations(), spreadsheetId, configuration.getSnapshotPath(), configuration.getLockedCellEditors(), combineSheets, deeplApiKey);
+                exporter.walkPathsAndWriteSheets(
+                        configuration.getPath(),
+                        configuration.getMutations(),
+                        spreadsheetId,
+                        configuration.getSnapshotPath(),
+                        configuration.getLockedCellEditors(),
+                        combineSheets,
+                        deeplApiKey,
+                        configuration.getDefaultLang());
                 break;
             case IMPORT:
                 importProcessor.doImport(spreadsheetId);

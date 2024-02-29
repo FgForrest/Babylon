@@ -57,7 +57,7 @@ public class Exporter {
                                         Path snapshotPath,
                                         boolean combineSheets,
                                         String deeplApiKey) {
-        walkPathsAndWriteSheets(patternPaths, translationLangs, spreadsheetId, snapshotPath, Collections.emptyList(), combineSheets, deeplApiKey);
+        walkPathsAndWriteSheets(patternPaths, translationLangs, spreadsheetId, snapshotPath, Collections.emptyList(), combineSheets, deeplApiKey, null);
     }
 
     /**
@@ -76,7 +76,8 @@ public class Exporter {
                                         Path snapshotPath,
                                         List<String> lockedCellEditors,
                                         boolean combineSheets,
-                                        String deeplApiKey) {
+                                        String deeplApiKey,
+                                        String defaultLang) {
         warnDuplicatePaths(patternPaths);
 
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
@@ -135,7 +136,7 @@ public class Exporter {
                                 }
 
                                 if (StringUtils.hasText(original)) {
-                                    TextResult translatedText = translator.translateText(original, null, lang);
+                                    TextResult translatedText = translator.translateText(original, defaultLang, lang);
                                     toChange.put(l, translatedText.getText());
 
                                     changed

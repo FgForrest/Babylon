@@ -43,6 +43,12 @@ public class TranslationConfiguration implements Serializable {
 
     private List<String> lockedCellEditors = new ArrayList<>();
 
+    /**
+     * Default language of project properties.
+     */
+    @NonNull
+    private String defaultLang;
+
     @JsonIgnore
     public Path getSnapshotPath() {
         return Paths.get(dataFileName);
