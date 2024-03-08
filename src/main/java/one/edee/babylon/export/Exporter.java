@@ -1,7 +1,10 @@
 package one.edee.babylon.export;
 
-import com.deepl.api.TextResult;
+import com.deepl.api.DeepLException;
 import com.deepl.api.Translator;
+import com.google.api.client.http.HttpRequestInitializer;
+import com.google.cloud.translate.Translate;
+import com.google.cloud.translate.TranslateOptions;
 import lombok.extern.apachecommons.CommonsLog;
 import one.edee.babylon.db.SnapshotUtils;
 import one.edee.babylon.export.dto.ExportResult;
@@ -11,6 +14,7 @@ import one.edee.babylon.sheets.gsheets.model.ASheet;
 import one.edee.babylon.snapshot.TranslationSnapshotWriteContract;
 import one.edee.babylon.util.AntPathResourceLoader;
 import one.edee.babylon.util.PathUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -20,6 +24,9 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.google.cloud.translate.Translate.TranslateOption.sourceLanguage;
+import static com.google.cloud.translate.Translate.TranslateOption.targetLanguage;
 
 /**
  * Performs the export phase that generates translation sheets.
@@ -56,8 +63,8 @@ public class Exporter {
                                         String spreadsheetId,
                                         Path snapshotPath,
                                         boolean combineSheets,
-                                        String deeplApiKey) {
-        walkPathsAndWriteSheets(patternPaths, translationLangs, spreadsheetId, snapshotPath, Collections.emptyList(), combineSheets, deeplApiKey, null);
+                                        String translatorApiKey) {
+        walkPathsAndWriteSheets(patternPaths, translationLangs, spreadsheetId, snapshotPath, Collections.emptyList(), combineSheets, translatorApiKey, null);
     }
 
     /**
@@ -68,7 +75,7 @@ public class Exporter {
      * @param spreadsheetId     id of GSheets spreadsheet, must be empty
      * @param snapshotPath      path to the translation snapshot file
      * @param lockedCellEditors list of Google account emails, these account will have the permission to edit locked cells
-     * @param deeplApiKey
+     * @param translatorApiKey
      */
     public void walkPathsAndWriteSheets(List<String> patternPaths,
                                         List<String> translationLangs,
@@ -76,7 +83,7 @@ public class Exporter {
                                         Path snapshotPath,
                                         List<String> lockedCellEditors,
                                         boolean combineSheets,
-                                        String deeplApiKey,
+                                        String translatorApiKey,
                                         String defaultLang) {
         warnDuplicatePaths(patternPaths);
 
@@ -109,11 +116,25 @@ public class Exporter {
             original.add(new TranslationSheet(COMBINING_SHEET_NAME,combine));
         }
 
+        Map<String, List<String>> changed = translateTextsByExternalTool(translatorApiKey, defaultLang, result);
+
+        uploadTranslations(result, spreadsheetId, lockedCellEditors, changed);
+
+        updateSnapshotAndWriteToDisk(this.snapshot, result, snapshotPath);
+
+        List<Integer> prevSheetIds = prevSheets.stream().map(ASheet::getId).collect(Collectors.toList());
+        deleteOldSheets(prevSheetIds, spreadsheetId);
+    }
+
+    @NotNull
+    private static Map<String, List<String>> translateTextsByExternalTool(String translatorApiKey, String defaultLang, ExportResult result) {
         Map<String, List<String>> changed = new HashMap<>();
 
-        if (deeplApiKey != null) {
+        if (translatorApiKey != null) {
             try {
-                Translator translator = new Translator(deeplApiKey);
+//                Translator translator = new Translator(translatorApiKey);
+                //noinspection deprecation
+                Translate translate = TranslateOptions.newBuilder().setApiKey(translatorApiKey).build().getService();
                 for (TranslationSheet sheet : result.getSheets()) {
                     log.info("Translating sheet " + sheet.getSheetName());
 
@@ -136,8 +157,8 @@ public class Exporter {
                                 }
 
                                 if (StringUtils.hasText(original)) {
-                                    TextResult translatedText = translator.translateText(original, defaultLang, lang);
-                                    toChange.put(l, translatedText.getText());
+                                    String translatedText = getTranslatedTextByGoogle(defaultLang, translate, original, lang);
+                                    toChange.put(l, translatedText);
 
                                     changed
                                             .computeIfAbsent(sheet.getSheetName(), key -> new LinkedList<>())
@@ -157,14 +178,22 @@ public class Exporter {
                 log.error(e.getMessage(), e);
             }
         }
-
-        uploadTranslations(result, spreadsheetId, lockedCellEditors, changed);
-
-        updateSnapshotAndWriteToDisk(this.snapshot, result, snapshotPath);
-
-        List<Integer> prevSheetIds = prevSheets.stream().map(ASheet::getId).collect(Collectors.toList());
-        deleteOldSheets(prevSheetIds, spreadsheetId);
+        return changed;
     }
+
+    private static String getTranslatedTextByDeepl(String defaultLang, Translator translator, String original, String lang) throws DeepLException, InterruptedException {
+        return translator.translateText(original, defaultLang, lang).getText();
+    }
+
+    private static String getTranslatedTextByGoogle(String defaultLang, Translate translate, String original, String lang) {
+
+        return translate.translate(
+                        original,
+                        sourceLanguage(defaultLang),
+                        targetLanguage(lang))
+                .getTranslatedText();
+    }
+
 
     private void warnDuplicatePaths(List<String> patternPaths) {
         List<String> duplicatePaths = detectDuplicatePatternPaths(patternPaths);

@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class TsFileActiveRecord extends FileActiveRecord {
 
-    private static final String DEFAULT_LANG_DEF_IMPORT = "import type { LangDef } from '@edeeone/i18n/LangDef';";
+    private static final String DEFAULT_LANG_DEF_IMPORT = "import type { LangDef } from '@edeeone/juan-core/i18n/LangDef';";
 
     /**
      * Loads properties from file by specified reader.
@@ -75,7 +75,8 @@ public class TsFileActiveRecord extends FileActiveRecord {
         }
 
         bufferedWriter.newLine();
-        bufferedWriter.write("const " + propertyListDefName + firstLetterToUppercase(mutation) + " : LangDef<typeof " + propertyListDefName + "> = {");
+        String finalLocalizationName = firstLetterToUppercase(mutation);
+        bufferedWriter.write("const " + propertyListDefName + finalLocalizationName + ": LangDef<typeof " + propertyListDefName + "> = {");
         bufferedWriter.newLine();
 
         synchronized (this) {
@@ -84,14 +85,14 @@ public class TsFileActiveRecord extends FileActiveRecord {
                 AbstractProperty value = entry.getValue();
                 String keyDelimiter = key.matches("\\[.*]") ? "" : "'";
 
-                bufferedWriter.write("    " + keyDelimiter + key + keyDelimiter +": "+ value.getQuotedValue() + ",");
+                bufferedWriter.write("  " + keyDelimiter + key + keyDelimiter +": "+ value.getQuotedValue() + ",");
                 bufferedWriter.newLine();
             }
         }
 
         bufferedWriter.write("};");
         bufferedWriter.newLine();
-        bufferedWriter.write("export default "+baseName+";");
+        bufferedWriter.write("export default "+finalLocalizationName+";");
 
         bufferedWriter.flush();
     }

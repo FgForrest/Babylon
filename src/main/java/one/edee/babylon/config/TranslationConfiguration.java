@@ -49,6 +49,12 @@ public class TranslationConfiguration implements Serializable {
     @NonNull
     private String defaultLang;
 
+    /**
+     * Default language of project properties.
+     */
+    @NonNull
+    private String translatorApiKey;
+
     @JsonIgnore
     public Path getSnapshotPath() {
         return Paths.get(dataFileName);

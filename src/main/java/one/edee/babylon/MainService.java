@@ -29,7 +29,7 @@ public class MainService {
         this.importProcessor = importProcessor;
     }
 
-    public void startTranslation(Action action, TranslationConfiguration configuration, String spreadsheetId, boolean combineSheets, String deeplApiKey) throws IOException, GeneralSecurityException, InterruptedException {
+    public void startTranslation(Action action, TranslationConfiguration configuration, String spreadsheetId, boolean combineSheets, String translatorApiKey) throws IOException, GeneralSecurityException, InterruptedException {
         long stTime = System.currentTimeMillis();
         switch (action) {
             case EXPORT:
@@ -41,7 +41,7 @@ public class MainService {
                         configuration.getSnapshotPath(),
                         configuration.getLockedCellEditors(),
                         combineSheets,
-                        deeplApiKey,
+                        translatorApiKey,
                         configuration.getDefaultLang());
                 break;
             case IMPORT:

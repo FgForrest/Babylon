@@ -44,7 +44,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         try {
             log.info("Loading config file: '" + arguments.getConfigFileName() + "'");
             TranslationConfiguration configuration = configurationReader.readAndCheckConfiguration(arguments.getConfigFileName());
-            mainService.startTranslation(arguments.getAction(), configuration, arguments.getGoogleSheetId(), arguments.isCombineSheets(), arguments.getDeeplApiKey());
+            mainService.startTranslation(arguments.getAction(), configuration, arguments.getGoogleSheetId(), arguments.isCombineSheets(), arguments.getTranslatorApiKey());
         } catch (Exception e) {
             log.error("BABYLON ERROR: ", e);
             System.exit(-1);
@@ -75,7 +75,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         arguments.setConfigFileName(args[1]);
         arguments.setGoogleSheetId(args[2]);
         if (args.length > 3){
-            arguments.setDeeplApiKey(args[3]);
+            arguments.setTranslatorApiKey(args[3]);
             if (args.length > 4){
                 arguments.setCombineSheets(Boolean.parseBoolean(args[4]));
             }
@@ -87,7 +87,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         log.info("1 - expected action (import, export)");
         log.info("2 - path to translator-config.json file");
         log.info("3 - ID of the google sheet (e.g. 1xhnBAOpy8-9KWhl8NP0ZIy6mhlgXKnKcLJwKcIeyjPc)");
-        log.info("4 - arg to specify deepl api key");
+        log.info("4 - arg to specify translator api key");
         log.info("5 - arg to specify combineSheets mode");
     }
 
@@ -120,9 +120,9 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
         private boolean combineSheets = false;
 
         /**
-         * Deepl api key.
+         * Translator api key (Google/Deepl).
          */
-        private String deeplApiKey;
+        private String translatorApiKey;
     }
 
 }
