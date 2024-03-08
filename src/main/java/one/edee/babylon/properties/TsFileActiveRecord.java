@@ -75,8 +75,8 @@ public class TsFileActiveRecord extends FileActiveRecord {
         }
 
         bufferedWriter.newLine();
-        String finalLocalizationName = firstLetterToUppercase(mutation);
-        bufferedWriter.write("const " + propertyListDefName + finalLocalizationName + ": LangDef<typeof " + propertyListDefName + "> = {");
+        String finalLocalizationName = propertyListDefName + firstLetterToUppercase(mutation);
+        bufferedWriter.write("const " + finalLocalizationName + ": LangDef<typeof " + propertyListDefName + "> = {");
         bufferedWriter.newLine();
 
         synchronized (this) {
