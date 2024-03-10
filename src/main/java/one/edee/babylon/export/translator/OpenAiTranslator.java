@@ -56,9 +56,10 @@ public class OpenAiTranslator implements Translator {
                 lang);
 
 
+        String joined = String.join("~", original);
         List<ChatMessage> messages = Arrays.asList(
                 new ChatMessage("system", formattedSystemMessage),
-                new ChatMessage("user", String.join("~", original))
+                new ChatMessage("user", joined)
         );
 
         ChatCompletionResult chatCompletion;
@@ -81,7 +82,10 @@ public class OpenAiTranslator implements Translator {
             }
             throw e;
         }
-        return Arrays.stream(chatCompletion.getChoices().get(0).getMessage().getContent().split("~")).collect(Collectors.toList());
+        String result = chatCompletion.getChoices().get(0).getMessage().getContent();
+        List<String> output = Arrays.stream(result.split("~")).collect(Collectors.toList());
+        Assert.isTrue(output.size() == original.size(), "Size not equal " + joined + " " + result);
+        return output;
     }
 
     @Override

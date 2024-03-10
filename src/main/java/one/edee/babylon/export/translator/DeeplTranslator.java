@@ -13,6 +13,8 @@ import org.springframework.util.Assert;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * I apologize in advance for the lack of documentation in this code.
  * I had every intention of providing clear and concise explanations
@@ -43,13 +45,16 @@ public class DeeplTranslator implements one.edee.babylon.export.translator.Trans
         if (lang.equals("en")) {
             lang = "en-GB";
         }
+
+        String contextMessage = System.getProperty("babylon.deepl.context");
         try {
             return service.translateText(
                             original,
                             defaultLang,
                             lang,
                             new TextTranslationOptions()
-                                    .setContext("You are eshop translator. Do not translate text from other languages then source lang, or technical texts."))
+                                    .setContext(ofNullable(contextMessage)
+                                            .orElse("You are eshop translator. Do not translate text from other languages then source lang, or technical texts.")))
                     .stream()
                     .map(TextResult::getText)
                     .collect(Collectors.toList());
