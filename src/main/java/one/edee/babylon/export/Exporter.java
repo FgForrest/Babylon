@@ -1,20 +1,21 @@
 package one.edee.babylon.export;
 
-import com.deepl.api.DeepLException;
-import com.deepl.api.Translator;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.cloud.translate.Translate;
-import com.google.cloud.translate.TranslateOptions;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.apachecommons.CommonsLog;
+import one.edee.babylon.config.SupportedTranslators;
+import one.edee.babylon.config.TranslationConfiguration;
 import one.edee.babylon.db.SnapshotUtils;
 import one.edee.babylon.export.dto.ExportResult;
 import one.edee.babylon.export.dto.TranslationSheet;
+import one.edee.babylon.export.translator.Translator;
 import one.edee.babylon.sheets.SheetsException;
 import one.edee.babylon.sheets.gsheets.model.ASheet;
 import one.edee.babylon.snapshot.TranslationSnapshotWriteContract;
 import one.edee.babylon.util.AntPathResourceLoader;
 import one.edee.babylon.util.PathUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationContext;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -25,66 +26,35 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.google.cloud.translate.Translate.TranslateOption.sourceLanguage;
-import static com.google.cloud.translate.Translate.TranslateOption.targetLanguage;
+import static java.util.Optional.ofNullable;
 
 /**
  * Performs the export phase that generates translation sheets.
  */
 @CommonsLog
+@RequiredArgsConstructor
 public class Exporter {
     private static final String COMBINING_SHEET_NAME = "ALL";
 
 
+    private final ApplicationContext applicationContext;
     private final TranslationCollector translationCollector;
     private final TranslationSnapshotWriteContract snapshot;
     private final SheetContract gsc;
     private final AntPathResourceLoader resourceLoader;
-    private final PathUtils pu;
+    private final PathUtils pu = new PathUtils();
 
-    public Exporter(TranslationCollector translationCollector, TranslationSnapshotWriteContract snapshot, SheetContract gsc, AntPathResourceLoader resourceLoader) {
-        this.translationCollector = translationCollector;
-        this.snapshot = snapshot;
-        this.gsc = gsc;
-        this.resourceLoader = resourceLoader;
-        this.pu = new PathUtils();
-    }
 
     /**
      * Walks message file paths, gathering messages and translations, producing translation sheets in given GSheet spreadsheet.
      *
-     * @param patternPaths paths of message files to export
-     * @param translationLangs languages to translate messages to
-     * @param spreadsheetId id of GSheets spreadsheet, must be empty
-     * @param snapshotPath path to the translation snapshot file
-     */
-    public void walkPathsAndWriteSheets(List<String> patternPaths,
-                                        List<String> translationLangs,
-                                        String spreadsheetId,
-                                        Path snapshotPath,
-                                        boolean combineSheets,
-                                        String translatorApiKey) {
-        walkPathsAndWriteSheets(patternPaths, translationLangs, spreadsheetId, snapshotPath, Collections.emptyList(), combineSheets, translatorApiKey, null);
-    }
-
-    /**
-     * Walks message file paths, gathering messages and translations, producing translation sheets in given GSheet spreadsheet.
-     *
-     * @param patternPaths      paths of message files to export
-     * @param translationLangs  languages to translate messages to
+     * @param configuration     configuration of translation run
      * @param spreadsheetId     id of GSheets spreadsheet, must be empty
-     * @param snapshotPath      path to the translation snapshot file
-     * @param lockedCellEditors list of Google account emails, these account will have the permission to edit locked cells
-     * @param translatorApiKey
      */
-    public void walkPathsAndWriteSheets(List<String> patternPaths,
-                                        List<String> translationLangs,
+    public void walkPathsAndWriteSheets(TranslationConfiguration configuration,
                                         String spreadsheetId,
-                                        Path snapshotPath,
-                                        List<String> lockedCellEditors,
-                                        boolean combineSheets,
-                                        String translatorApiKey,
-                                        String defaultLang) {
+                                        boolean combineSheets) {
+        List<String> patternPaths = configuration.getPath();
         warnDuplicatePaths(patternPaths);
 
         List<ASheet> prevSheets = listAllSheets(spreadsheetId);
@@ -95,7 +65,7 @@ public class Exporter {
             throw new IllegalArgumentException("Please fix the message file paths in the configuration file.");
         }
 
-        ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, translationLangs);
+        ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, configuration.getMutations());
 
         if (combineSheets) {
             // only for translation debugging
@@ -116,31 +86,43 @@ public class Exporter {
             original.add(new TranslationSheet(COMBINING_SHEET_NAME,combine));
         }
 
-        Map<String, List<String>> changed = translateTextsByExternalTool(translatorApiKey, defaultLang, result);
+        Map<String, List<String>> changed = translateTextsByExternalTool(configuration, result);
 
-        uploadTranslations(result, spreadsheetId, lockedCellEditors, changed);
+        uploadTranslations(result, spreadsheetId, configuration.getLockedCellEditors(), changed);
 
-        updateSnapshotAndWriteToDisk(this.snapshot, result, snapshotPath);
+        updateSnapshotAndWriteToDisk(this.snapshot, result, configuration.getSnapshotPath());
 
         List<Integer> prevSheetIds = prevSheets.stream().map(ASheet::getId).collect(Collectors.toList());
         deleteOldSheets(prevSheetIds, spreadsheetId);
     }
 
     @NotNull
-    private static Map<String, List<String>> translateTextsByExternalTool(String translatorApiKey, String defaultLang, ExportResult result) {
+    private Map<String, List<String>> translateTextsByExternalTool(TranslationConfiguration configuration, ExportResult result) {
         Map<String, List<String>> changed = new HashMap<>();
 
-        if (translatorApiKey != null) {
+        if (configuration.getTranslatorApiKey() != null) {
+            SupportedTranslators translatorType = ofNullable(configuration.getTranslator()).orElse(SupportedTranslators.GOOGLE);
+
+            Translator translator = applicationContext.getBeansOfType(Translator.class)
+                    .values()
+                    .stream()
+                    .filter(i -> i.getSupportedTranslator().equals(translatorType))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Cannot find translator bean for type" + translatorType));
+            translator.init(configuration.getTranslatorApiKey());
+
             try {
-//                Translator translator = new Translator(translatorApiKey);
-                //noinspection deprecation
-                Translate translate = TranslateOptions.newBuilder().setApiKey(translatorApiKey).build().getService();
                 for (TranslationSheet sheet : result.getSheets()) {
                     log.info("Translating sheet " + sheet.getSheetName());
 
                     List<List<String>> rows = sheet.getRows();
                     List<String> header = rows.get(0);
+                    List<String> originals = rows.stream().map(i->i.get(1)).map(i->StringUtils.hasText(i) ? i : "____DUMMY").collect(Collectors.toList());
+                    Map<String, List<String>> translations = new HashMap<>();
 
+                    for (String lang : header.stream().skip(2).collect(Collectors.toList())) {
+                        translations.put(lang, translator.translate(configuration.getDefaultLang(), originals, lang));
+                    }
 
                     for (int i = 1; i < rows.size(); i++) {
                         Map<Integer, String> toChange = new HashMap<>();
@@ -152,17 +134,17 @@ public class Exporter {
 
                                 String lang = header.get(l);
 
-                                if (lang.equals("en")) {
-                                    lang = "en-GB";
-                                }
-
                                 if (StringUtils.hasText(original)) {
-                                    String translatedText = getTranslatedTextByGoogle(defaultLang, translate, original, lang);
-                                    toChange.put(l, translatedText);
+                                    String transOriginal = originals.get(i);
+                                    if (!Objects.equals(original, "____DUMMY")){
+                                        Assert.isTrue(Objects.equals(transOriginal, original), "Originals does not equals!");
+                                        String translatedText = translations.get(lang).get(i);
+                                        toChange.put(l, translatedText);
 
-                                    changed
-                                            .computeIfAbsent(sheet.getSheetName(), key -> new LinkedList<>())
-                                            .add(i + "_" + l);
+                                        changed
+                                                .computeIfAbsent(sheet.getSheetName(), key -> new LinkedList<>())
+                                                .add(i + "_" + l);
+                                    }
                                 }
                             }
                         }
@@ -180,20 +162,6 @@ public class Exporter {
         }
         return changed;
     }
-
-    private static String getTranslatedTextByDeepl(String defaultLang, Translator translator, String original, String lang) throws DeepLException, InterruptedException {
-        return translator.translateText(original, defaultLang, lang).getText();
-    }
-
-    private static String getTranslatedTextByGoogle(String defaultLang, Translate translate, String original, String lang) {
-
-        return translate.translate(
-                        original,
-                        sourceLanguage(defaultLang),
-                        targetLanguage(lang))
-                .getTranslatedText();
-    }
-
 
     private void warnDuplicatePaths(List<String> patternPaths) {
         List<String> duplicatePaths = detectDuplicatePatternPaths(patternPaths);

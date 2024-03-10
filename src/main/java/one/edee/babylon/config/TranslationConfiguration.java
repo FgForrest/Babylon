@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.nio.file.Path;
@@ -52,7 +53,13 @@ public class TranslationConfiguration implements Serializable {
     /**
      * Default language of project properties.
      */
-    @NonNull
+    @Nullable
+    private SupportedTranslators translator;
+
+    /**
+     * Default language of project properties.
+     */
+    @Nullable
     private String translatorApiKey;
 
     @JsonIgnore

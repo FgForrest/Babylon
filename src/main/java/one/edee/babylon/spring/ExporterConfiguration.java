@@ -8,21 +8,25 @@ import one.edee.babylon.snapshot.SnapshotAdapter;
 import one.edee.babylon.snapshot.TranslationSnapshotReadContract;
 import one.edee.babylon.snapshot.TranslationSnapshotWriteContract;
 import one.edee.babylon.util.AntPathResourceLoader;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.util.List;
 
 @Configuration
+@ComponentScan(basePackages = "one.edee.babylon.export.translator")
 public class ExporterConfiguration {
 
     @Bean
-    public Exporter exporter(TranslationCollector translationCollector,
+    public Exporter exporter(ApplicationContext applicationContext,
+                             TranslationCollector translationCollector,
                              TranslationSnapshotWriteContract snapshot,
                              Exporter.SheetContract sheetContract,
                              AntPathResourceLoader resourceLoader) {
-        return new Exporter(translationCollector, snapshot, sheetContract, resourceLoader);
+        return new Exporter(applicationContext, translationCollector, snapshot, sheetContract, resourceLoader);
     }
 
     @Bean

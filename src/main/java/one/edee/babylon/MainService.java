@@ -29,20 +29,15 @@ public class MainService {
         this.importProcessor = importProcessor;
     }
 
-    public void startTranslation(Action action, TranslationConfiguration configuration, String spreadsheetId, boolean combineSheets, String translatorApiKey) throws IOException, GeneralSecurityException, InterruptedException {
+    public void startTranslation(Action action, TranslationConfiguration configuration, String spreadsheetId, boolean combineSheets) throws IOException, GeneralSecurityException, InterruptedException {
         long stTime = System.currentTimeMillis();
         switch (action) {
             case EXPORT:
                 log.info("Babylon starting...");
                 exporter.walkPathsAndWriteSheets(
-                        configuration.getPath(),
-                        configuration.getMutations(),
+                        configuration,
                         spreadsheetId,
-                        configuration.getSnapshotPath(),
-                        configuration.getLockedCellEditors(),
-                        combineSheets,
-                        translatorApiKey,
-                        configuration.getDefaultLang());
+                        combineSheets);
                 break;
             case IMPORT:
                 importProcessor.doImport(spreadsheetId);

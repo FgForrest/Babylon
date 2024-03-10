@@ -14,7 +14,6 @@ public abstract class BabylonExpImpBaseMojo extends AbstractMojo {
     public static final String CONFIG_FILE_PARAM = "config.file";
     public static final String GOOGLE_SHEET_ID_PARAM = "google.sheet.id";
     public static final String COMBINE_SHEET_PARAM = "combine.sheets";
-    public static final String TRANSLATOR_API_KEY_PARAM = "translator.api.key";
 
     /**
      * File name and relative path to the Json configuration file.
@@ -34,12 +33,6 @@ public abstract class BabylonExpImpBaseMojo extends AbstractMojo {
     @Parameter(property = COMBINE_SHEET_PARAM)
     private Boolean combineSheets;
 
-    /**
-     * Translator api key (Google/Deepl).
-     */
-    @Parameter(property = TRANSLATOR_API_KEY_PARAM)
-    private String translatorApiKey;
-
     @Override
     public void execute() {
         SpringBootConsoleApplication.main(getArguments());
@@ -50,8 +43,7 @@ public abstract class BabylonExpImpBaseMojo extends AbstractMojo {
         arg[0] = getAction().name();
         arg[1] = this.configFileName;
         arg[2] = this.googleSheetId;
-        arg[3] = this.translatorApiKey;
-        arg[4] = String.valueOf(this.combineSheets);
+        arg[3] = String.valueOf(this.combineSheets);
 
         return arg;
     }
