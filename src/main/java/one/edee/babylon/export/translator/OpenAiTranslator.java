@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,7 +41,7 @@ public class OpenAiTranslator implements Translator {
 
     @Override
     public void init(@NotNull String apiKey) {
-        service = new OpenAiService(apiKey);
+        service = new OpenAiService(apiKey, Duration.ofSeconds(60L));
     }
 
     @SneakyThrows
