@@ -48,7 +48,7 @@ public class OpenAiTranslator implements Translator {
     public List<String> translate(@Nullable String defaultLang, @NotNull List<String> original, @NotNull String lang) {
         Assert.notNull(service, "Init method with api key has to be called before translation!");
 
-        String systemMessage = System.getProperty("babylon.opanai.systemMessage");
+        String systemMessage = System.getProperty("babylon.openai.systemMessage");
         String formattedSystemMessage = String.format(
                 ofNullable(systemMessage)
                         .orElse("You are translator that translate eshop messages from %s to %s. If you cannot translate it, return original text. Texts to translate are combined by '~'. Split input by comma, translate and return in same format."),
@@ -67,7 +67,7 @@ public class OpenAiTranslator implements Translator {
             chatCompletion = service.createChatCompletion(
                     ChatCompletionRequest
                             .builder()
-                            .model(ofNullable(System.getProperty("babylon.opanai.model")).orElse("gpt-3.5-turbo-16k-0613"))
+                            .model(ofNullable(System.getProperty("babylon.openai.model")).orElse("gpt-3.5-turbo-16k-0613"))
                             .messages(
                                     messages
                             )
