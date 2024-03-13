@@ -145,7 +145,8 @@ public class LightGSheetService {
         List<Request> requests = new LinkedList<>();
         requests.add(gSheetsRequestFactory.setWrapWrappingStrategyForAllCells(sheetId));
         requests.add(gSheetsRequestFactory.resizeAllColumns(sheetId, COLUMN_WIDTH));
-        requests.add(gSheetsRequestFactory.protectCellsInFirstTwoColumns(sheetId, lockedCellEditors));
+        if (!lockedCellEditors.isEmpty())
+            requests.add(gSheetsRequestFactory.protectCellsInFirstTwoColumns(sheetId, lockedCellEditors));
         requests.add(gSheetsRequestFactory.hideFirstColumn(sheetId));
         requests.addAll(gSheetsRequestFactory.changeCellColor(sheetId, sheetTitle, changed));
 
