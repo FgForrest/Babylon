@@ -75,7 +75,7 @@ public class ImportProcessor {
             importSheetProcessor.processSheet(sheet, snapshot);
         }
 
-        Map<String, MessageFileContent> dataPropFiles = snapshotManager.getOrCreateDataFile().getDataPropFiles();
+        Map<String, MessageFileContent> dataPropFiles = snapshotManager.getOrCreateDataFile().getProps();
         saveTranslations(statistics, configuration.getMutations(), dataPropFiles);
 
         saveDataFile(snapshot, configuration.getDataFileName());
@@ -89,7 +89,7 @@ public class ImportProcessor {
      * @throws IOException some exception derived from {@link IOException}
      */
     private void saveDataFile(Snapshot snapshot, String dbFileName) throws IOException {
-        if (!snapshot.getDataPropFiles().isEmpty()) {
+        if (!snapshot.getProps().isEmpty()) {
             File toFile = new File(dbFileName);
             SnapshotUtils.writeSnapshot(snapshot, toFile);
         } else {
@@ -190,12 +190,11 @@ public class ImportProcessor {
             log.info("Property keys only in mutation file \"" + String.join(",", propsOnlyInMutation.keySet()) + "\"");
         }
 
-        PropertiesMap primaryProperties = messageFileContent.getProperties();
         // Removes all properties, that does not occur in sheet and was not in mutation properties file before - e.g. loaded from original props..
         List<String> propsToRemove = updatedFileProps
                 .entrySet()
                 .stream()
-                .filter(k -> k.getValue().getValue().equals(SheetConstants.EMPTY_VAL) && !primaryProperties.containsKey(k.getKey()))
+                .filter(k -> k.getValue().getValue().equals(SheetConstants.EMPTY_VAL) && !messageFileContent.containsKey(k.getKey()))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
         propsToRemove.forEach(updatedFileProps::remove);

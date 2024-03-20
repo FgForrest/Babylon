@@ -113,9 +113,12 @@ public class Exporter {
 
             try {
                 for (TranslationSheet sheet : result.getSheets()) {
-                    log.info("Translating sheet " + sheet.getSheetName());
 
                     List<List<String>> rows = sheet.getRows();
+                    if (rows.size() == 1)
+                        continue;
+
+                    log.info("Translating sheet " + sheet.getSheetName());
                     List<String> header = rows.get(0);
                     List<String> originals = rows.stream().map(i->i.get(1)).map(i->StringUtils.hasText(i) ? i : "____DUMMY").collect(Collectors.toList());
                     Map<String, List<String>> translations = new HashMap<>();
