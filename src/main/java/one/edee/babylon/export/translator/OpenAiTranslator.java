@@ -1,8 +1,6 @@
 package one.edee.babylon.export.translator;
 
 import com.theokanning.openai.OpenAiHttpException;
-import com.theokanning.openai.completion.CompletionRequest;
-import com.theokanning.openai.completion.CompletionResult;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
@@ -63,6 +61,26 @@ public class OpenAiTranslator implements Translator {
                 new ChatMessage("user", joined)
         );
 
+        int tries = 5;
+        List<String> output;
+        do {
+            // translator in some cases returns fewer results than expected, try it again 5 times
+            String result = translateInner(messages, original);
+            output = Arrays.stream(result.split("~")).collect(Collectors.toList());
+            if (output.size() != original.size())
+                log.warn("Size not equal " + joined + " " + result);
+            tries--;
+        }while (tries > 0 && output.size() != original.size());
+
+        // if it occurs even after 5 tries, throw exception
+        if (output.size() != original.size())
+            throw new IllegalArgumentException("Size not equal, even after 5 tries!");
+
+        return output;
+    }
+
+    private String translateInner(List<ChatMessage> messages, @NotNull List<String> original) throws InterruptedException {
+
         ChatCompletionResult chatCompletion;
         try{
             chatCompletion = service.createChatCompletion(
@@ -79,14 +97,11 @@ public class OpenAiTranslator implements Translator {
             if (e.getMessage().contains("Please try again in 20s")){
                 log.info("Rate limit reached, will try again in 20 secs! Translate in progress " + original);
                 Thread.sleep(20_000);
-                return translate(defaultLang, original, lang);
+                return translateInner(messages, original);
             }
             throw e;
         }
-        String result = chatCompletion.getChoices().get(0).getMessage().getContent();
-        List<String> output = Arrays.stream(result.split("~")).collect(Collectors.toList());
-        Assert.isTrue(output.size() == original.size(), "Size not equal " + joined + " " + result);
-        return output;
+        return chatCompletion.getChoices().get(0).getMessage().getContent();
     }
 
     @Override

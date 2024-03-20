@@ -42,7 +42,7 @@ public class TestUtils {
     }
 
     public static TranslationConfiguration createTestConfiguration() {
-        TranslationConfiguration configuration = new TranslationConfiguration("translation-db.json");
+        TranslationConfiguration configuration = new TranslationConfiguration("translation-db.json", "cz");
         configuration.addFileToPath("src\\test\\resources\\META-INF\\lib_eshop_edee\\country.properties");
         configuration.addFileToPath("src\\test\\resources\\META-INF\\09_mail_form\\messages.properties");
         configuration.addFileToPath("src\\test\\resources\\META-INF\\goPayGate\\*.properties");

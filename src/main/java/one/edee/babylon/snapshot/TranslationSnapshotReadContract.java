@@ -1,5 +1,8 @@
 package one.edee.babylon.snapshot;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.NoSuchElementException;
 
@@ -32,14 +35,5 @@ public interface TranslationSnapshotReadContract {
      */
     boolean containsMessage(String msgKey, String msgFile);
 
-    /**
-     * Return the message value of the message key {@code msgKey} as captured in the snapshot.
-     *
-     * @param msgKey key of the message to retrieve from message file {@msgFile}
-     * @param msgFile message file path that will be examined for given {@msgKey}
-     * @throws NoSuchElementException if snapshot of file {@code msgFile} does not contain message with key {@code msgKey}
-     * of if the snapshot doesn't include {@code msgFile} at all
-     */
-    String getLastMessageValue(String msgKey, String msgFile);
-
+    boolean hasSameMessage(@NotNull String msgKey, @NotNull String msgFile, @Nullable String currentMsg);
 }
