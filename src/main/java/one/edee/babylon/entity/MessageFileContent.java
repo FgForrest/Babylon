@@ -113,7 +113,9 @@ public class MessageFileContent implements Serializable {
 
     private String normalizeContent(String value) {
         String lineSeparator = System.lineSeparator();
-        return lineSeparator.equals(IOUtils.LINE_SEPARATOR_WINDOWS) ? value : value.replace(lineSeparator, IOUtils.LINE_SEPARATOR_WINDOWS);
+        if (lineSeparator.equals(IOUtils.LINE_SEPARATOR_WINDOWS))
+            return value;
+        return value == null ? null : value.replace(lineSeparator, IOUtils.LINE_SEPARATOR_WINDOWS);
     }
 
     public boolean containsKey(String key) {
