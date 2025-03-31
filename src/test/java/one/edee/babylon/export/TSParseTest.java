@@ -58,7 +58,7 @@ public class TSParseTest {
     @Test
     public void testParse() {
         // Define the path to your TypeScript file
-        String filePath = "src/test/resources/one/edee/babylon/export/test.ts";
+        String filePath = "src/test/resources/META-INF/addresses/addresses.ts";
 
         // Create a Map to store the internationalization key-value pairs
         Map<String, String> i18nMap = new HashMap<>();

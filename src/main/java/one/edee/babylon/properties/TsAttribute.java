@@ -10,13 +10,13 @@ import one.edee.babylon.enums.PropertyType;
  *
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
+@Setter
 @Getter
 @EqualsAndHashCode(callSuper = false)
 public class TsAttribute extends AbstractProperty {
     public static final String MULTI_LINE_DELIMITER = "`";
     public static final String SINGLE_LINE_DELIMITER = "'";
 
-    @Setter
     private String value;
 
     public TsAttribute(PropertyType type, String value) {
@@ -28,6 +28,10 @@ public class TsAttribute extends AbstractProperty {
     public String getQuotedValue() {
         String delimiter = isPropValueMultiLine() ? MULTI_LINE_DELIMITER : SINGLE_LINE_DELIMITER;
 
+        if (value.contains(delimiter)) {
+            // Escape the delimiter
+            value = value.replace(delimiter, "\\" + delimiter);
+        }
         if (isPropEmptyLine()) {
             return "";
         }

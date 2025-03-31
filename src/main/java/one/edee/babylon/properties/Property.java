@@ -1,6 +1,7 @@
 package one.edee.babylon.properties;
 
 import one.edee.babylon.enums.PropertyType;
+import org.apache.commons.io.IOUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.LinkedList;
@@ -25,7 +26,7 @@ public class Property extends AbstractProperty {
     }
 
     void addLine(String line) {
-        lines.add(line.replace(System.lineSeparator(), ""));
+        lines.add(line.replace(System.lineSeparator(), "").replace(IOUtils.LINE_SEPARATOR_WINDOWS, ""));
     }
 
     public Integer getRowCount() {
@@ -73,7 +74,7 @@ public class Property extends AbstractProperty {
             String line = lines.get(i);
             sb.append(line);
             if (i < lines.size()-1 && !line.endsWith(System.lineSeparator())) {
-                sb.append(System.lineSeparator());
+                sb.append(IOUtils.LINE_SEPARATOR_WINDOWS);
             }
         }
         return sb.toString();

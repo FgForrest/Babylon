@@ -15,6 +15,7 @@ import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import lombok.extern.apachecommons.CommonsLog;
 import one.edee.babylon.sheets.gsheets.GSheetsClient;
+import org.apache.commons.lang3.SystemUtils;
 import org.springframework.lang.NonNull;
 
 import java.io.File;
@@ -104,7 +105,11 @@ public class AuthorizedGSheetsClient implements GSheetsClient {
                         .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
                         .setAccessType("offline")
                         .build();
-                LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+                LocalServerReceiver.Builder builder = new LocalServerReceiver.Builder();
+                if (SystemUtils.IS_OS_MAC){
+                    builder.setHost("127.0.0.1");
+                }
+                LocalServerReceiver receiver = builder.setPort(8888).build();
                 credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
             } finally {
                 if (credentialsStream != null) {
