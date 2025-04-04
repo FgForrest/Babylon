@@ -2,6 +2,7 @@ package one.edee.babylon.export;
 
 import de.poiu.apron.java.util.Properties;
 import one.edee.babylon.msgfile.TranslationFileUtils;
+import one.edee.babylon.properties.Property;
 import one.edee.babylon.util.FileUtils;
 import de.poiu.apron.PropertyFile;
 
@@ -12,6 +13,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ApronMessageLoader implements MessageLoader {
+    public static final String PROPERTIES_FILE_EXTENSION = ".properties";
+
+    @Override
+    public boolean canBeLoaded(String filePath) {
+        return filePath.endsWith(PROPERTIES_FILE_EXTENSION);
+    }
 
     @Override
     public Map<String, String> loadPrimaryMessages(String filePath) {
@@ -63,7 +70,7 @@ public class ApronMessageLoader implements MessageLoader {
     }
 
     String cleanPropertyValue(String rawValue) {
-        return rawValue.trim();
+        return Property.clearValue(rawValue).trim();
     }
 
     private File fileFromPath(String path) {

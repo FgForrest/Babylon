@@ -2,6 +2,8 @@ package one.edee.babylon.snapshot;
 
 import one.edee.babylon.entity.MessageFileContent;
 import one.edee.babylon.entity.PropertiesMap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
@@ -29,7 +31,7 @@ public class SnapshotAdapter implements TranslationSnapshotReadContract, Transla
 
     @Override
     public Collection<String> listMsgFiles() {
-        return snapshot.dataPropFiles.keySet();
+        return snapshot.getPaths();
     }
 
     @Override
@@ -40,37 +42,40 @@ public class SnapshotAdapter implements TranslationSnapshotReadContract, Transla
 
     @Override
     public void removeMsgFilePaths(Collection<String> msgFilePaths) {
-        snapshot.dataPropFiles.keySet().removeAll(msgFilePaths);
+        snapshot.removePaths(msgFilePaths);
     }
 
     @Override
     public boolean containsMessage(String msgKey, String msgFile) {
         if (!includesMsgFile(msgFile)) return false;
-        return containsMessageInProps(msgKey, getTranslationProperties(msgFile));
-    }
 
-    private boolean containsMessageInProps(String msgKey, PropertiesMap msgProps) {
-        // PropertiesMap replaces null values with empty strings internally
-        return msgProps.containsKey(msgKey) && msgProps.get(msgKey) != null && !msgProps.get(msgKey).isEmpty();
-    }
-
-    private PropertiesMap getTranslationProperties(String msgFile) {
         if (!includesMsgFile(msgFile)) {
             // caller should have asked before
             throw new NoSuchElementException("Translation snapshot doesn't contain message file '$msgFile'.");
         }
-        return snapshot.getPropFileByFileName(msgFile).getProperties();
+        MessageFileContent propFileByFileName = snapshot.getPropFileByFileName(msgFile);
+        return containsMessageInProps(msgKey, propFileByFileName);
+    }
+
+    private boolean containsMessageInProps(String msgKey, MessageFileContent propFileByFileName) {
+        // PropertiesMap replaces null values with empty strings internally
+        return propFileByFileName.containsKey(msgKey) && propFileByFileName.getPropertyValue(msgKey) != null && !propFileByFileName.getPropertyValue(msgKey).isEmpty();
     }
 
     @Override
-    public String getLastMessageValue(String msgKey, String msgFile) {
-        PropertiesMap msgProps = getTranslationProperties(msgFile);
-        if (!containsMessageInProps(msgKey, msgProps)) {
+    public boolean hasSameMessage(@NotNull String msgKey, @NotNull String msgFile, @Nullable String currentMsg) {
+
+        if (!includesMsgFile(msgFile)) {
+            // caller should have asked before
+            throw new NoSuchElementException("Translation snapshot doesn't contain message file '$msgFile'.");
+        }
+        MessageFileContent propFileByFileName = snapshot.getPropFileByFileName(msgFile);
+        if (!containsMessageInProps(msgKey, propFileByFileName)) {
             // caller should have asked before
             String errMsg = "No message for key '" + msgKey + "' in '" + msgFile +"' message file snapshot.";
             throw new NoSuchElementException(errMsg);
         }
-        return msgProps.get(msgKey);
+        return propFileByFileName.hasSameValue(msgKey, currentMsg);
     }
 
 }

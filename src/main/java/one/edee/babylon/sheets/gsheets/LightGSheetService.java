@@ -8,10 +8,7 @@ import lombok.extern.apachecommons.CommonsLog;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -136,19 +133,25 @@ public class LightGSheetService {
      * Updates style of an existing sheet.
      * Sets wrapping strategy, resizes columns, protects firs two columns, hides first column.
      *
-     * @param spreadsheetId id of spreadsheet to find sheet to update style
-     * @param sheetId id of sheet to update
+     * @param spreadsheetId     id of spreadsheet to find sheet to update style
+     * @param sheetTitle
+     * @param sheetId           id of sheet to update
      * @param lockedCellEditors list of account emails to receive edit permissions on locked cells
+     * @param changed
      * @throws GeneralSecurityException
      * @throws IOException
      */
-    public void updateSheetStyle(String spreadsheetId, Integer sheetId, List<String> lockedCellEditors) throws GeneralSecurityException, IOException {
-        Request setWrappingStrategy = gSheetsRequestFactory.setWrapWrappingStrategyForAllCells(sheetId);
-        Request resizeColumns = gSheetsRequestFactory.resizeAllColumns(sheetId, COLUMN_WIDTH);
-        Request protectColumns = gSheetsRequestFactory.protectCellsInFirstTwoColumns(sheetId, lockedCellEditors);
-        Request hideColumn = gSheetsRequestFactory.hideFirstColumn(sheetId);
+    public void updateSheetStyle(String spreadsheetId, String sheetTitle, Integer sheetId, List<String> lockedCellEditors, Map<String, List<String>> changed) throws GeneralSecurityException, IOException {
+        List<Request> requests = new LinkedList<>();
+        requests.add(gSheetsRequestFactory.setWrapWrappingStrategyForAllCells(sheetId));
+        requests.add(gSheetsRequestFactory.resizeAllColumns(sheetId, COLUMN_WIDTH));
+        if (!lockedCellEditors.isEmpty())
+            requests.add(gSheetsRequestFactory.protectCellsInFirstTwoColumns(sheetId, lockedCellEditors));
+        requests.add(gSheetsRequestFactory.hideFirstColumn(sheetId));
+        requests.addAll(gSheetsRequestFactory.changeCellColor(sheetId, sheetTitle, changed));
 
-        executeRequests(spreadsheetId, setWrappingStrategy, resizeColumns, protectColumns, hideColumn);
+        executeRequests(spreadsheetId, requests.toArray(new Request[0]));
+
     }
 
     public void deleteSheets(String spreadsheetId, Collection<Integer> sheetIds) throws GeneralSecurityException, IOException {

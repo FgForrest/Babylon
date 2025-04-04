@@ -5,6 +5,12 @@ import java.util.Map;
 
 public interface MessageLoader {
 
+
+    /**
+     * Indicates whether file could be loaded by implementation.
+     */
+    boolean canBeLoaded(String filePath);
+
     /**
      * Loads primary language messages for given message file path.
      *

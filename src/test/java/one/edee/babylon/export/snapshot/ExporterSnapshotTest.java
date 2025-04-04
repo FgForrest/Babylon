@@ -16,6 +16,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,9 +30,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -90,22 +89,24 @@ public class ExporterSnapshotTest {
     public void when_snapshot_does_not_exist_yet__then_new_snapshot_contains_empty_content_of_message_files__01() throws IOException {
         Path newSnapshot = Files.createTempFile(testDir, "empty-snapshot", ".json");
         File msgFile = ResourceUtils.loadRelativeResourceAsFile("01-single.properties", testDir, this.getClass());
-        List<String> paths = Arrays.asList(msgFile.toString());
-        List<String> langs = Arrays.asList("sk", "en");
 
-        exporter.walkPathsAndWriteSheets(paths, langs, "N/A", newSnapshot);
+        TranslationConfiguration configuration = new TranslationConfiguration();
+        configuration.setMutations(Arrays.asList("sk", "en"));
+        configuration.setPath(Collections.singletonList(msgFile.toString()));
+        configuration.setDataFileName(newSnapshot.toAbsolutePath().toString());
+        exporter.walkPathsAndWriteSheets(configuration, "N/A", false);
 
         assertThat("When a single message file was processed, then there should be one sheet created", fakeSheets.getSheets().size(), equalTo(1));
 
         // manually load resulting snapshot file to examine it
         Snapshot resultingSnapshot = SnapshotUtils.readSnapshot(newSnapshot);
-        Map<String, MessageFileContent> msgFiles = resultingSnapshot.getDataPropFiles();
+        Map<String, MessageFileContent> msgFiles = resultingSnapshot.getProps();
 
         String msgFilePath = msgFile.getAbsolutePath();
         assertThat("When single message file is exported and the snapshot is empty, then the snapshot must contain exactly one record", msgFiles, is(aMapWithSize(1)));
         assertThat("...then the snapshot must contain the message file", msgFiles, hasKey(msgFilePath));
         assertThat("...then the message file must must be stored under id=0", msgFiles.get(msgFilePath).getId(), equalTo(0));
-        assertThat("...then the content of the message file in snapshot must be empty (until it is imported back)", msgFiles.get(msgFilePath).getProperties(), is(anEmptyMap()));
+        assertThat("...then the content of the message file in snapshot must be empty (until it is imported back)", msgFiles.get(msgFilePath).getPropertiesSize(), equalTo(0));
     }
 
     private Path getSnapshotAndReplacePlaceholder(String snapshotPath, String placeholder, String replaceWith) throws IOException {
@@ -126,24 +127,28 @@ public class ExporterSnapshotTest {
 
         Path existingSnapshotFile = getSnapshotAndReplacePlaceholder("02-nonempty-snapshot.json", "XXX", msgFile.getAbsolutePath());
         SnapshotManagerTestUtils.setSnapshotFile(existingSnapshotFile, snapshotManager);
-        assumeThat("When a snapshot is loaded from existing snapshot file containing translations, then it is not empty", snapshotManager.getOrCreateDataFile().getDataPropFiles(), not(anEmptyMap()));
+        assumeThat("When a snapshot is loaded from existing snapshot file containing translations, then it is not empty", snapshotManager.getOrCreateDataFile().getProps(), not(anEmptyMap()));
         String existingMsgFilePath = msgFile.getAbsolutePath();
-        assumeThat("...it already contains some messages", snapshotManager.getOrCreateDataFile().getDataPropFiles(), hasKey(existingMsgFilePath));
+        assumeThat("...it already contains some messages", snapshotManager.getOrCreateDataFile().getProps(), hasKey(existingMsgFilePath));
 
-        exporter.walkPathsAndWriteSheets(paths, langs, "N/A", snapshotOutput);
+        TranslationConfiguration configuration = new TranslationConfiguration();
+        configuration.setMutations(langs);
+        configuration.setPath(paths);
+        configuration.setDataFileName(snapshotOutput.toAbsolutePath().toString());
+        exporter.walkPathsAndWriteSheets(configuration, "N/A", false);
 
         assertThat("When existing snapshot contained the same message file as the message file processed, then there should be exactly one sheet created", fakeSheets.getSheets().size(), equalTo(1));
 
         // manually load resulting snapshot file to examine it
         Snapshot resultingSnapshot = SnapshotUtils.readSnapshot(snapshotOutput);
-        Map<String, MessageFileContent> msgFiles = resultingSnapshot.getDataPropFiles();
+        Map<String, MessageFileContent> msgFiles = resultingSnapshot.getProps();
 
         String msgFilePath = msgFile.getAbsolutePath();
         assertThat("When a message file is exported and snapshot already contains it, then the snapshot must contain exactly one record", msgFiles, is(aMapWithSize(1)));
         assertThat("...then the snapshot must contain the message file", msgFiles, hasKey(msgFilePath));
         assertThat("...then the id of the stored message file must not change", msgFiles.get(msgFilePath).getId(), equalTo(0));
         // this is the "exported" snapshot
-        assertThat("...then the content of the message remains empty)", msgFiles.get(msgFilePath).getProperties(), is(anEmptyMap()));
+        assertThat("...then the content of the message remains empty)", msgFiles.get(msgFilePath).getPropertiesSize(), equalTo(0));
     }
 
     @Configuration
@@ -158,7 +163,7 @@ public class ExporterSnapshotTest {
 
         @Bean
         @Override
-        public TranslationConfiguration translationConfiguration(Environment environment) {
+        public TranslationConfiguration translationConfiguration(Environment environment, Optional<ApplicationArguments> applicationArguments) {
             // empty configuration is OK for tests, path to snapshot is  explicitly
             return new TranslationConfiguration();
         }

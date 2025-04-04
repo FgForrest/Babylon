@@ -1,6 +1,8 @@
 package one.edee.babylon.export;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.apachecommons.CommonsLog;
+import one.edee.babylon.export.MessageFileProcessor.SheetContent;
 import one.edee.babylon.export.dto.ExportResult;
 import one.edee.babylon.export.dto.MessageFileExportResult;
 import one.edee.babylon.export.dto.TranslationSheet;
@@ -8,8 +10,7 @@ import one.edee.babylon.export.stats.MessageFileExportStats;
 import one.edee.babylon.sheets.SheetUtils;
 import one.edee.babylon.snapshot.TranslationSnapshotReadContract;
 import one.edee.babylon.snapshot.TranslationSnapshotWriteContract;
-import kotlin.Pair;
-import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @CommonsLog
 @RequiredArgsConstructor
 public class TranslationCollector {
-    private final MessageLoader messageLoader;
+    private final List<MessageLoader> messageLoaders;
     private final MessageFileProcessor messageFileProcessor;
     private final TranslationSnapshotReadContract snapshotReadContract;
     private final TranslationSnapshotWriteContract snapshotWriteContract;
@@ -67,7 +68,7 @@ public class TranslationCollector {
     }
 
     private MessageFileExportResult processMsgFile(String msgFilePath, List<String> translateTo) {
-        Pair<SheetContent, MessageFileExportStats> msgFileResult = computeTranslationSheetRows(msgFilePath, translateTo);
+        MessageFileProcessor.Pair<SheetContent, MessageFileExportStats> msgFileResult = computeTranslationSheetRows(msgFilePath, translateTo);
         SheetContent sheetData = msgFileResult.getFirst();
         MessageFileExportStats msgFileStats = msgFileResult.getSecond();
 
@@ -77,9 +78,17 @@ public class TranslationCollector {
         return new MessageFileExportResult(translationSheet, msgFileStats);
     }
 
-    private Pair<SheetContent, MessageFileExportStats> computeTranslationSheetRows(String msgFilePath, List<String> translateTo) {
-        Map<String, String> primaryMsgs = messageLoader.loadPrimaryMessages(msgFilePath);
-        Map<String, Map<String, String>> translations = messageLoader.loadTranslations(msgFilePath, translateTo);
+    private MessageFileProcessor.Pair<SheetContent, MessageFileExportStats> computeTranslationSheetRows(String msgFilePath, List<String> translateTo) {
+        Map<String, String> primaryMsgs = null;
+        Map<String, Map<String, String>> translations = null;
+        for (MessageLoader messageLoader : messageLoaders) {
+            if (messageLoader.canBeLoaded(msgFilePath)) {
+                primaryMsgs = messageLoader.loadPrimaryMessages(msgFilePath);
+                translations = messageLoader.loadTranslations(msgFilePath, translateTo);
+            }
+        }
+        Assert.notNull(primaryMsgs, "There is no appropriate message loader for file path  with extension: " + msgFilePath);
+        Assert.notNull(translations, "There is no appropriate message loader for file path  with extension: " + msgFilePath);
 
         return messageFileProcessor.prepareTranslationSheet(msgFilePath, primaryMsgs, translations, translateTo);
     }
@@ -88,7 +97,7 @@ public class TranslationCollector {
         String sheetName = new SheetUtils().getSheetName(msgFilePath, sheetId);
 
         List<List<String>> allRows = new ArrayList<>();
-        allRows.addAll(Collections.singletonList(sheetContent.getHeader()));
+        allRows.add(sheetContent.getHeader());
         allRows.addAll(sheetContent.getDataRows());
         return new TranslationSheet(sheetName, allRows);
     }

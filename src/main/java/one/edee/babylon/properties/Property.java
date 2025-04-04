@@ -1,6 +1,7 @@
 package one.edee.babylon.properties;
 
 import one.edee.babylon.enums.PropertyType;
+import org.apache.commons.io.IOUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.LinkedList;
@@ -10,31 +11,26 @@ import java.util.List;
  * Common class for property values of all types by {@link PropertyType}
  * @author Tomas Langer (langer@fg.cz), FG Forrest a.s. (c) 2019
  */
-public class Property {
+public class Property extends AbstractProperty {
 
     static final String MULTILINE_SEPARATOR = "\\";
 
-    private PropertyType type;
     private String value;
 
     /* Only for PropertyType#MULTILINE */
     private final List<String> lines = new LinkedList<>();
 
     public Property(PropertyType type, String value) {
-        this.value = value;
-        this.type = type;
+        super(type);
+        this.value = clearValue(value);
     }
 
     void addLine(String line) {
-        lines.add(line.replace(System.lineSeparator(), ""));
+        lines.add(line.replace(System.lineSeparator(), "").replace(IOUtils.LINE_SEPARATOR_WINDOWS, ""));
     }
 
     public Integer getRowCount() {
         return lines.size();
-    }
-
-    public PropertyType getType() {
-        return type;
     }
 
     public String getValue() {
@@ -48,27 +44,12 @@ public class Property {
     }
 
     public void setValue(String value) {
+        value = clearValue(value);
         if (isPropValueMultiLine()) {
             setMultilineValue(value);
             return;
         }
         this.value = value;
-    }
-
-    public boolean isPropValue() {
-        return type == PropertyType.VALUE;
-    }
-
-    public  boolean isPropValueMultiLine() {
-        return type == PropertyType.MULTILINE;
-    }
-
-    public boolean isPropEmptyLine() {
-        return type == PropertyType.EMPTY;
-    }
-
-    public boolean isPropComment() {
-        return type == PropertyType.COMMENT;
     }
 
     private void setMultilineValue(String value) {
@@ -93,17 +74,13 @@ public class Property {
             String line = lines.get(i);
             sb.append(line);
             if (i < lines.size()-1 && !line.endsWith(System.lineSeparator())) {
-                sb.append(System.lineSeparator());
+                sb.append(IOUtils.LINE_SEPARATOR_WINDOWS);
             }
         }
         return sb.toString();
     }
 
-    @Override
-    public String toString() {
-        return "Property{" +
-                "type=" + type +
-                ", value='" + value + '\'' +
-                '}';
+    public static String clearValue(String value){
+        return value.replace("\n","\\n");
     }
 }
