@@ -1,8 +1,8 @@
 package one.edee.babylon.export;
 
-import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.apachecommons.CommonsLog;
+import one.edee.babylon.export.MessageFileProcessor.SheetContent;
 import one.edee.babylon.export.dto.ExportResult;
 import one.edee.babylon.export.dto.MessageFileExportResult;
 import one.edee.babylon.export.dto.TranslationSheet;
@@ -68,7 +68,7 @@ public class TranslationCollector {
     }
 
     private MessageFileExportResult processMsgFile(String msgFilePath, List<String> translateTo) {
-        Pair<SheetContent, MessageFileExportStats> msgFileResult = computeTranslationSheetRows(msgFilePath, translateTo);
+        MessageFileProcessor.Pair<SheetContent, MessageFileExportStats> msgFileResult = computeTranslationSheetRows(msgFilePath, translateTo);
         SheetContent sheetData = msgFileResult.getFirst();
         MessageFileExportStats msgFileStats = msgFileResult.getSecond();
 
@@ -78,7 +78,7 @@ public class TranslationCollector {
         return new MessageFileExportResult(translationSheet, msgFileStats);
     }
 
-    private Pair<SheetContent, MessageFileExportStats> computeTranslationSheetRows(String msgFilePath, List<String> translateTo) {
+    private MessageFileProcessor.Pair<SheetContent, MessageFileExportStats> computeTranslationSheetRows(String msgFilePath, List<String> translateTo) {
         Map<String, String> primaryMsgs = null;
         Map<String, Map<String, String>> translations = null;
         for (MessageLoader messageLoader : messageLoaders) {
@@ -97,7 +97,7 @@ public class TranslationCollector {
         String sheetName = new SheetUtils().getSheetName(msgFilePath, sheetId);
 
         List<List<String>> allRows = new ArrayList<>();
-        allRows.addAll(Collections.singletonList(sheetContent.getHeader()));
+        allRows.add(sheetContent.getHeader());
         allRows.addAll(sheetContent.getDataRows());
         return new TranslationSheet(sheetName, allRows);
     }
