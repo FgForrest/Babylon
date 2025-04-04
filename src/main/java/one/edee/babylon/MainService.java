@@ -43,6 +43,7 @@ public class MainService {
                 importProcessor.doImport(spreadsheetId);
                 break;
         }
+
         log.info("Translation done in: " + (System.currentTimeMillis() - stTime) + "ms");
     }
 
