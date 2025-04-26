@@ -1,5 +1,6 @@
 package one.edee.babylon.properties;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import java.io.InputStream;
 import java.util.Properties;
@@ -13,10 +14,10 @@ public class MultilinePropertyTest {
         InputStream propIS = getClassPathResourceStream("multiline.properties");
         FileActiveRecord props = new PropertyFileLoader().loadProperties(propIS);
 
-        String expected = "<h3>Nahrajte soubor v jednom z níže uvedených formátů</h3>" + System.lineSeparator() +
+        String expected = "<h3>Nahrajte soubor v jednom z níže uvedených formátů</h3>\\" + System.lineSeparator() +
                 "  <p>Importovaný soubor může být pouze ve formátu CSV nebo XML dle níže uvedené specifikace.</p>";
 
-        String multilineProp = props.get("orderImport.help.content").getValue();
+        String multilineProp = props.get("orderImport.help.content").getQuotedValue();
         // Assuming value is of type String
         String multilinePropValue = multilineProp;
 

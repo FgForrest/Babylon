@@ -1,6 +1,8 @@
 package one.edee.babylon.export;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import one.edee.babylon.sheets.SheetConstants;
 import one.edee.babylon.export.stats.MessageFileExportStats;
 import one.edee.babylon.snapshot.TranslationSnapshotReadContract;
@@ -16,28 +18,20 @@ public class MessageFileProcessor {
         this.snapshotReadContract = snapshotReadContract;
     }
 
+    @Getter
     public static class SheetContent {
         private final List<String> header;
         private final List<List<String>> dataRows;
+        private final Set<String> translatedHistorically;
         private final int dataRowCount;
 
-        public SheetContent(List<String> header, List<List<String>> dataRows) {
+        public SheetContent(List<String> header, List<List<String>> dataRows, Set<String> translatedHistorically) {
             this.header = header;
             this.dataRows = dataRows;
             this.dataRowCount = dataRows.size();
+            this.translatedHistorically = translatedHistorically;
         }
 
-        public List<String> getHeader() {
-            return header;
-        }
-
-        public List<List<String>> getDataRows() {
-            return dataRows;
-        }
-
-        public int getDataRowCount() {
-            return dataRowCount;
-        }
     }
 
     public Pair<SheetContent, MessageFileExportStats> prepareTranslationSheet(
@@ -59,6 +53,7 @@ public class MessageFileProcessor {
             primaryMsgKeyOrdering.put(key, index++);
         }
 
+        missingTranslations.removeAll(changedKeys);
         SheetContent translationSheet = createTranslationSheet(
                 primaryMsgs,
                 translations,
@@ -94,13 +89,10 @@ public class MessageFileProcessor {
     }
 
     private Set<String> determineChangedPrimaryMsgs(String msgFile, Map<String, String> existingPrimaryMsgs) {
-        if (!snapshotReadContract.includesMsgFile(msgFile)) {
-            return Collections.emptySet();
-        }
 
         return existingPrimaryMsgs.entrySet().stream()
                 .filter(entry ->
-                        snapshotReadContract.containsMessage(entry.getKey(), msgFile) &&
+                        !snapshotReadContract.containsMessage(entry.getKey(), msgFile) ||
                                 !snapshotReadContract.hasSameMessage(entry.getKey(), msgFile, entry.getValue()))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
@@ -142,11 +134,7 @@ public class MessageFileProcessor {
         noUsableTranslations.addAll(changedMsgKeys);
 
         List<List<String>> blankRows = noUsableTranslations.stream()
-                .map(key -> {
-                    String primaryMsg = primaryMsgs.get(key);
-                    List<String> emptyCols = translationLangs.stream().filter(Objects::isNull).collect(Collectors.toList());
-                    return createRow(key, primaryMsg, emptyCols);
-                })
+                .map(key -> populateSheetRow(primaryMsgs, translations, translationLangs, key))
                 .collect(Collectors.toList());
 
         List<List<String>> allRows = new ArrayList<>();
@@ -156,7 +144,7 @@ public class MessageFileProcessor {
         allRows.sort(Comparator.comparing(row -> msgKeyOrdering.get(row.get(0))));
 
         List<String> header = createSheetHeader(translationLangs);
-        return new SheetContent(header, allRows);
+        return new SheetContent(header, allRows, changedMsgKeys);
     }
 
     private List<String> populateSheetRow(Map<String, String> primaryMsgs,

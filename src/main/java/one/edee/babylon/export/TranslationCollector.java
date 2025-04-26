@@ -73,7 +73,7 @@ public class TranslationCollector {
         MessageFileExportStats msgFileStats = msgFileResult.getSecond();
 
         Integer sheetId = snapshotWriteContract.registerMsgFile(msgFilePath);
-        TranslationSheet translationSheet = newTranslationSheet(sheetData, sheetId, msgFilePath, translateTo);
+        TranslationSheet translationSheet = newTranslationSheet(sheetData, sheetId, msgFilePath);
 
         return new MessageFileExportResult(translationSheet, msgFileStats);
     }
@@ -93,13 +93,13 @@ public class TranslationCollector {
         return messageFileProcessor.prepareTranslationSheet(msgFilePath, primaryMsgs, translations, translateTo);
     }
 
-    private TranslationSheet newTranslationSheet(SheetContent sheetContent, Integer sheetId, String msgFilePath, List<String> translateTo) {
+    private TranslationSheet newTranslationSheet(SheetContent sheetContent, Integer sheetId, String msgFilePath) {
         String sheetName = new SheetUtils().getSheetName(msgFilePath, sheetId);
 
         List<List<String>> allRows = new ArrayList<>();
         allRows.add(sheetContent.getHeader());
         allRows.addAll(sheetContent.getDataRows());
-        return new TranslationSheet(sheetName, allRows);
+        return new TranslationSheet(sheetName, allRows, sheetContent.getTranslatedHistorically());
     }
 
     private void logMsgFileStats(Iterable<MessageFileExportStats> exportStats) {

@@ -47,19 +47,16 @@ public class SnapshotAdapter implements TranslationSnapshotReadContract, Transla
 
     @Override
     public boolean containsMessage(String msgKey, String msgFile) {
-        if (!includesMsgFile(msgFile)) return false;
+        if (!includesMsgFile(msgFile))
+            return false;
 
-        if (!includesMsgFile(msgFile)) {
-            // caller should have asked before
-            throw new NoSuchElementException("Translation snapshot doesn't contain message file '$msgFile'.");
-        }
         MessageFileContent propFileByFileName = snapshot.getPropFileByFileName(msgFile);
         return containsMessageInProps(msgKey, propFileByFileName);
     }
 
     private boolean containsMessageInProps(String msgKey, MessageFileContent propFileByFileName) {
         // PropertiesMap replaces null values with empty strings internally
-        return propFileByFileName.containsKey(msgKey) && propFileByFileName.getPropertyValue(msgKey) != null && !propFileByFileName.getPropertyValue(msgKey).isEmpty();
+        return propFileByFileName.containsKey(msgKey) && propFileByFileName.getPropertyValue(msgKey) != null;
     }
 
     @Override

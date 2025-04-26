@@ -33,7 +33,7 @@ public class FakeTranslationSnapshot implements TranslationSnapshotReadContract 
 
     @Override
     public boolean hasSameMessage(String msgKey, String msgFile, String currentMsg) {
-        return !Objects.equals(getLastMessageValue(msgKey, msgFile), currentMsg);
+        return Objects.equals(getLastMessageValue(msgKey, msgFile), currentMsg);
     }
 
     private String getLastMessageValue(String msgKey, String msgFile) {

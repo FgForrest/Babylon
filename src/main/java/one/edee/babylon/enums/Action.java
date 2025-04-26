@@ -14,5 +14,11 @@ public enum Action {
      * Action for import of translated data from Google sheet specified by ID, through Json DataFile into language properties files,
      * according to given Json Configuration file.
      */
-    IMPORT
+    IMPORT,
+
+    /**
+     * Action to check the status or consistency of properties or translations,
+     * ensuring that the data adheres to expected rules or configurations.
+     */
+    CHECK
 }

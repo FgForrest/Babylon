@@ -57,7 +57,7 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
      * @return
      */
     public static Arguments parseArguments(String... args) {
-        if (!(args.length == 3 || args.length == 4 || args.length == 5)) {
+        if (!(args.length == 2 || args.length == 3 || args.length == 4 || args.length == 5)) {
             log.error("Invalid input arguments, required: ");
             printRequiredArguments();
             System.exit(-1);
@@ -73,7 +73,9 @@ public class SpringBootConsoleApplication implements CommandLineRunner {
             throw new IllegalArgumentException(msg);
         }
         arguments.setConfigFileName(args[1]);
-        arguments.setGoogleSheetId(args[2]);
+        if (args.length > 2){
+            arguments.setGoogleSheetId(args[2]);
+        }
         if (args.length > 3){
             arguments.setCombineSheets(Boolean.parseBoolean(args[3]));
         }

@@ -66,7 +66,7 @@ public class PropertyFileActiveRecord extends FileActiveRecord {
                 String key = e.getKey();
                 AbstractProperty value = e.getValue();
                 if (value.isPropValue() || value.isPropValueMultiLine()) {
-                    bw.write(key + "=" + e.getValue().getValue());
+                    bw.write(key + "=" + e.getValue().getQuotedValue());
                     // Break line on all rows except last one.
                     if (iterator.hasNext()) {
                         bw.newLine();
@@ -77,7 +77,7 @@ public class PropertyFileActiveRecord extends FileActiveRecord {
                     continue;
                 }
                 if (value.isPropComment()) {
-                    bw.write(e.getValue().getValue());
+                    bw.write(e.getValue().getQuotedValue());
                     if (iterator.hasNext()) {
                         bw.newLine();
                     }

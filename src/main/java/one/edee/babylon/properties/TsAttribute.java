@@ -30,7 +30,7 @@ public class TsAttribute extends AbstractProperty {
 
         if (value.contains(delimiter)) {
             // Escape the delimiter
-            value = value.replace(delimiter, "\\" + delimiter);
+            value = value.replaceAll("(?<!\\\\)"+delimiter, "\\\\" + delimiter);
         }
         if (isPropEmptyLine()) {
             return "";

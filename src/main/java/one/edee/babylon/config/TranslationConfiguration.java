@@ -62,6 +62,11 @@ public class TranslationConfiguration implements Serializable {
     @Nullable
     private String translatorApiKey;
 
+    /**
+     * Indicates whether keys that have been moved should be marked in the translation process.
+     */
+    private boolean markMovedKeys = true;
+
     @JsonIgnore
     public Path getSnapshotPath() {
         return Paths.get(dataFileName);

@@ -1,19 +1,23 @@
 package one.edee.babylon.export;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import one.edee.babylon.export.MessageFileProcessor.Pair;
 import one.edee.babylon.export.MessageFileProcessor.SheetContent;
 import one.edee.babylon.export.stats.MessageFileExportStats;
 import one.edee.babylon.snapshot.TranslationSnapshotReadContract;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
 
 public class MessageFileProcessorTest {
+    private final ObjectMapper om = new ObjectMapper();
 
     @Test
-    public void testWhenAllTranslationsExistAndUnchanged_thenNotIncludedInSheet() {
+    public void testWhenAllTranslationsExistAndUnchanged_thenNotIncludedInSheet() throws JsonProcessingException {
         Map<String, String> keys1 = new HashMap<>();
         keys1.put("pagination.prev", "Previous");
         keys1.put("pagination.next", "Next");
@@ -41,8 +45,8 @@ public class MessageFileProcessorTest {
 
         SheetContent expected = new SheetContent(
                 Arrays.asList("key", "primary", "cz", "sk"),
-                Collections.emptyList()
-        );
+                Collections.emptyList(),
+                new HashSet<>());
 
         MessageFileProcessor mfProcessor = new MessageFileProcessor(snapshot);
         SheetContent sheet = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo).getFirst();
@@ -51,7 +55,7 @@ public class MessageFileProcessorTest {
     }
 
     @Test
-    public void whenNoSnapshotOfPreviousTranslationAndNoTranslationsThenAllMessagesAreExportedToTranslationSheet() {
+    public void whenNoSnapshotOfPreviousTranslationAndNoTranslationsThenAllMessagesAreExportedToTranslationSheet() throws JsonProcessingException {
         FakeTranslationSnapshot emptySnapshot = new FakeTranslationSnapshot(new HashMap<>());
 
         Map<String, String> primaryMessages = BMap.of(
@@ -68,8 +72,8 @@ public class MessageFileProcessorTest {
                         Arrays.asList("pagination.prev", "Previous", null, null),
                         Arrays.asList("pagination.next", "Next", null, null),
                         Arrays.asList("price.zeroPriceString", "Free", null, null)
-                )
-        );
+                ),
+                new HashSet<>());
 
         MessageFileProcessor mfProcessor = new MessageFileProcessor(emptySnapshot);
         Pair<SheetContent, MessageFileExportStats> result = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, noTranslations, translateTo);
@@ -107,8 +111,8 @@ public class MessageFileProcessorTest {
                 Arrays.asList(
                         Arrays.asList("availability.text.ALWAYS_AVAILABLE", "Always in stock", null, null),
                         Arrays.asList("availability.text.NOT_AVAILABLE", "Momentarily unavailable", null, null)
-                )
-        );
+                ),
+                new HashSet<>());
 
         MessageFileProcessor mfProcessor = new MessageFileProcessor(snapshot);
         Pair<SheetContent, MessageFileExportStats> result = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo);
@@ -132,14 +136,17 @@ public class MessageFileProcessorTest {
                         "pagination.next", "Nasledujúce")
         );
 
+        Set<String> translatedHistorically = new HashSet<>();
+        translatedHistorically.add("pagination.prev");
+        translatedHistorically.add("pagination.next");
         SheetContent expected = new SheetContent(
                 Arrays.asList("key", "primary", "cz", "sk"),
                 Arrays.asList(
                         Arrays.asList("pagination.prev", "Previous", "Předchozí", null),
                         Arrays.asList("pagination.next", "Next", null, "Nasledujúce"),
                         Arrays.asList("price.zeroPriceString", "Free", null, null)
-                )
-        );
+                ),
+                translatedHistorically);
 
         MessageFileProcessor mfProcessor = new MessageFileProcessor(emptySnapshot);
         Pair<SheetContent, MessageFileExportStats> result = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo);
@@ -174,8 +181,8 @@ public class MessageFileProcessorTest {
                 Arrays.asList(
                         Arrays.asList("availability.text.ALWAYS_AVAILABLE", "Always in stock", null, null),
                         Arrays.asList("availability.text.NOT_AVAILABLE", "Momentarily unavailable", null, null)
-                )
-        );
+                ),
+                new HashSet<>());
 
         MessageFileProcessor mfProcessor = new MessageFileProcessor(snapshot);
         Pair<SheetContent, MessageFileExportStats> result = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo);
@@ -204,13 +211,15 @@ public class MessageFileProcessorTest {
                         "pagination.prev", "Predchádzajúce",
                         "pagination.next", "Nasledujúce"));
 
+        Set<String> translatedHistorically = new HashSet<>();
+        translatedHistorically.add("pagination.prev");
         SheetContent expected = new SheetContent(
                 Arrays.asList("key", "primary", "cz", "sk"),
                 Arrays.asList(
-                        Arrays.asList("pagination.prev", "Prev", null, null),
+                        Arrays.asList("pagination.prev", "Prev", "Předchozí","Predchádzajúce"),
                         Arrays.asList("price.zeroPriceString", "Free", null, null)
-                )
-        );
+                ),
+                translatedHistorically);
 
         MessageFileProcessor mfProcessor = new MessageFileProcessor(snapshot);
         Pair<SheetContent, MessageFileExportStats> result = mfProcessor.prepareTranslationSheet("i18n/common.properties", primaryMessages, translations, translateTo);
@@ -243,17 +252,22 @@ public class MessageFileProcessorTest {
                                 "Zdá se, že jste delší dobu nebyli aktivní. Zkontrolujte, zda jste nebyli automaticky odhlášeni a opět se přihlaste nebo případně vyplňte formulář znovu.",
                                 null,
                                 "Zdá sa, že ste dlhšiu dobu neboli aktívni. Skontrolujte, či ste neboli automaticky odhlásení, a opäť sa prihláste, prípadne vyplňte formulár odznova.")
-                )
-        );
+                ),
+                new HashSet<>());
 
         MessageFileProcessor mfProcessor = new MessageFileProcessor(snapshot);
         Pair<SheetContent, MessageFileExportStats> result = mfProcessor.prepareTranslationSheet("i18n/errors.properties", primaryMessages, translations, translateTo);
         assertEquals(expected, result.getFirst());
     }
 
+    @SneakyThrows
+    private void assertEquals(Object o1, Object o2){
+        Assert.assertEquals(om.writeValueAsString(o1), om.writeValueAsString(o2));
+    }
+
     private static class BMap {
         public static <T> Map<String, T> of(Object... values) {
-            Map<String, T> map = new HashMap<>();
+            Map<String, T> map = new LinkedHashMap<>();
             for (int i = 0; i < values.length; i++) {
                 if (i % 2 == 0) {
                     String key = (String) values[i];

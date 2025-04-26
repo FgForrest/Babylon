@@ -33,6 +33,11 @@ public class Property extends AbstractProperty {
         return lines.size();
     }
 
+    @Override
+    public String getQuotedValue() {
+        return super.getQuotedValue().replace(IOUtils.LINE_SEPARATOR_WINDOWS, System.lineSeparator());
+    }
+
     public String getValue() {
         if (isPropValueMultiLine()) {
             return getMultilineValue();

@@ -7,7 +7,7 @@ import java.util.List;
 @Data
 public class ExportResult {
 
-    private final Iterable<String> pathsOfNewMsgFiles;
+    private final List<String> pathsOfNewMsgFiles;
 
     private final List<TranslationSheet> sheets;
 

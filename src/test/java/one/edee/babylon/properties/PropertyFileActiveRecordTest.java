@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Objects;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -39,6 +40,7 @@ public class PropertyFileActiveRecordTest {
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(Files.newOutputStream(targetFile.toPath()), StandardCharsets.UTF_8);
         propertyFileActiveRecord.save(outputStreamWriter, primary, "en");
         log.info("Save time: " + (System.currentTimeMillis() - stTime) + " ms");
+        assertEquals(FileUtils.readFileToString(targetFile, StandardCharsets.UTF_8).trim(), FileUtils.readFileToString(sourceFile, StandardCharsets.UTF_8).trim());
         assertTrue("Source and target file is different", FileUtils.contentEquals(sourceFile, targetFile));
 
     }

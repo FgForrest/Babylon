@@ -4,9 +4,10 @@ import com.google.api.services.sheets.v4.model.*;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 
 /**
  * Helps create requests for the Google Sheets API client library.
@@ -156,50 +157,42 @@ public class GSheetApiRequestFactory {
                 .setSheetId(sheetId);
     }
 
-    public List<Request> changeCellColor(Integer sheetId, String sheetTitle, Map<String, List<String>> changed) {
-        List<String> changes = changed.get(sheetTitle);
+    public List<Request> changeCellColor(Integer sheetId, List<String> changed, Color color) {
         List<Request> reqs = new LinkedList<>();
-        if (changes != null && !changes.isEmpty()) {
-            for (String change : changes) {
-                String[] s = change.split("_");
-                int row = Integer.parseInt(s[0]);
-                int column = Integer.parseInt(s[1]);
+        for (String change : ofNullable(changed).orElse(emptyList())) {
+            String[] s = change.split("_");
+            int row = Integer.parseInt(s[0]);
+            int column = Integer.parseInt(s[1]);
 
-                reqs.add(
-                        new Request()
-                                .setUpdateCells(
-                                        new UpdateCellsRequest()
-                                                .setRange(
-                                                        new GridRange()
-                                                                .setSheetId(sheetId)
-                                                                .setStartColumnIndex(column)
-                                                                .setEndColumnIndex(column + 1)
-                                                                .setStartRowIndex(row)
-                                                                .setEndRowIndex(row + 1)
-                                                )
-                                                .setRows(
-                                                        singletonList(
-                                                                new RowData()
-                                                                        .setValues(
-                                                                                singletonList(
-                                                                                        new CellData()
-                                                                                                .setUserEnteredFormat(
-                                                                                                        new CellFormat()
-                                                                                                                .setBackgroundColor(
-                                                                                                                        new Color()
-                                                                                                                                .setRed(1f)
-                                                                                                                                .setGreen(0.8f)
-                                                                                                                                .setBlue(0.61f)
-                                                                                                                )
-                                                                                                )
-                                                                                )
-                                                                        )
-                                                        )
-                                                )
-                                                .setFields("userEnteredFormat.backgroundColor")
-                                )
-                );
-            }
+            reqs.add(
+                    new Request()
+                            .setUpdateCells(
+                                    new UpdateCellsRequest()
+                                            .setRange(
+                                                    new GridRange()
+                                                            .setSheetId(sheetId)
+                                                            .setStartColumnIndex(column)
+                                                            .setEndColumnIndex(column + 1)
+                                                            .setStartRowIndex(row)
+                                                            .setEndRowIndex(row + 1)
+                                            )
+                                            .setRows(
+                                                    singletonList(
+                                                            new RowData()
+                                                                    .setValues(
+                                                                            singletonList(
+                                                                                    new CellData()
+                                                                                            .setUserEnteredFormat(
+                                                                                                    new CellFormat()
+                                                                                                            .setBackgroundColor(color)
+                                                                                            )
+                                                                            )
+                                                                    )
+                                                    )
+                                            )
+                                            .setFields("userEnteredFormat.backgroundColor")
+                            )
+            );
         }
         return reqs;
     }

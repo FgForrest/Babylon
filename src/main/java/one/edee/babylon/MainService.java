@@ -42,6 +42,9 @@ public class MainService {
             case IMPORT:
                 importProcessor.doImport(spreadsheetId);
                 break;
+            case CHECK:
+                exporter.walkPathsAndCheckDB(configuration);
+                break;
         }
 
         log.info("Translation done in: " + (System.currentTimeMillis() - stTime) + "ms");

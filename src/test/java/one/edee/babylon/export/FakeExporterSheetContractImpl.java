@@ -1,6 +1,7 @@
 package one.edee.babylon.export;
 
 import lombok.Data;
+import one.edee.babylon.config.TranslationConfiguration;
 import one.edee.babylon.sheets.gsheets.model.ASheet;
 
 import java.util.*;
@@ -33,8 +34,9 @@ public class FakeExporterSheetContractImpl implements Exporter.SheetContract {
             String spreadsheetId,
             String sheetTitle,
             List<List<String>> sheetRows,
-            List<String> lockedCellEditors,
-            Map<String, List<String>> changed) {
+            TranslationConfiguration lockedCellEditors,
+            Map<String, List<String>> translatedAutomatically,
+            Set<String> translatedHistorically) {
 
         List<ASheet> currentSheets = new ArrayList<>(sheets.getOrDefault(spreadsheetId, new ArrayList<>()));
         currentSheets.add(new FakeSheet(getAndIncId()));

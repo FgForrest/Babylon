@@ -50,7 +50,7 @@ public class TypeScriptBabylonParserListener extends TypeScriptParserBaseListene
 
     private String cleanText(String text) {
         if (text.matches(APOSTROPHE_CLEANING_REGEX) || (text.contains("\n") || text.contains("\r")))
-            text = text.replaceAll("['`]", "");
+            text = text.replaceAll("(?<!\\\\)['`]", "");
         return text;
     }
 

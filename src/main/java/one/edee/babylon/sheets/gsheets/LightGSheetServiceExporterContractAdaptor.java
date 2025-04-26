@@ -1,16 +1,16 @@
 package one.edee.babylon.sheets.gsheets;
 
+import one.edee.babylon.config.TranslationConfiguration;
 import one.edee.babylon.export.Exporter;
 import one.edee.babylon.sheets.gsheets.model.ASheet;
 import one.edee.babylon.sheets.gsheets.model.SheetAdaptor;
 import one.edee.babylon.sheets.SheetsException;
 import com.google.api.services.sheets.v4.model.Sheet;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,16 +46,30 @@ public class LightGSheetServiceExporterContractAdaptor implements Exporter.Sheet
     }
 
     @Override
-    public void createSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors, Map<String, List<String>> changed) throws SheetsException {
+    public void createSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, TranslationConfiguration configuration, Map<String, List<String>> translatedAutomatically, Set<String> translatedHistorically) throws SheetsException {
         try {
             Sheet existingSheet = lightGSheetService.loadSheet(spreadsheetId, sheetTitle);
             if (existingSheet != null) {
                 throw new SheetsException("Sheet '" + sheetTitle + "' already exists.");
             }
+
+            List<String> translatedAutomaticallyMap = new LinkedList<>();
+            if(configuration.isMarkMovedKeys()){
+                for (int i = 0; i < sheetRows.size(); i++) {
+                    List<String> row = sheetRows.get(i);
+                    if (translatedHistorically.contains(row.get(0))){
+                        for (int l = 2; l < row.size(); l++) {
+                            if (StringUtils.hasText(row.get(l)))
+                                translatedAutomaticallyMap.add(i+"_"+l);
+                        }
+                    }
+                }
+            }
+
             lightGSheetService.uploadDataToGoogleSheet(spreadsheetId, sheetTitle, sheetRows);
             Sheet sheet = lightGSheetService.loadSheet(spreadsheetId, sheetTitle);
             Integer sheetId = sheet.getProperties().getSheetId();
-            lightGSheetService.updateSheetStyle(spreadsheetId, sheetTitle, sheetId, lockedCellEditors, changed);
+            lightGSheetService.updateSheetStyle(spreadsheetId, sheetId, configuration.getLockedCellEditors(), translatedAutomatically.get(sheetTitle), translatedAutomaticallyMap);
         } catch (IOException | GeneralSecurityException e) {
             String errMsg = "Error when creating sheet '" + sheetTitle + "' in spreadsheet '" + spreadsheetId + "'";
             throw new SheetsException(errMsg, e);

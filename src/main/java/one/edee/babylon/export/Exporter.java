@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptySet;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -45,11 +46,51 @@ public class Exporter {
     private final PathUtils pu = new PathUtils();
 
 
+    public void walkPathsAndCheckDB(TranslationConfiguration configuration) {
+
+        List<String> patternPaths = configuration.getPath();
+        warnDuplicatePaths(patternPaths);
+
+
+        Collection<String> allUniquePaths = expandsToUniquePaths(patternPaths);
+        boolean pathsOk = checkPathsExist(allUniquePaths);
+        if (!pathsOk) {
+            throw new IllegalArgumentException("Please fix the message file paths in the configuration file.");
+        }
+
+        ExportResult result = translationCollector.walkPathsAndCollectTranslationSheets(allUniquePaths, configuration.getMutations());
+
+        log.info("𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂");
+        log.info("𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂");
+        log.info("𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂");
+        log.info("𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂");
+        log.info("\n");
+        if (!result.getPathsOfNewMsgFiles().isEmpty()){
+            log.info("PATHS NOT IN DB:");
+            result.getPathsOfNewMsgFiles().forEach(log::info);
+        }
+
+        boolean hasAnySheetChanges = result.getSheets().stream().filter(i -> i.getDataRowCount() > 0).count() > 1;
+        if (hasAnySheetChanges){
+            log.info("");
+            log.info("Changed messages");
+            for (TranslationSheet sheet : result.getSheets()) {
+                if (sheet.getDataRowCount() > 0)
+                    log.info("  " + sheet.getSheetName() + " - count: " + sheet.getDataRowCount());
+            }
+        }
+
+        if (result.getPathsOfNewMsgFiles().isEmpty() && !hasAnySheetChanges)
+            log.info("No changes detected.");
+        log.info("");
+        log.info("𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂");
+    }
+
     /**
      * Walks message file paths, gathering messages and translations, producing translation sheets in given GSheet spreadsheet.
      *
-     * @param configuration     configuration of translation run
-     * @param spreadsheetId     id of GSheets spreadsheet, must be empty
+     * @param configuration configuration of translation run
+     * @param spreadsheetId id of GSheets spreadsheet, must be empty
      */
     public void walkPathsAndWriteSheets(TranslationConfiguration configuration,
                                         String spreadsheetId,
@@ -77,18 +118,18 @@ public class Exporter {
             for (int i = 0; i < sheets.size(); i++) {
                 TranslationSheet sheet = sheets.get(i);
                 List<List<String>> rows = sheet.getRows();
-                if (i != 0){
+                if (i != 0) {
                     rows.remove(0);
                 }
                 combine.addAll(rows);
             }
 
-            original.add(new TranslationSheet(COMBINING_SHEET_NAME,combine));
+            original.add(new TranslationSheet(COMBINING_SHEET_NAME, combine, emptySet()));
         }
 
         Map<String, List<String>> changed = translateTextsByExternalTool(configuration, result);
 
-        uploadTranslations(result, spreadsheetId, configuration.getLockedCellEditors(), changed);
+        uploadTranslations(result, spreadsheetId, configuration, changed);
 
         updateSnapshotAndWriteToDisk(this.snapshot, result, configuration.getSnapshotPath());
 
@@ -120,7 +161,7 @@ public class Exporter {
 
                     log.info("Translating sheet " + sheet.getSheetName());
                     List<String> header = rows.get(0);
-                    List<String> originals = rows.stream().map(i->i.get(1)).map(i->StringUtils.hasText(i) ? i : "____DUMMY").collect(Collectors.toList());
+                    List<String> originals = rows.stream().map(i -> i.get(1)).map(i -> StringUtils.hasText(i) ? i : "____DUMMY").collect(Collectors.toList());
                     Map<String, List<String>> translations = new HashMap<>();
 
                     for (String lang : header.stream().skip(2).collect(Collectors.toList())) {
@@ -139,7 +180,7 @@ public class Exporter {
 
                                 if (StringUtils.hasText(original)) {
                                     String transOriginal = originals.get(i);
-                                    if (!Objects.equals(original, "____DUMMY")){
+                                    if (!Objects.equals(original, "____DUMMY")) {
                                         Assert.isTrue(Objects.equals(transOriginal, original), "Originals does not equals!");
                                         String translatedText = translations.get(lang).get(i);
                                         toChange.put(l, translatedText);
@@ -218,13 +259,13 @@ public class Exporter {
         }
     }
 
-    private void uploadTranslations(ExportResult exportResult, String spreadsheetId, List<String> lockedCellEditors, Map<String, List<String>> changed) {
+    private void uploadTranslations(ExportResult exportResult, String spreadsheetId, TranslationConfiguration configuration, Map<String, List<String>> translatedAutomatically) {
         exportResult.getSheets().stream()
                 .filter(sheet -> !sheet.getDataRows().isEmpty())
                 .forEach(sheet -> {
                     try {
                         log.info("Writing " + sheet.getDataRows().size() + " rows into sheet '" + sheet.getSheetName() + "'.");
-                        gsc.createSheet(spreadsheetId, sheet.getSheetName(), sheet.getRows(), lockedCellEditors, changed);
+                        gsc.createSheet(spreadsheetId, sheet.getSheetName(), sheet.getRows(), configuration, translatedAutomatically, sheet.getTranslatedHistorically());
                     } catch (SheetsException e) {
                         String errMsg = "Error when uploading data to spreadsheet '" + spreadsheetId + "'";
                         throw new RuntimeException(errMsg, e);
@@ -253,6 +294,7 @@ public class Exporter {
         }
     }
 
+
     /**
      * Defines sheet operations required by {@link Exporter}.
      */
@@ -277,16 +319,19 @@ public class Exporter {
         void deleteSheets(String spreadsheetId, Collection<Integer> sheetIds) throws SheetsException;
 
         /**
-         * Creates a new sheet a fills it with provided data.
+         * Creates a new sheet in the specified spreadsheet with the given title, rows of data, and metadata, including locked
+         * cell editors, cells translated automatically, and cells translated historically. Throws an exception if the
+         * operation fails.
          *
-         * @param spreadsheetId     id of spreadsheet where new sheet should be created
-         * @param sheetTitle        name to use for the new sheet
-         * @param sheetRows         rows with data cells to fill the sheet with
-         * @param lockedCellEditors list of email accounts that will be able to edit locked cells
-         * @param changed
-         * @throws SheetsException when unable to upload sheets
+         * @param spreadsheetId           the ID of the spreadsheet where the sheet will be created
+         * @param sheetTitle              the title of the new sheet
+         * @param sheetRows               a list of rows where each row is represented as a list of strings
+         * @param configuration           configuration of translation run
+         * @param translatedAutomatically a mapping of cell references to their translated values, where translation was performed automatically
+         * @param translatedHistorically  a set of cell references that were translated manually in the past
+         * @throws SheetsException if the sheet cannot be created for any reason
          */
-        void createSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, List<String> lockedCellEditors, Map<String, List<String>> changed) throws SheetsException;
+        void createSheet(String spreadsheetId, String sheetTitle, List<List<String>> sheetRows, TranslationConfiguration configuration, Map<String, List<String>> translatedAutomatically, Set<String> translatedHistorically) throws SheetsException;
 
     }
 

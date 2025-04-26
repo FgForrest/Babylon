@@ -86,7 +86,7 @@ public class OpenAiTranslator implements Translator {
             chatCompletion = service.createChatCompletion(
                     ChatCompletionRequest
                             .builder()
-                            .model(ofNullable(System.getProperty("babylon.openai.model")).orElse("gpt-3.5-turbo-16k-0613"))
+                            .model(ofNullable(System.getProperty("babylon.openai.model")).orElse("gpt-4o"))
                             .messages(
                                     messages
                             )
