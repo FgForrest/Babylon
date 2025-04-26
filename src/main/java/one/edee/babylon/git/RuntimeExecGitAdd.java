@@ -33,7 +33,7 @@ public class RuntimeExecGitAdd implements GitAdd {
                 log.info("Result:");
                 BufferedReader reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
-                String line = "";
+                String line;
                 while ((line = reader.readLine()) != null) {
                     log.warn(line);
                 }

@@ -89,12 +89,12 @@ public class SnapshotManager {
     }
 
     /**
-     * This map {@link Snapshot#getDataPropFilesById()} is excluded from Json serialization, so after deserialization of
-     * {@link Snapshot} from file is necessary to load this map from loaded {@link Snapshot#getDataPropFiles()}.
+     * This map {@link Snapshot#dataPropFilesById} is excluded from Json serialization, so after deserialization of
+     * {@link Snapshot} from file is necessary to load this map from loaded {@link Snapshot#getProps()}.
      * @param df DataFile object with map to load in.
      */
     private void loadDataPropFilesIds(Snapshot df) {
-        df.getDataPropFiles().forEach((key, value) -> {
+        df.getProps().forEach((key, value) -> {
             if (value.getId() != null) {
                 df.putDataPropFileById(value.getId(), value);
             } else {

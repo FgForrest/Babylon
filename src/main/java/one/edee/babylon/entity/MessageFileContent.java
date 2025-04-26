@@ -2,10 +2,11 @@ package one.edee.babylon.entity;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 import one.edee.babylon.enums.PropertyStatus;
 import one.edee.babylon.snapshot.Snapshot;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.apache.commons.io.IOUtils;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -30,6 +31,9 @@ public class MessageFileContent implements Serializable {
     /**
      * Properties like {@link PropertiesMap}
      */
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    @JsonProperty("properties")
     private PropertiesMap properties = new PropertiesMap();
 
     /**
@@ -41,6 +45,12 @@ public class MessageFileContent implements Serializable {
     @JsonIgnore
     private Map<String, PropertiesMap> mutationProperties = new LinkedHashMap<>();
 
+
+    public boolean hasSameValue(String msgKey, String currentMsg) {
+        currentMsg = normalizeContent(currentMsg);
+        return properties.get(msgKey).equals(currentMsg);
+    }
+
     /**
      * Puts value for property for specified key and set logical working state of property like value of {@link PropertyStatus}: <br>
      * - {@link PropertyStatus#NEW} if key not exists<br>
@@ -51,6 +61,7 @@ public class MessageFileContent implements Serializable {
      * @return Old value of property or null if no property exists for given key.
      */
     public String putProperty(String key, String value) {
+        value = normalizeContent(value);
         String result = properties.put(key, value);
         if (result == null) {
             putPropertyStatus(key, PropertyStatus.NEW);
@@ -68,7 +79,7 @@ public class MessageFileContent implements Serializable {
      * @param value property value
      */
     public String putProperty(String key, String value, PropertyStatus propertyStatus) {
-        return properties.put(key, value, propertyStatus);
+        return properties.put(key, normalizeContent(value), propertyStatus);
     }
 
     public String putMutationProperty(String mutation, String key, String value) {
@@ -77,7 +88,7 @@ public class MessageFileContent implements Serializable {
             propertiesMap = new PropertiesMap();
             mutationProperties.put(mutation, propertiesMap);
         }
-        return propertiesMap.put(key, value);
+        return propertiesMap.put(key, normalizeContent(value));
     }
 
     public String getPropertyValue(String propertyKey) {
@@ -98,6 +109,22 @@ public class MessageFileContent implements Serializable {
 
     public PropertiesMap getMutationProperties(String mutation) {
         return mutationProperties.get(mutation);
+    }
+
+    private String normalizeContent(String value) {
+        String lineSeparator = System.lineSeparator();
+        if (lineSeparator.equals(IOUtils.LINE_SEPARATOR_WINDOWS))
+            return value;
+        return value == null ? null : value.replace(lineSeparator, IOUtils.LINE_SEPARATOR_WINDOWS);
+    }
+
+    public boolean containsKey(String key) {
+        return properties.containsKey(key);
+    }
+
+    @JsonIgnore
+    public Integer getPropertiesSize() {
+        return properties.size();
     }
 }
 

@@ -1,44 +1,19 @@
 package one.edee.babylon.properties;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import one.edee.babylon.export.ApronMessageLoader;
 
 /**
  * Loads {@link PropertyFileLoader} from a file.
  */
-public class PropertyFileLoader {
+public class PropertyFileLoader extends FileLoader {
 
-    /**
-     * Loads properties from file.
-     *
-     * @param fileNamePath path to existing properties file
-     * @return Returns properties {@link PropertyFileActiveRecord} or null if file not exists.
-     * @throws IOException error when reading the file
-     */
-    public PropertyFileActiveRecord loadPropertiesFromFile(String fileNamePath) {
-        if (!new File(fileNamePath).exists()) {
-            return null;
-        }
-        try (InputStream propertyFile = new FileInputStream(fileNamePath)) {
-            return loadProperties(propertyFile);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not close file " + fileNamePath, e);
-        }
+    @Override
+    public boolean canBeLoaded(String filePath) {
+        return filePath.endsWith(ApronMessageLoader.PROPERTIES_FILE_EXTENSION);
     }
 
-    /**
-     * Loads properties from input stream.
-     *
-     * @param propertyFile input stream with properties content
-     * @return Returns loaded file {@link PropertyFileActiveRecord}
-     * @throws IOException error when reading the stream
-     */
-    public PropertyFileActiveRecord loadProperties(InputStream propertyFile) throws IOException {
-        PropertyFileActiveRecord propertyFileActiveRecord = new PropertyFileActiveRecord();
-        try (InputStreamReader inputStreamReader = new InputStreamReader(propertyFile, StandardCharsets.UTF_8)) {
-            propertyFileActiveRecord.load(inputStreamReader);
-        }
-        return propertyFileActiveRecord;
+    @Override
+    public FileActiveRecord createFileActiveRecord() {
+        return new PropertyFileActiveRecord();
     }
-
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.nio.file.Path;
@@ -41,7 +42,30 @@ public class TranslationConfiguration implements Serializable {
      */
     private List<String> mutations = new ArrayList<>();
 
-    private List<String> lockedCellEditor = new ArrayList<>();
+    private List<String> lockedCellEditors = new ArrayList<>();
+
+    /**
+     * Default language of project properties.
+     */
+    @NonNull
+    private String defaultLang;
+
+    /**
+     * Default language of project properties.
+     */
+    @Nullable
+    private SupportedTranslators translator;
+
+    /**
+     * Default language of project properties.
+     */
+    @Nullable
+    private String translatorApiKey;
+
+    /**
+     * Indicates whether keys that have been moved should be marked in the translation process.
+     */
+    private boolean markMovedKeys = true;
 
     @JsonIgnore
     public Path getSnapshotPath() {
