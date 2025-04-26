@@ -39,9 +39,11 @@ public class MainService {
                         spreadsheetId,
                         combineSheets);
                 break;
+
             case IMPORT:
                 importProcessor.doImport(spreadsheetId);
                 break;
+
             case CHECK:
                 exporter.walkPathsAndCheckDB(configuration);
                 break;
