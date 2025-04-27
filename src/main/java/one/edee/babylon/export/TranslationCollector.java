@@ -54,7 +54,7 @@ public class TranslationCollector {
                 .collect(Collectors.toList());
         snapshotWriteContract.removeMsgFilePaths(obsoleteFilePaths);
 
-        return new ExportResult(newMsgFilesPaths, sheets);
+        return new ExportResult(newMsgFilesPaths, sheets, obsoleteFilePaths);
     }
 
     /** Collects only {@link TranslationSheet}s from {@link MessageFileExportResult} - for lack of tuples and unzip function */

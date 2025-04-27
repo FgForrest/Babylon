@@ -11,4 +11,6 @@ public class ExportResult {
 
     private final List<TranslationSheet> sheets;
 
+    private final List<String> obsoleteFilePaths;
+
 }

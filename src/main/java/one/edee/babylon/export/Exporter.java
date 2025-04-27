@@ -70,6 +70,11 @@ public class Exporter {
             result.getPathsOfNewMsgFiles().forEach(log::info);
         }
 
+        if (!result.getObsoleteFilePaths().isEmpty()){
+            log.info("PATHS REMOVED:");
+            result.getObsoleteFilePaths().forEach(log::info);
+        }
+
         boolean hasAnySheetChanges = result.getSheets().stream().filter(i -> i.getDataRowCount() > 0).count() > 1;
         if (hasAnySheetChanges){
             log.info("");
@@ -80,7 +85,7 @@ public class Exporter {
             }
         }
 
-        if (result.getPathsOfNewMsgFiles().isEmpty() && !hasAnySheetChanges)
+        if (result.getPathsOfNewMsgFiles().isEmpty() && !hasAnySheetChanges && result.getObsoleteFilePaths().isEmpty())
             log.info("No changes detected.");
         log.info("");
         log.info("𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂𐄂");
