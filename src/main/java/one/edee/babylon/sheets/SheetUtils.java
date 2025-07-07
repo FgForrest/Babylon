@@ -8,7 +8,7 @@ import org.apache.commons.io.FilenameUtils;
 public class SheetUtils {
 
     public String getSheetName(String msgFilePath, Integer msgFileId) {
-        return FilenameUtils.getBaseName(msgFilePath) + "#" + msgFileId;
+        return msgFileId  + "#" + FilenameUtils.getBaseName(msgFilePath);
     }
 
 }

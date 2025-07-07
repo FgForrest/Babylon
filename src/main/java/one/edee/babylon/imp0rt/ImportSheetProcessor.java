@@ -103,7 +103,7 @@ public class ImportSheetProcessor {
     }
 
     /**
-     * Parse unique id of the target properties file from sheet title (title format is "FileName" + "#" + "UniqueId")
+     * Parse unique id of the target properties file from sheet title (title format is "UniqueId" + "#" + "FileName")
      * @param sheetTitle title of the sheet.
      * @return File ID parsed from sheet title.
      */
@@ -113,7 +113,7 @@ public class ImportSheetProcessor {
             if (split.length != 2) {
                 throw new IllegalArgumentException("Cannot parse unique id from string \"" + sheetTitle + "\"");
             }
-            return Integer.parseInt(split[1]);
+            return Integer.parseInt(split[0]);
         } catch (PatternSyntaxException | NumberFormatException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
