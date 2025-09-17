@@ -112,10 +112,15 @@ public class MessageFileContent implements Serializable {
     }
 
     private String normalizeContent(String value) {
-        String lineSeparator = System.lineSeparator();
-        if (lineSeparator.equals(IOUtils.LINE_SEPARATOR_WINDOWS))
-            return value;
-        return value == null ? null : value.replace(lineSeparator, IOUtils.LINE_SEPARATOR_WINDOWS);
+        if (value == null)
+            return null;
+
+        // First replace lone \r not followed by \n
+        value = value.replaceAll("\r(?!\n)", IOUtils.LINE_SEPARATOR_WINDOWS);
+
+        // Then replace lone \n not preceded by \r
+        value = value.replaceAll("(?<!\r)\n", IOUtils.LINE_SEPARATOR_WINDOWS);
+        return value;
     }
 
     public boolean containsKey(String key) {
