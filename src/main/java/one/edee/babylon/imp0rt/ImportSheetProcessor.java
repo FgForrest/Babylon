@@ -68,7 +68,7 @@ public class ImportSheetProcessor {
         int col = 0;
         Map<Integer,String> header = new LinkedHashMap<>();
         for (CellData cellData : headerData.getValues()) {
-            String cellValue = cellData.getFormattedValue();
+            String cellValue = cellData.getFormattedValue().trim();
             header.put(col++, cellValue);
         }
         return header;
