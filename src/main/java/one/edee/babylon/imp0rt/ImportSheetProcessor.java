@@ -10,11 +10,10 @@ import com.google.api.services.sheets.v4.model.Sheet;
 import lombok.extern.apachecommons.CommonsLog;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.PatternSyntaxException;
+
+import static java.util.Optional.ofNullable;
 
 @CommonsLog
 public class ImportSheetProcessor {
@@ -68,7 +67,7 @@ public class ImportSheetProcessor {
         int col = 0;
         Map<Integer,String> header = new LinkedHashMap<>();
         for (CellData cellData : headerData.getValues()) {
-            String cellValue = cellData.getFormattedValue().trim();
+            String cellValue = ofNullable(cellData.getFormattedValue()).map(String::trim).orElse(null);
             header.put(col++, cellValue);
         }
         return header;
